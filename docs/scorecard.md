@@ -24,3 +24,7 @@ One row per build, so each run gets measurably better.
 ## 2026-10-14 · People: hair + beard pass
 - Hair: more, thinner locks (r 4.6–5.2 mm), tighter smooth-union so each lock reads; hair mesh 3.1 → 2.6 mm. Beard: 1,200 thinner clumps lying flatter, mesh 2.7 → 2.2 mm.
 - Better: no more cauliflower top, beard less blobby. Still weak: beard edges spiky, no colour streaks along the hair, build time up to ~9 min.
+
+## 2026-10-14 · Starting scores (Claude, first honest pass)
+- People in 3D: Shape 6 · Detail 5 · Surface 5 · Light 7 · Truth 6 · Works 9 = 6.3
+- Main hall v3: Shape 7 · Detail 6 · Surface 5 · Light 6 · Truth 6 · Works 8 = 6.3
