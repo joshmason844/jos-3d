@@ -6,3 +6,7 @@ node_modules/
 *.gif
 /work/
 /photos/
+
+# built pages (made by build.py)
+.claude/skills/3d-models/scripts/people/people.html
+.claude/skills/photo-to-3d/scripts/**/hall3.html
