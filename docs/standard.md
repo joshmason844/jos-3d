@@ -1,5 +1,7 @@
 # The standard
 
+**Challenge (Josh, 14 Oct 2026): get every page to 8/10.** Runs work on the lowest-scoring page first. Progress is in `docs/progress.md`.
+
 Each run scores its page out of 10 with fresh eyes on every line below. A page is "at standard" when it scores 8+ on two runs in a row. After that it only gets fixes, and the runs move on to the pages that score lowest.
 
 | Check      | 10 looks like                                                                        |
