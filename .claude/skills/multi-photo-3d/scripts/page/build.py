@@ -13,6 +13,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument('src', nargs='?', default=str(ROOT / 'work/yard-test/dense.ply'))
 ap.add_argument('out', nargs='?', default=str(ROOT / 'work/yard-test/multiphoto.html'))
 ap.add_argument('--title', default='Yard · multi-photo test'); ap.add_argument('--sub', default='24 photos')
+ap.add_argument('--min-clump', type=float, default=0.015, help='smallest clump kept, as a share of the cloud')
 ap.add_argument('--keep-strays', action='store_true', help='skip the clean-up (to compare)')
 a = ap.parse_args()
 
@@ -21,13 +22,30 @@ def clean(raw):
     """Drop stray points so the cloud (and the size readout) is honest:
     - lone points: mean distance to their 8 nearest neighbours more than 3× the median
     - under the floor: sfm.py levels the floor to y = 0, so anything below -12 cm is noise
+    - floaters: link points closer than 2.5× the median spacing; any clump that isn't joined to a big piece
+      (under MIN_CLUMP of the cloud) is a mismatch hanging in the air, so it goes
+    - far scatter: crop to the box of the big pieces (0.5–99.5 percentile) plus a 40 cm margin
     Returns the new PLY bytes, the median point spacing (m, sizes the discs on the page) and how many went."""
     import numpy as np
+    from scipy.sparse import coo_matrix
+    from scipy.sparse.csgraph import connected_components
     from scipy.spatial import cKDTree
     h = raw.index(b'end_header\n') + len(b'end_header\n')
     pts = np.frombuffer(raw[h:], dtype=[('p', '<f4', 3), ('c', 'u1', 3)])
-    d, _ = cKDTree(pts['p']).query(pts['p'], k=9, workers=-1); gap = d[:, 1:].mean(1); med = float(np.median(gap))
-    keep = np.ones(len(pts), bool) if a.keep_strays else (gap < 3 * med) & (pts['p'][:, 1] > -0.12)
+    P = pts['p'].astype(np.float64); tree = cKDTree(P)
+    d, _ = tree.query(P, k=9, workers=-1); gap = d[:, 1:].mean(1); med = float(np.median(gap))
+    keep = np.ones(len(pts), bool)
+    if not a.keep_strays:
+        keep = (gap < 3 * med) & (P[:, 1] > -0.12)
+        idx = np.flatnonzero(keep); Q = P[idx]
+        pr = cKDTree(Q).query_pairs(2.5 * med, output_type='ndarray')
+        _, lab = connected_components(coo_matrix((np.ones(len(pr)), (pr[:, 0], pr[:, 1])), shape=(len(Q), len(Q))), directed=False)
+        size = np.bincount(lab); big = size[lab] >= a.min_clump * len(Q)
+        lo, hi = np.percentile(Q[big], 0.5, 0) - 0.4, np.percentile(Q[big], 99.5, 0) + 0.4
+        inbox = np.all((Q >= lo) & (Q <= hi), 1)
+        keep[idx[~(big & inbox)]] = False
+        print(f'clean: {len(pts) - len(idx):,} lone/under-floor, {(~big).sum():,} in {int((size < a.min_clump * len(Q)).sum()):,} floating clumps, '
+              f'{(big & ~inbox).sum():,} outside the box')
     out = pts[keep]
     head = raw[:h].decode().replace(f'element vertex {len(pts)}', f'element vertex {len(out)}')
     return head.encode() + out.tobytes(), med, int((~keep).sum())

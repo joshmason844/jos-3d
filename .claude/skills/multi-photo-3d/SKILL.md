@@ -46,3 +46,4 @@ The upload came through at 480×360, 21 s, mostly turning on the spot. 3 fps: 34
 
 ## Traps learned
 - 14 Oct: eye-dome lighting makes a point cloud read as surfaces. Keep it gentle: ignore depth steps under ~0.07 (log2) or every disc gets a dark outline (bubble wrap), floor the shade at ~0.45, and cap disc size (10 px) so close-ups don't balloon. A full-screen pass needs depthTest on with AlwaysDepth to write gl_FragDepth, or the grid shows through.
+- 14 Oct: floaters are clumps, not lone points, so a k-NN distance test misses them. Connected components on a radius graph (2.5× median spacing, SciPy `query_pairs` + `connected_components`) and dropping pieces under 1.5% of the cloud clears them in ~2 s for 290k points. Anything touching a real surface (the orange plume) survives, so it needs a separate check. Shortcut: if work/ is empty, `Artifact read` the page and `extract_ply.py` the cloud back out; build + shoot is then under 30 s.

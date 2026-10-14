@@ -33,5 +33,9 @@ Runs alternate: one People item, then one Warehouse item (Main hall, sections, y
 - [ ] Warehouse: walls and roof. Cladding panel seams, purlins, fire exit signs, the roller door mechanism.
 - [x] Multi-photo test: page source into the repo (`multi-photo-3d/scripts/page`), stray clean-up, round points + eye-dome lighting, honest robust size with "not sure" tag, phone framing. 14 Oct
 - [ ] Multi-photo test: close-ups break into a disc mosaic with gaps (orange canvas, beams). Densify (more SGBM pairs / smaller voxel) or proper splats, so joints and beam clips read.
-- [ ] Multi-photo test: floaters still there (grey clumps top-left, dark trail below the right end, orange plume above the right bay). Drop small disconnected clusters, crop to the bay box plus a margin.
+- [x] Multi-photo test: floaters out. build.py now links points within 2.5× spacing, drops clumps under 1.5% of the cloud (354 clumps, 13k points) and crops to the big pieces' box + 40 cm. 14 Oct
+- [ ] Multi-photo test: orange plume above the right bay is only trimmed, not gone (it touches the canvas so it survives the clump filter). Try a colour-and-height check against the bay top.
 - [ ] Multi-photo test: "cloud ≈ 10.3 × 8.9 m" depth is the floor scatter, not the bay. Measure the bay from its beams/uprights (or fit a box to the racking) and show that instead.
+- [ ] Multi-photo test: left end of the rack is bent: top-left panel shears off and leans out, lower-left shelf block sags away from the uprights. Check camera poses at the start of the walk (drift) or re-run BA with more photos there.
+- [ ] Multi-photo test: orange canvas reads as dots with black gaps and a frayed top edge, see-through up close. Fill gaps on flat surfaces (bigger discs where neighbours are coplanar) or mesh it.
+- [ ] Multi-photo test: bay interiors are flat black-brown mush on a phone, no crates or edges readable. Lift shadows / local contrast in the bays, or brighten colours from the source photos.

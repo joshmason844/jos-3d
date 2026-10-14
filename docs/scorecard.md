@@ -40,3 +40,10 @@ One row per build, so each run gets measurably better.
 - Still weak: close-ups turn to a disc mosaic; floaters (clusters, not single points); depth figure is floor scatter, not the bay.
 - Reviewer (fresh eyes, same cameras): BEFORE 3.7 → AFTER 4.8. The 5.5 start was a self-score, so the honest baseline was lower.
 - Score: Shape 5 · Detail 3 · Surface 4.5 · Light 4.5 · Truth 5 · Works 7 = 4.8
+
+## 2026-10-14 · Multi-photo test: floaters out
+- build.py clean-up now also drops floating clumps: points within 2.5× the median spacing are linked, any clump under 1.5% of the cloud goes (354 clumps, 13,218 points), then a crop to the big pieces' box + 40 cm (1,119 more). Runs in ~2 s.
+- Better: grey clumps top-left, the dark trail under the right end and the specks under the rack are gone; outline reads as a rack. Cloud size readout 10.3 → 9.9 m.
+- Still weak: left end of the rack bent (pose drift?), orange canvas see-through up close, bay interiors dark mush on a phone, orange plume only trimmed.
+- Reviewer (fresh eyes, same cameras): BEFORE 4.0 → AFTER 4.2. A different reviewer scored the last run 4.8, so the scale moves between reviewers; this run's BEFORE/AFTER pair is the fair comparison.
+- Score: Shape 5 · Detail 2 · Surface 3 · Light 3 · Truth 5 · Works 7 = 4.2
