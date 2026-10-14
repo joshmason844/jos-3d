@@ -32,3 +32,11 @@ One row per build, so each run gets measurably better.
 ## 2026-10-14 · Tools: people build speed
 - Full build of both people 9 min → 40 s (×13): x-sorted culling in eval_groups, narrow-band grid evaluation, both people in parallel. Same meshes (sign agreement 100%, max error near surface 2e-8).
 - New: `--only` partial rebuilds (~25 s), `--fast` preview (~18 s), `people/iterate.sh` one-command loop with shots and a before/after sheet.
+
+## 2026-10-14 · Multi-photo test: solid points, strays out
+- Source now in the repo: `multi-photo-3d/scripts/page` (build.py, page.html, shoot.js, extract_ply.py). Cloud pulled back out of the published page.
+- Build drops 6,803 stray points (lone points + below the floor). Page draws round discs sized in metres, eye-dome lighting for edges and depth, gaps filled from neighbours, grid properly hidden behind the cloud, colours lifted.
+- Size readout uses the 1st–99th percentile box with an orange "not sure" tag; home view fits the whole cloud on a phone.
+- Still weak: close-ups turn to a disc mosaic; floaters (clusters, not single points); depth figure is floor scatter, not the bay.
+- Reviewer (fresh eyes, same cameras): BEFORE 3.7 → AFTER 4.8. The 5.5 start was a self-score, so the honest baseline was lower.
+- Score: Shape 5 · Detail 3 · Surface 4.5 · Light 4.5 · Truth 5 · Works 7 = 4.8

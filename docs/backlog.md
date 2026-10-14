@@ -31,3 +31,7 @@ Runs alternate: one People item, then one Warehouse item (Main hall, sections, y
 - [ ] Warehouse: Yard in 3D. Re-bake the photo textures at higher res; sharpen edges of the units.
 - [ ] Warehouse: section pages. Re-fit each to its photo and log the match error before/after.
 - [ ] Warehouse: walls and roof. Cladding panel seams, purlins, fire exit signs, the roller door mechanism.
+- [x] Multi-photo test: page source into the repo (`multi-photo-3d/scripts/page`), stray clean-up, round points + eye-dome lighting, honest robust size with "not sure" tag, phone framing. 14 Oct
+- [ ] Multi-photo test: close-ups break into a disc mosaic with gaps (orange canvas, beams). Densify (more SGBM pairs / smaller voxel) or proper splats, so joints and beam clips read.
+- [ ] Multi-photo test: floaters still there (grey clumps top-left, dark trail below the right end, orange plume above the right bay). Drop small disconnected clusters, crop to the bay box plus a margin.
+- [ ] Multi-photo test: "cloud ≈ 10.3 × 8.9 m" depth is the floor scatter, not the bay. Measure the bay from its beams/uprights (or fit a box to the racking) and show that instead.

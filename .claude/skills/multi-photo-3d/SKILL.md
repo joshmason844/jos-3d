@@ -35,8 +35,14 @@ The Yard in 3D page (https://claude.ai/artifact/CvKCoKtAY8vRyvdWMbXVyW) saves ph
 ## Real-world test: Josh's yard video (14 Oct 2026)
 The upload came through at 480×360, 21 s, mostly turning on the spot. 3 fps: 34/63 frames placed. 6 fps upscaled: worse (the chain breaks at every turn). Just the walking stretch: 40/68 placed, but noisy and not reliably levelled. Lesson: a shrunk, panning video isn't enough. Ask for photos (or the original-size video, shared as a file), and walk sideways rather than turn. The starting pair is now picked by actually triangulating the top 25 candidates (the old parallax score picked a pair that gave 0 points).
 
+## The page (multi-photo test)
+`scripts/page/build.py [dense.ply] [out.html]` (default work/yard-test/) builds it: cleans strays, embeds the cloud, stamps the code link. `extract_ply.py` pulls the cloud out of a published page; `shoot.js <page> <prefix>` takes phone + desktop, home + close shots (~25 s).
+
 ## Traps
 - Show reconstructions as **points** (`make_viewer.py` picks this for plain xyz/rgb PLY). Plain points have no size as splats, and headless Chromium can't render Spark reliably, so splat output can't be checked here.
 - Matching every photo against every other is slow (276 pairs ≈ 4.5 min of brute force). FLANN plus a window of 12 is much faster.
 - Pure rotation (standing still and turning) gives no depth. You have to walk.
 - Re-encoding HEIC in the browser drops EXIF, so the focal falls back to 26 mm and gets refined in bundle adjustment.
+
+## Traps learned
+- 14 Oct: eye-dome lighting makes a point cloud read as surfaces. Keep it gentle: ignore depth steps under ~0.07 (log2) or every disc gets a dark outline (bubble wrap), floor the shade at ~0.45, and cap disc size (10 px) so close-ups don't balloon. A full-screen pass needs depthTest on with AlwaysDepth to write gl_FragDepth, or the grid shows through.
