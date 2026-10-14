@@ -9,8 +9,7 @@ Every page in the challenge, its latest score from a fresh-eyes review, and the 
 | People in 3D       | 6.3            | 6.3    | 8      | no           |
 | Main hall v3       | 6.3            | 6.3    | 8      | no           |
 | Sections 1–5       | 7.0            | 7.0    | 8      | no           |
-| Trellis Stack      | 7.0            | 7.0    | 8      | no           |
 
-Pages: 0 of 6 at standard.
+Pages: 0 of 5 at standard.
 
-Dropped by Josh (14 Oct): Bell tent viewer, Yard with People, Forklift. Don't work on them.
+Dropped by Josh (14 Oct): Bell tent viewer, Yard with People, Forklift, Trellis Stack. Don't work on them.
