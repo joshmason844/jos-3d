@@ -205,7 +205,7 @@ function layout() {
     T(g, 'Lime stillages (new, empty)', 'Brand-new lime-green post pallets with removable posts, standing empty.', '≈ 1.2 × 1.0 × 0.9 m'); }
   { const g = crownStack(P, K14, 19.1, -14.6, RIGHT, [[0, 3], [1, 2]]); const top = onTop(grp(g, 1.32, 2.48, 0), 2); for (let i = 0; i < 8; i++) pallet(top, 1.2, .8, i * .145, .2); for (let i = 0; i < 6; i++) box(g, 1.15, .15, .62, STD({ color: 0x24262a, roughness: .55 }), 2.55, i * .165, 0);
     T(g, '14 ft crown crates', 'Green covers "14FT CROWN × 5": five 14 ft yurt crowns per crate, three high, with a stack of empty pallets and black cushion pads beside them.', '1.2 × 1.0 × 1.24 m each'); }
-  { const g = crownStack(P, K16, 19.1, -18.6, RIGHT, [[0, 4], [1, 3], [2, 4]]);
+  { const g = crownStack(P, K16, 19.1, -18.6, RIGHT, [[0, 4], [1, 3]]);   // 7 counted (photo 51)
     const cage = onTop(grp(g, 1.32, 3.72, 0), 3); poleLevel(cage, 0, 1.0, M.red, 1.2, 1.0, true); for (let k = 0; k < 4; k++) blackCrate(cage, -.27 + (k % 2) * .54, .1 + Math.floor(k / 2) * .37, -.2, .5, .34, .38);
     T(g, '16 ft crown crates', 'Green covers "16FT CROWN × 5", stacked up to four high (about 5 m), with a red mesh cage of black crates on top of the middle column.', '1.2 × 1.0 × 1.24 m each'); }
   { const g = grp(P, 16.2, 0, -19.6, -.25); for (let i = 0; i < 3; i++) { const c = crown(g, 1.0, i * .14, .5, 0); c.rotation.x = Math.PI / 2; }
@@ -227,12 +227,12 @@ function layout() {
   { const g = poleStillage(P, .75, -18.6, LEFT, [.5, .5, .5, .5, .5, .5, .5, .5, .5], Array(9).fill('rafters'), M.blue, 1.15, 2.6); T(g, 'Pole stillages (blue)', 'Blue pole stillages stacked nine high (about 4.5 m), full of yurt roof poles strapped in bundles.', '1.15 × 2.6 m · 0.5 m a level'); }
   { const g = grp(P, .8, 0, -21.6, LEFT); const cv = canvasStack(g, 14, 0, 0, 0, [[0, 1, ['13–17']]]); const cage = grp(g, 0, .84, 0); poleLevel(cage, 0, .76, M.red, 1.2, 1.0, true); lump(cage, 0, .08, 0, 1.0, .55, .85, MX.white);
     const up = canvasStack(g, 14, -.15, -.45, 0, [[0, 3, ['28–32', '18–22', '8–12']]]); up.position.y = 1.6;
-    canvasStack(g, 14, 1.27, 0, 0, [[0, 4, ['1–5', '23–27', '33–37', '38–42']]]);
     T(g, '14 ft canvas crates', 'Red covers marked "14ft CANVAS" with number ranges (13–17, 28–32, 18–22, 8–12…): 14 ft yurt canvases, five to a crate, numbered so a set goes out together; a red mesh cage of bulk bags between them.', '≈ 1.2 × 1.0 × 0.84 m each'); }
   { const g = trellisStillages(P, 3.4, -21.9, LEFT + .03, [{ sets: 2, per: 3, doors: 1 }, { sets: 2, per: 3, doors: 1 }, { sets: 2, per: 3, doors: 1 }]);
     T(g, '14 ft trellis + door stillages', 'Purple stillages three high next to the 14 ft canvas: a 14 ft yurt is 3 trellis sections per door, so each stillage holds two sets, the door laid flat on its trellis, cling-filmed.', 'stillages 2.32 × 1.35 m · ≈ 3.1 m tall'); }
   { const g = poleStillage(P, .75, -25.4, LEFT, [.5, .5, .5, .5, .5, .5], Array(6).fill('rafters'), M.red, 1.15, 2.6); T(g, 'Pole stillages (red, wall)', 'Red pole stillages six high along the left wall, next to the 14 ft stillages: yurt roof poles in strapped bundles.', '1.15 × 2.6 m'); }
-  { const g = crownStack(P, K12, 7.2, -15.6, Math.PI, [[0, 2], [1, 2]]); const top = crownCrate(g, K12, 0, 2.48, 0); top.userData.level = 2; CRATES.push(top);
+  { const g = crownStack(P, K12, 7.2, -15.6, Math.PI, [[0, 1], [1, 1]]); const top = crownCrate(g, K12, .66, 1.24, 0); top.userData.level = 1; CRATES.push(top);   // 3 here + 1 by the door = 4 counted (photo 11)
+    const byDoor = crownStack(P, K12, 6.3, -2.6, Math.PI / 2, [[0, 1]]); T(byDoor, '12 ft crown crate (by the door)', 'A single "12FT CROWN × 12" crate near the roller door.', '1.2 × 1.0 × 1.24 m');
     T(g, '12 ft crown crates', 'Green covers "12FT CROWN × 12": twelve 12 ft yurt crowns per crate, out in the middle of the hall.', '1.2 × 1.0 × 1.24 m each'); }
   { const g = plainStack(P, coverMats('white', '#efeee9', '#161616', null, { window: false }), 4.4, -15.6, Math.PI, [[0, 2], [1, 2]], 1.2, 1.04, 1.0); T(g, 'Safari tent crates', 'White covers with the black Green Yurts badge, two high: the safari tents (Josh).', '≈ 1.2 × 1.0 × 1.2 m each'); }
   { const g = grp(P, 4.6, 0, -12.6); pallet(g, 2.2, 1.15); box(g, 2.2, 1.05, 1.15, [MX.ply, MX.ply, MX.ply, MX.ply, STD({ map: tex(512, 256, (x, w, h) => { x.drawImage(MX.ply.map.image, 0, 0, w, h); drawBadge(x, w / 2, h / 2, 100, 'rgba(30,25,20,.8)', 'rgba(0,0,0,0)'); }) }), MX.ply], 0, .144, 0); bag(g, .3, 1.2, 0, 1.0, .18, .4, '#3fae86');
@@ -256,8 +256,8 @@ function layout() {
     T(g, 'Tent stakes', 'A strapped bundle of square timber stakes with red-painted tips.', '≈ 1.0–1.2 m'); }
   { const g = grp(P, 3.6, 0, -29.3); for (let i = 0; i < 4; i++) { tubes(g, 8, -.6, .6, i * .07, 1, 2.6, .035, MX.alu, { hollow: true, yaw: .5, tilt: .05 }); } blackCrate(g, .4, 0, 1.2, .78, .36, .58, -.2); blackCrate(g, -.6, 0, 1.0, .78, .36, .58, .3);
     T(g, 'Loose tubes + black crates', 'Aluminium tubes and black lidded crates on the floor at the foot of the pole stacks.', ''); }
-  { const g = canvasStack(P, 16, 4.5, -36.6, FAR, [[0, 5, ['1–5', '6–10', '11–15', '16–20', '21–25']], [1, 4, ['26–30', '31–35', '36–40', '41–45']], [2, 5, ['46–50', '51–55', '56–60', '61–65', '66–70']]]);
-    const g2 = canvasStack(P, 16, .75, -33.8, LEFT, [[0, 5, ['A', 'B', 'C', 'D', 'E'].map(s => '')], [1, 4, ['', '', '', '']]]);
+  { const g = canvasStack(P, 16, 4.5, -36.6, FAR, [[0, 5, ['11–15', '41–45', '16–20', '1–5', '21–25']], [1, 4, ['36–40', '', '', '']]]);   // 9 counted (photo 39)
+    const g2 = canvasStack(P, 16, .75, -33.8, LEFT, [[0, 5, ['', '', '', '', '']]]);   // 5 counted (photo 2)
     T(g, '16 ft canvas crates', 'Red covers marked "16ft CANVAS" with number ranges on the front: the 16 ft yurt canvases, five to a crate, stacked four or five high in the far-left corner.', '≈ 1.2 × 1.0 × 0.84 m each'); T(g2, '16 ft canvas crates (wall)', 'More "16ft CANVAS" crates along the left wall at the far end.', ''); }
   { const g = poleStillage(P, 13.4, -35.0, 0, [1.05, 1.05, 1.05, 1.05, 1.05], ['poles', 'timber', 'alu', 'coir', 'timber']); T(g, 'Pole tower (far end)', 'Red post pallets five high in the middle of the end wall: long timber poles sticking out both ends, aluminium tubes, canvas and jute bags.', '≈ 5.3 m'); }
   { const g = grp(P, 9.0, 0, -37.9); stillageFrame(g, M.purple, 3.0, .7, .3); for (let i = 0; i < 16; i++) box(g, .09, .05, 3.2, MX.timber, -.4 + (i % 4) * .25, .1 + Math.floor(i / 4) * .055, 0).rotation.y = Math.PI / 2;
