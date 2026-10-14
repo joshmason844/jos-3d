@@ -2,7 +2,7 @@
 
 Josh's 3D imaging toolkit for Green Yurts kit and spaces. It turns phone photos, videos and scans into measured 3D pages, and builds the kit itself (yurts, bell tents, trellis, crates, stillages, the forklift) at real size. Everything runs without a GPU: Python for the maths, Three.js in the browser for the models, and headless Chromium for testing and rendering.
 
-**Private repo.** Don't make it public without checking first. No keys, tokens or photos of people go in here.
+**Public repo** (Josh's choice, 14 Oct 2026). No keys, tokens, crew names or photos of people go in here.
 
 ## What's in it
 
