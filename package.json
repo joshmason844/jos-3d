@@ -1,0 +1,6 @@
+{
+  "name": "jos-3d",
+  "private": true,
+  "description": "Headless test and render bench for the jos-3d pages",
+  "devDependencies": { "playwright": "^1.47.0" }
+}
