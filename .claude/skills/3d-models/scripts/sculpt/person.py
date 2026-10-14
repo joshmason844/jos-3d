@@ -11,7 +11,7 @@ SPECS = {
                  beard=dict(kind='full', color=(128, 80, 48)), brows=(140, 104, 70), iris=(118, 160, 178),
                  tee=(154, 166, 155), hem=.855, trousers=(28, 29, 32), cuff=False, drawstring=False,
                  shoe=(240, 240, 236), sole=(222, 222, 216),
-                 pose=dict(d1=(.40, -.915, .05), d2=(.33, -.93, .17), palm=(-.55, 0, .83), curl=.45, spread=.04)),
+                 pose=dict(d1=(.40, -.915, .05), d2=(.33, -.93, .17), palm=(-.88, 0, .45), curl=.42, spread=.04)),
     'kdk': dict(label='KDK tee', height=1.80, skin=(222, 176, 140), lips=(170, 106, 92),
                 hair=dict(style='messy', color=(58, 40, 28), tips=(104, 76, 52), top=.085, sides=.045),
                 beard=dict(kind='stubble', color=(52, 38, 28)), brows=(50, 36, 26), iris=(84, 60, 40),
@@ -94,23 +94,35 @@ class Person:
 
     def hand(self, W, a, n, t, curl, spread):
         g = 'skin'
+        # n is the side the fingers curl towards (the palm); the knuckles and nails are on -n
         R = np.stack([t, a, n], 1).astype(f32)
-        self.E(g, W + a * .048, (.041, .05, .0155), .02, R=R)                        # palm
-        self.E(g, W + a * .03 - n * .004 + t * .02, (.022, .03, .016), .015, R=R)    # thumb pad (thenar)
-        lens = [.074, .082, .077, .061]
+        self.E(g, W + a * .046, (.04, .05, .0145), .018, R=R)                        # palm
+        self.E(g, W + a * .07 - n * .004, (.038, .014, .011), .012, R=R)              # knuckle ridge on the back
+        self.E(g, W + a * .034 + n * .006 + t * .019, (.019, .028, .012), .012, R=R)  # thumb pad (thenar), palm side
+        self.E(g, W + a * .05 + n * .006 - t * .026, (.012, .03, .009), .01, R=R)     # little-finger pad
+        lens = [.072, .08, .076, .06]; self.nails = getattr(self, 'nails', [])
         for i in range(4):
-            off = .025 - i * .0168; sp = (i - 1.5) * spread * .5
-            dirA = norm(a + t * sp); base = W + a * .088 + t * off
-            L = lens[i]; r0 = .0098 - i * .0006
+            off = .0255 - i * .0172; sp = (i - 1.5) * (spread + .05) * .5            # a little natural fan
+            dirA = norm(a + t * sp); base = W + a * .086 + t * off
+            L = lens[i]; r0 = .0088 - i * .0005; cu = curl * (.85 + .1 * i)          # little finger curls most
             p1 = base + dirA * L * .45
-            dirB = norm(dirA * np.cos(curl) - n * np.sin(curl)); p2 = p1 + dirB * L * .33
-            dirC = norm(dirA * np.cos(curl * 1.8) - n * np.sin(curl * 1.8)); p3 = p2 + dirC * L * .24
-            self.C(g, base - dirA * .01, p1, r0, r0 * .92, .006)
-            self.C(g, p1, p2, r0 * .92, r0 * .84, .004)
-            self.C(g, p2, p3, r0 * .84, r0 * .72, .003)
-        td = norm(a * .55 + t * .8 + n * .3); b0 = W + a * .022 + t * .026 - n * .004
-        b1 = b0 + td * .035; td2 = norm(td * .8 + a * .4 - n * .15); b2 = b1 + td2 * .03
-        self.C(g, b0, b1, .0125, .0108, .01); self.C(g, b1, b2, .0108, .0088, .004)
+            dirB = norm(dirA * np.cos(cu) + n * np.sin(cu)); p2 = p1 + dirB * L * .33
+            dirC = norm(dirA * np.cos(cu * 1.8) + n * np.sin(cu * 1.8)); p3 = p2 + dirC * L * .24
+            self.C(g, base - dirA * .012, p1, r0, r0 * .88, .004)
+            self.C(g, p1, p2, r0 * .86, r0 * .8, .0025)
+            self.C(g, p2, p3, r0 * .78, r0 * .7, .002)
+            self.E(g, base - n * .003, (r0 * 1.02,) * 3, .004)                        # knuckle (MCP)
+            self.E(g, p1 - n * .002, (r0 * .95,) * 3, .003)                            # middle joint
+            self.E(g, p3 - dirC * r0 * .1 + n * .001, (r0 * .72, r0 * .62, r0 * .72), .002)  # fingertip pad
+            self.nails.append((p3 - dirC * .006 - n * r0 * .55, dirC, -n, r0))
+        # thumb: three bones from the wrist, angled across the palm and curling in
+        td = norm(a * .85 + t * .32 + n * .32); b0 = W + a * .024 + t * .018 + n * .005
+        b1 = b0 + td * .042
+        td2 = norm(td * .85 + a * .25 + n * (.15 + curl * .4)); b2 = b1 + td2 * .032
+        td3 = norm(td2 + n * (.1 + curl * .5)); b3 = b2 + td3 * .026
+        self.C(g, b0, b1, .0125, .0108, .012); self.C(g, b1, b2, .0108, .0096, .004); self.C(g, b2, b3, .0092, .0072, .003)
+        self.E(g, b1 - n * .002, (.0112,) * 3, .004)
+        self.nails.append((b3 - td3 * .006 - n * .0052, td3, -n, .0094))
 
     # ------------------------------------------------------------ the head: carved, not stacked
     def head(self):
@@ -121,8 +133,14 @@ class Person:
         for sx in (-1, 1):
             self.C(g, (sx * .054, 1.64, -.022), (sx * .024, 1.578, .056), .019, .016, .025)   # jaw line
             self.E(g, (sx * .048, 1.664, .058), (.02, .012, .016), .025)                      # cheekbone
-            self.E(g, (sx * .078, 1.678, -.006), (.011, .031, .021), .008, R=self._rotx(-.18))  # ear
-            self.E(g, (sx * .088, 1.68, -.004), (.006, .02, .013), .004, R=self._rotx(-.18), sub=True)
+            # ear: a thin plate angled back, rolled rim (helix), shallow bowl (concha), lobe below
+            Re = self._rotx(-.2) @ self._roty(sx * .32)
+            self.E(g, (sx * .079, 1.679, -.008), (.0075, .029, .018), .006, R=Re)
+            self.C(g, (sx * .083, 1.703, -.01), (sx * .084, 1.684, -.026), .0036, .0034, .003)       # helix: top to back
+            self.C(g, (sx * .084, 1.684, -.026), (sx * .082, 1.662, -.016), .0034, .003, .003)
+            self.E(g, (sx * .081, 1.654, -.006), (.005, .008, .0065), .004)                           # lobe
+            self.E(g, (sx * .087, 1.679, -.006), (.0045, .012, .0085), .003, R=Re, sub=True)          # concha
+            self.E(g, (sx * .081, 1.671, .009), (.004, .005, .004), .003)                              # tragus
             self.E(g, (sx * ex, ey + .002, .083), (.0175, .0155, .016), .01, sub=True)         # eye socket
         self.E(g, (0, 1.575, .068), (.023, .019, .018), .02)                           # chin
         self.C(g, (-.044, 1.705, .082), (.044, 1.705, .082), .011, .011, .02)          # brow ridge
@@ -131,16 +149,25 @@ class Person:
         for sx in (-1, 1):
             self.E(g, (sx * .0132, 1.6415, .0915), (.0075, .007, .0075), .007)         # nostril wings
             self.E(g, (sx * .0082, 1.6355, .0985), (.0035, .0022, .004), .002, sub=True)
-        self.E(g, (0, 1.6115, .0858), (.0205, .0038, .0058), .006)                    # upper lip
-        self.E(g, (0, 1.601, .0838), (.018, .0048, .0066), .006)                       # lower lip
+        # lips: upper lip as two lobes with a cupid's bow, fuller lower lip, a groove under the nose, tucked corners
+        for sx in (-1, 1):
+            self.E(g, (sx * .007, 1.6112, .0852), (.0135, .0036, .0056), .009)        # upper lip lobes
+            self.E(g, (sx * .0072, 1.6015, .0836), (.0125, .0046, .0062), .009)        # lower lip
+            self.E(g, (sx * .0215, 1.6062, .0835), (.0045, .0045, .006), .003, sub=True)  # mouth corners
+            self.C(g, (sx * .0035, 1.6305, .0975), (sx * .0045, 1.6155, .0925), .0016, .0018, .003)  # philtrum ridges
+        self.E(g, (0, 1.6122, .0885), (.0035, .0026, .003), .006)                      # tubercle in the middle of the bow
+        self.E(g, (0, 1.624, .0952), (.0026, .007, .002), .005, sub=True)            # philtrum groove
         self.E(g, (0, 1.6062, .095), (.021, .001, .012), .001, sub=True)               # mouth line
+        self.E(g, (0, 1.5915, .083), (.014, .0035, .004), .006, sub=True)              # dip under the lower lip
         # eyelids: shells round each eyeball, cut to above / below the opening
         for sx in (-1, 1):
             c = V(sx * ex, ey, ez)
             lo, hi = bb_c(c, .016)
-            self.F.add('skin', lambda P, c=c: smax(sphere(P, c, .0137), (c[1] + .0008) - P[:, 1], .002), lo, hi, .004)
+            self.F.add('skin', lambda P, c=c: smax(sphere(P, c, .0141), (c[1] + .0012) - P[:, 1], .002), lo, hi, .004)
+            self.F.add('skin', lambda P, c=c: smax(sphere(P, c + V(0, .0035, -.001), .0146), (c[1] + .0072) - P[:, 1], .002), lo, hi, .006)  # lid fold
             self.F.add('skin', lambda P, c=c: smax(sphere(P, c, .0132), P[:, 1] - (c[1] - .0064), .002), lo, hi, .004)
         self.extras['eyes'] = [dict(c=[sx * ex, ey, ez], r=EYE['r']) for sx in (-1, 1)]
+        self.extras['nails'] = self.nails
 
     @staticmethod
     def _rotx(a):

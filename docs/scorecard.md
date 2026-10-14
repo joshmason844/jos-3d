@@ -14,3 +14,9 @@ One row per build, so each run gets measurably better.
 | 14 Oct | Main hall, 39 photos + video  | none (no camera solve yet) | 40 items / 2 not sure | none | read every label off the photos first; evidence photos on every card |
 | 14 Oct | Hall in 5 photo-fitted sections | 3.3 / 3.7 / 4.8 / 5.4 / 7.0 px | 60 photos, ~45 items | none | one camera per section from crate corners (1.2 × 1.0 × 1.24 m) + height prior; photo skin + 50/50 match slider; merge by placing each section frame in the hall |
 | 14 Oct | Hall v3: full remodel, one plan | no photo overlay (by request) | ~55 items, 1 not sure | none | single coordinate frame, fronts face the aisle; merge static meshes per item (3,404 → 282 draw calls); GTAO + door spill + LED lights |
+
+## 2026-10-14 · People: faces + hands pass
+- Hands: fingers no longer fused (wider spacing, thinner), knuckles, joints, fingertip pads, painted nails; fingers curl towards the palm (was backwards); thumb rebuilt as 3 bones lying along the index; relaxed hand turned palm-in so the thumb points forward.
+- Faces: ears rebuilt (thin plate, rim, bowl, lobe, tragus) instead of a cup; lips with cupid's bow, philtrum, tucked corners; fuller upper lid fold, lash line and crease paint; brows as fine hair strokes; nasolabial shading.
+- Neck seam gone (head mesh now runs down under the collar).
+- Still weak: hair and beard read as lumpy clumps; lips still a bit stuck-on.

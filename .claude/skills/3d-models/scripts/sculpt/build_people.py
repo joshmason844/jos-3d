@@ -36,20 +36,42 @@ def colour(p, v, n, lab, occ):
         bx = np.abs(P[:, 0]); tt = np.clip((bx - .012) / .042, 0, 1)
         arc = 1.7035 + .007 * np.sin(tt * 2.8) - .006 * tt
         brow = np.clip(1 - np.abs(P[:, 1] - arc) / (.0068 - .0028 * tt), 0, 1) * (bx > .01) * (bx < .056) * (P[:, 2] > .055)
-        brow *= .75 + .25 * np.random.default_rng(2).random(len(P))
-        c = mix(c, C(S['brows']), np.clip(brow * 1.3, 0, .92))
+        strokes = .5 + .5 * np.sin(P[:, 0] * 2400 + P[:, 1] * 900 * np.sign(P[:, 0]))   # fine hairs slanting outwards
+        brow *= (.55 + .45 * strokes) * (.8 + .2 * np.random.default_rng(2).random(len(P)))
+        c = mix(c, C(S['brows']), np.clip(brow * 1.2, 0, .85))
         under = np.maximum.reduce([blob(P, (sx * .032, 1.674, .08), (.016, .008, .02)) for sx in (-1, 1)])
-        c = mix(c, c * .82, under)
+        c = mix(c, c * .86, under)
+        # eyes: dark lash line along the upper lid edge, a soft crease above it, a hint of lower lashes
+        ex, ey = .032, 1.687
+        for sx in (-1, 1):
+            dx = (P[:, 0] - sx * ex) / .0135; near = (np.abs(dx) < 1) & (P[:, 2] > .07)
+            arc = ey + .0013 + .0011 * np.sqrt(np.clip(1 - dx ** 2, 0, 1))
+            lash = np.clip(1 - np.abs(P[:, 1] - arc) / .0017, 0, 1) * near
+            c = mix(c, C(S['brows']) * .45, np.clip(lash * 1.1, 0, .9))
+            crease = np.clip(1 - np.abs(P[:, 1] - (arc + .0062)) / .0022, 0, 1) * near
+            c = mix(c, c * .78, crease * .6)
+            low = np.clip(1 - np.abs(P[:, 1] - (ey - .0068 + .0025 * dx ** 2)) / .0013, 0, 1) * near * (np.abs(dx) < .85)
+            c = mix(c, C(S['brows']) * .6, low * .35)
+            fold = blob(P, (sx * .03, 1.62, .088), (.006, .022, .012))               # nasolabial fold
+            c = mix(c, c * .84, fold * .7)
+        c = mix(c, c * .88, blob(P, (0, 1.623, .095), (.004, .007, .006)))            # philtrum shadow
         if S['beard']['kind'] == 'stubble':
             x, y, z = P[:, 0], P[:, 1], P[:, 2]; ax = np.abs(x)
             line = 1.648 - (.068 - np.clip(ax, .03, .068)) * .9                    # cheek line: high at the sideburns, low by the mouth
             m = (y < line) & (z > -.035)
             m = m * np.clip((y - 1.535 - np.clip(z, 0, .08) * .2) / .015, 0, 1)        # fades out down the neck
             m = m * ~((ax < .03) & (y > 1.594) & (y < 1.617) & (z > .085))       # lips stay clear
-            moust = (ax < .03) & (y > 1.614) & (y < 1.628) & (z > .085)
+            moust = (ax < .03) & (y > 1.6185) & (y < 1.628) & (z > .085) & (ax > .004)
             soft = np.clip((line - y) / .01, 0, 1) * np.clip((z + .035) / .02, 0, 1)
             t = (m * soft + moust * .8) * (.2 + .2 * np.random.default_rng(1).random(len(P)))
             c = mix(c, C(S['beard']['color']), np.clip(t, 0, .6))
+        # nails: paler, pinker, with a white free edge
+        for (nc, nd, nu, r) in p.extras.get('nails', []):
+            d = P - np.asarray(nc, f32); al = d @ np.asarray(nd, f32); up = d @ np.asarray(nu, f32)
+            ac = np.linalg.norm(d - al[:, None] * np.asarray(nd, f32) - up[:, None] * np.asarray(nu, f32), axis=1)
+            m = (np.clip(1 - (al / .0068) ** 2 - (ac / (r * .78)) ** 2, 0, 1) > 0) * (up > -.0015)
+            c = mix(c, C((238, 192, 182)), m * .6)
+            c = mix(c, C((246, 236, 226)), m * (al > .0048) * .6)
         col[sk] = c
     hm = (lab == 5) | (lab == 6)
     if hm.any():
@@ -91,8 +113,8 @@ def build(key):
     print(key, len(p.F.parts), 'parts')
     tee = p.gdist('tee'); hair = p.gdist('hair'); kh_out = keep_hands(p, False); kh_in = keep_hands(p, True)
     # each surface meshed on its own (clean edges where clothes end), hidden insides carved away
-    plan = [('skin', (-.66, 0, -.22), (.66, 1.56, .3), .0075, lambda P: np.maximum.reduce([P[:, 1] - 1.55, kh_out(P), -(tee(P) + .008)]), 8),
-            ('skin', (-.17, 1.535, -.18), (.17, 1.89, .19), .0032, lambda P: np.maximum(1.538 - P[:, 1], -(hair(P) + .004)), 3)]
+    plan = [('skin', (-.66, 0, -.22), (.66, 1.56, .3), .0075, lambda P: np.maximum.reduce([P[:, 1] - 1.462, kh_out(P), -(tee(P) + .008)]), 8),
+            ('skin', (-.17, 1.44, -.18), (.17, 1.89, .19), .0032, lambda P: np.maximum.reduce([1.452 - P[:, 1], -(hair(P) + .004), -(tee(P) + .006)]), 3)]
     for hd in p.hands:
         c = hd['W'] + hd['a'] * .06
         plan.append(('skin', c - .135, c + .135, .0034, kh_in, 3))
