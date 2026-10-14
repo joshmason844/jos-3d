@@ -26,7 +26,6 @@ Runs alternate: one People item, then one Warehouse item (Main hall, sections, y
 - [ ] Warehouse: Main hall v3 detail pass on the mezzanine stairs, handrails and sewing room.
 - [ ] Warehouse: crate cover texture (fabric weave, straps, buckles).
 - [ ] Warehouse: trellis lattice joints and rivets visible close up.
-- [ ] Warehouse: forklift tyres, mast chains, seat detail.
 - [ ] All pages: a phone-size check on every page; fix anything that overlaps.
 - [ ] Skills: after each run, write what worked and what didn't into that skill's SKILL.md ("traps learned").
 - [ ] Warehouse: racking. Beam clips, base plates, upright holes, load signs.
