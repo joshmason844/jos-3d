@@ -25,7 +25,7 @@ Runs alternate: one People item, then one Warehouse item (Main hall, sections, y
 - [ ] Warehouse: Main hall v3 floor. Worn concrete with forklift tyre tracks, oil stains, painted aisle lines.
 - [ ] Warehouse: Main hall v3 detail pass on the mezzanine stairs, handrails and sewing room.
 - [ ] Warehouse: crate cover texture (fabric weave, straps, buckles).
-- [ ] All pages: a phone-size check on every page; fix anything that overlaps.
+- [ ] All pages: a phone-size check on every page; fix anything that overlaps. (Yard in 3D done 14 Oct: labels declutter; others still to do.)
 - [ ] Skills: after each run, write what worked and what didn't into that skill's SKILL.md ("traps learned").
 - [ ] Warehouse: racking. Beam clips, base plates, upright holes, load signs.
 - [ ] Warehouse: Yard in 3D. Re-bake the photo textures at higher res; sharpen edges of the units.
@@ -39,3 +39,7 @@ Runs alternate: one People item, then one Warehouse item (Main hall, sections, y
 - [ ] Multi-photo test: left end of the rack is bent: top-left panel shears off and leans out, lower-left shelf block sags away from the uprights. Check camera poses at the start of the walk (drift) or re-run BA with more photos there.
 - [ ] Multi-photo test: orange canvas reads as dots with black gaps and a frayed top edge, see-through up close. Fill gaps on flat surfaces (bigger discs where neighbours are coplanar) or mesh it.
 - [ ] Multi-photo test: bay interiors are flat black-brown mush on a phone, no crates or edges readable. Lift shadows / local contrast in the bays, or brighten colours from the source photos.
+- [x] Yard in 3D: labels piled on each other, ran off the screen edges and under the title/buttons, and floated in the dark beyond the photo. Now: real box-vs-box overlap, biggest-and-nearest first, 7 max on a phone / 14 on desktop, kept clear of the title, hint and button bar, and in photo mode only things the phone saw. 14 Oct
+- [ ] Yard in 3D: orbited photo view smears: forklift is a stretched billboard, ghost blue slab on the left wall, floor texture streaks off to the right. Better proxy shapes or fade the photo where the projection angle is steep.
+- [ ] Yard in 3D: model close-up. Trellis stillage bundles are flat orange blocks with black dot holes (knots read as holes), no straps or separate slats; crates and boxes are plain untextured cubes.
+- [ ] Yard in 3D: model overview has a big flat grey shadow decal under the forklift and workbench; swap for soft contact shadows. Several guessed items (e.g. yurt crown vs plywood crate panels) have no orange "not sure" tag on screen.

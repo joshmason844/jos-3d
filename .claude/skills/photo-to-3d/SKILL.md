@@ -74,3 +74,7 @@ After each build, before replying:
 - `scripts/hall/v3/`: one frame for the whole building (door at z = 0, hall to z = -39, x across), every stack built with the shared builders and turned so its front faces the aisle (`LEFT`, `RIGHT`, `FAR`). Zones drive the fly-to buttons.
 - Render properly: `bake()` merges each item's static meshes by material (keep animated covers and film with `userData.keep`), GTAO post pass (HQ toggle, off by default on phones), daylight spot from the door plus warm point lights under the high-bays, soft fog.
 - Watch: a racking row runs along its local +x, so on the right wall (ry −90°) it heads toward the door: start it at the far end.
+
+## Traps learned
+- Yard page inputs (yard.jpg, bake.json, cam.json) aren't in the public repo: run `scripts/fetch_inputs.py <saved live page>` first (save it with the Artifact tool's read). Then `node scripts/shoot.js yard-3d.html <prefix>` for phone + desktop shots of photo / orbit / model / close (14 Oct).
+- Floating labels need real box overlap (measure offsetWidth once, re-measure on fonts.ready) and keep-out zones for the title and button bar; a fixed small overlap box lets long labels stack. In photo mode, drop labels outside the photo camera's frustum or they float in the void (14 Oct).

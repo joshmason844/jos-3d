@@ -47,3 +47,10 @@ One row per build, so each run gets measurably better.
 - Still weak: left end of the rack bent (pose drift?), orange canvas see-through up close, bay interiors dark mush on a phone, orange plume only trimmed.
 - Reviewer (fresh eyes, same cameras): BEFORE 4.0 → AFTER 4.2. A different reviewer scored the last run 4.8, so the scale moves between reviewers; this run's BEFORE/AFTER pair is the fair comparison.
 - Score: Shape 5 · Detail 2 · Surface 3 · Light 3 · Truth 5 · Works 7 = 4.2
+
+## 2026-10-14 · Yard in 3D: labels you can read
+- Labels rebuilt: measured widths and a real overlap test (was a fixed 70 × 22 px box, so long labels sat on each other), priority to big, near things with a bonus for ones already showing so they don't flicker, 7 max on a phone / 14 on desktop, kept clear of the title, hint and button bar, and in photo mode only labels for things inside the photo. Hint moved below the "code ↗" tab.
+- Speed-ups: `fetch_inputs.py` recreates the private inputs (photo, bakes, camera) from the published page so a fresh clone can build; `shoot.js` takes the four before/after views on phone and desktop in ~50 s.
+- Still weak: photo view smears when orbited (forklift billboard, floor streaks); trellis bundles and crates are plain blocks up close; flat grey shadow decal on the model floor; no "not sure" tags visible.
+- Reviewer (fresh eyes, same cameras): BEFORE 5.0 → AFTER 5.3. The 6.0 start was a self-score.
+- Score: Shape 5 · Detail 4 · Surface 5 · Light 5 · Truth 6 · Works 7 = 5.3

@@ -10,3 +10,10 @@ node_modules/
 # built pages (made by build.py)
 .claude/skills/3d-models/scripts/people/people.html
 .claude/skills/photo-to-3d/scripts/**/hall3.html
+# Yard in 3D inputs (photo + bakes, private): recreate with photo-to-3d/scripts/fetch_inputs.py
+.claude/skills/photo-to-3d/scripts/yard.jpg
+.claude/skills/photo-to-3d/scripts/bake.json
+.claude/skills/photo-to-3d/scripts/cam.json
+.claude/skills/photo-to-3d/scripts/yard-3d.html
+.claude/skills/photo-to-3d/scripts/yard-crew.html
+.claude/skills/photo-to-3d/khana/
