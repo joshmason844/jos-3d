@@ -27,3 +27,6 @@ Scripts: `.claude/skills/3d-models/scripts/` in this repo.
 
 ## Ideas it unlocks
 Site layouts in the Eye with real tents, a kit chip on the Grid that spins, AR "will it fit in the garden" checks, Basecamp Obelisk mock-ups.
+
+## Traps learned
+- People: hair reads as lumps when locks are fat and the smooth-union k is big; thin locks + k ≤ 4 mm + a mesh step under the lock radius fixes it. A NaN in any colour mask turns the whole skin black: clip before sqrt.

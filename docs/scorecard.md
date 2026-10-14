@@ -20,3 +20,7 @@ One row per build, so each run gets measurably better.
 - Faces: ears rebuilt (thin plate, rim, bowl, lobe, tragus) instead of a cup; lips with cupid's bow, philtrum, tucked corners; fuller upper lid fold, lash line and crease paint; brows as fine hair strokes; nasolabial shading.
 - Neck seam gone (head mesh now runs down under the collar).
 - Still weak: hair and beard read as lumpy clumps; lips still a bit stuck-on.
+
+## 2026-10-14 · People: hair + beard pass
+- Hair: more, thinner locks (r 4.6–5.2 mm), tighter smooth-union so each lock reads; hair mesh 3.1 → 2.6 mm. Beard: 1,200 thinner clumps lying flatter, mesh 2.7 → 2.2 mm.
+- Better: no more cauliflower top, beard less blobby. Still weak: beard edges spiky, no colour streaks along the hair, build time up to ~9 min.

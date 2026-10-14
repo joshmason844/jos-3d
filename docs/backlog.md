@@ -3,7 +3,8 @@
 The scheduled improvement runs take the top unchecked item, do it, tick it, and add anything new they find at the bottom.
 Runs alternate: one People item, then one Warehouse item (Main hall, sections, yard, trellis, forklift), so both keep moving. Every run also adds at least one new item it spotted, so the list never runs dry.
 
-- [ ] People: hair and beards read as lumpy clumps. Make strands/locks with direction, finer at the tips, scalp shading at the parting.
+- [x] People: hair and beards finer (thinner locks, tighter blend, 2.6 mm mesh). 14 Oct
+- [ ] People: beard still a bit spiky and sparse at the edges; hair needs strand-direction colour streaks and scalp shading at the parting.
 - [ ] People: lips still look stuck on. Blend into the face, softer edges, colour fades out.
 - [ ] People: reshoot the KDK tee hand close-up for a fair before/after.
 - [ ] People: eyes. Wet-line, a little shadow from the upper lid, catch-light.

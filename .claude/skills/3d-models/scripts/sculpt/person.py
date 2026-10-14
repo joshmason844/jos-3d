@@ -177,7 +177,7 @@ class Person:
     # ------------------------------------------------------------ hair as clumps grown from the scalp
     def hair(self):
         h = self.S['hair']; rng = self.rng; cc = V(0, 1.705, -.012); rr = V(.076, .098, .097)
-        style = h['style']; n = 1100 if style == 'messy' else 1000
+        style = h['style']; n = 1700 if style == 'messy' else 1500
         self.hair_base(h)
         for i in range(n):
             u = rng.normal(size=3); u /= np.linalg.norm(u)
@@ -197,13 +197,13 @@ class Person:
                 droop = .45
             if style == 'messy' and front > .5: L *= .55                          # short at the front, off the face
             flow = norm(flow - (flow @ nrm) * nrm)
-            r0 = (.0072 if style == 'messy' else .0062) * rng.uniform(.85, 1.15)
+            r0 = (.0052 if style == 'messy' else .0046) * rng.uniform(.8, 1.2)
             p1 = p0 + norm(flow + nrm * lift) * L * .45
             f2 = norm(flow - nrm * .2 * droop + V(0, -1, 0) * .35 * droop); p2 = p1 + f2 * L * .35
             f3 = norm(f2 + V(0, -1, 0) * .5 * droop + rng.normal(size=3) * .3); p3 = p2 + f3 * L * .25
-            self.C('hair', p0 - nrm * .004, p1, r0, r0 * .85, .007)
-            self.C('hair', p1, p2, r0 * .85, r0 * .55, .005)
-            self.C('hair', p2, p3, r0 * .55, r0 * .2, .003)
+            self.C('hair', p0 - nrm * .004, p1, r0, r0 * .85, .004)
+            self.C('hair', p1, p2, r0 * .85, r0 * .55, .0025)
+            self.C('hair', p2, p3, r0 * .55, r0 * .2, .0015)
 
     def hair_base(self, h):
         """A thin cap of hair over the whole hair region so no scalp shows between clumps."""
@@ -234,7 +234,7 @@ class Person:
         self.F.add('beard', base, bc - br - .02, bc + br + .02)
         # ... then short clumps on top of it, pointing down and forward
         cc = V(0, 1.618, .02); rr = V(.068, .072, .076)
-        for i in range(700):
+        for i in range(1200):
             u = rng.normal(size=3); u /= np.linalg.norm(u)
             p = cc + u * rr
             if u[2] < -.25 or p[1] > 1.648 - .0 or p[1] < 1.545: continue
@@ -242,9 +242,9 @@ class Person:
             if abs(p[0]) < .024 and 1.598 < p[1] < 1.615: continue                 # leave the lips clear
             if abs(p[0]) < .045 and p[1] > 1.624: continue                         # no beard over the nose
             nrm = norm(u / rr); flow = norm(V(0, -1, .25) - (V(0, -1, .25) @ nrm) * nrm + rng.normal(size=3) * .25)
-            L = rng.uniform(.007, .014); r0 = rng.uniform(.0036, .0048)
-            p1 = p + norm(flow + nrm * .6) * L * .6; p2 = p1 + norm(flow + rng.normal(size=3) * .4) * L * .5
-            self.C('beard', p - nrm * .003, p1, r0, r0 * .7, .004); self.C('beard', p1, p2, r0 * .7, r0 * .3, .003)
+            L = rng.uniform(.008, .015); r0 = rng.uniform(.0027, .0036)
+            p1 = p + norm(flow + nrm * .3) * L * .6; p2 = p1 + norm(flow + rng.normal(size=3) * .3) * L * .5
+            self.C('beard', p - nrm * .003, p1, r0, r0 * .7, .0025); self.C('beard', p1, p2, r0 * .7, r0 * .3, .0015)
         for sx in (-1, 1):   # moustache
             for j in range(6):
                 x = sx * (.004 + j * .0045); p = V(x, 1.6185 - j * .0012, .095 - j * .0015)
