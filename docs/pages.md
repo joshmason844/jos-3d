@@ -15,5 +15,5 @@ Every page carries a "code ↗" tab (top right) that opens its source here. Arti
 | Yard with People | https://claude.ai/artifact/Uwqe8AAW9CGUqfmAjMV352 | `.claude/skills/photo-to-3d/scripts`               | `python3 build.py crew`                      |
 | Trellis Stack    | https://claude.ai/artifact/Tjce19yiQNcmuv3jFq2nrn | `.claude/skills/photo-to-3d/scripts/trellis`       | `python3 build.py`                           |
 | Forklift         | https://claude.ai/artifact/KvLpym96mGyazsryb1sYo1 | `.claude/skills/photo-to-3d/scripts/forklift`      | `python3 build.py`                           |
-| Multi-photo test | https://claude.ai/artifact/UD3sjeoBVnmMkiVPLAopq4 | `.claude/skills/multi-photo-3d`                    | `scripts/sfm.py photos/<set> work/<set>`     |
+| Multi-photo test | https://claude.ai/artifact/UD3sjeoBVnmMkiVPLAopq4 | `.claude/skills/multi-photo-3d/scripts/page`       | `sfm.py` → `page/build.py`                   |
 | Bell tent viewer | https://claude.ai/artifact/Mb6FV8p17Z2Z7x6nDsL5f7 | `.claude/skills/3d-scans`                          | `scripts/make_viewer.py <scan> <out>.html`   |
