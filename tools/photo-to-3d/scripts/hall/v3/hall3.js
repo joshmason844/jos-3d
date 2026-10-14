@@ -140,6 +140,10 @@ function poleStillage(p, x, z, ry, levels, fills, mat = M.red, W = 1.05, D = 2.6
   levels.forEach((h, i) => { const s = poleLevel(g, y, h, mat, W, D, fills[i] === 'cage'); fill(s, fills[i], h, W, D); y += h; }); return g; }
 function fill(s, kind, h, W, D) {
   if (kind === 'rafters') tubes(s, 36, -W / 2 + .08, W / 2 - .08, .08, 3, D + .3, .024, RAFTER, { tint: true, zj: .15 });
+  // yurt roof poles by size: length ≈ (radius − crown radius) ÷ cos(roof pitch ≈ 32°) + 0.1 m at the ends
+  else if (kind === 'r16') tubes(s, 36, -W / 2 + .08, W / 2 - .08, .08, 3, 2.3, .026, RAFTER, { tint: true, zj: .15 });
+  else if (kind === 'r14') tubes(s, 38, -W / 2 + .08, W / 2 - .08, .08, 3, 2.0, .024, RAFTER, { tint: true, zj: .15 });
+  else if (kind === 'r12') tubes(s, 40, -W / 2 + .08, W / 2 - .08, .08, 3, 1.7, .022, RAFTER, { tint: true, zj: .15 });
   else if (kind === 'poles') tubes(s, 20, -W / 2 + .1, W / 2 - .1, .08, 2, D + 1.2, .06, RAFTER, { tint: true, zj: .4 });
   else if (kind === 'alu') { tubes(s, 16, -W / 2 + .08, W / 2 - .08, .08, 2, D + .4, .032, MX.alu, { hollow: true, z: .2, tilt: .06 }); if (rnd() < .5) lump(s, 0, .25, -.4, W - .2, .25, 1.0, MX.white); }
   else if (kind === 'coir') { rolls(s, 3, -W / 2 + .05, W / 2 - .05, .08, 1.4, .16); lump(s, 0, .4, .2, W - .2, .3, 1.4, MX.jute); }
@@ -224,13 +228,13 @@ function layout() {
   // ===== left wall, middle: trellis wall stack, blue pole stillages, 14 ft canvas + 14 ft trellis/door stillages =====
   zone('14 ft kit · left wall');
   { const g = trellisStillages(P, .8, -15.2, LEFT, [{ sets: 1, per: 4, doors: 0 }, { sets: 1, per: 4, doors: 0 }, { sets: 1, per: 4, doors: 0 }]); T(g, 'Trellis stillages (wall stack)', 'Purple stillages of folded trellis, three high against the left wall.', '≈ 3 m tall'); }
-  { const g = poleStillage(P, .75, -18.6, LEFT, [.5, .5, .5, .5, .5, .5, .5, .5, .5], Array(9).fill('rafters'), M.blue, 1.15, 2.6); T(g, 'Pole stillages (blue)', 'Blue pole stillages stacked nine high (about 4.5 m), full of yurt roof poles strapped in bundles.', '1.15 × 2.6 m · 0.5 m a level'); }
+  { const g = poleStillage(P, .75, -18.6, LEFT, [.5, .5, .5, .5, .5, .5, .5, .5, .5], Array(9).fill('r14'), M.blue, 1.15, 2.2); T(g, 'Pole stillages (blue): 14 ft', 'Blue pole stillages stacked nine high (about 4.5 m): the 14 ft yurt roof poles, strapped in bundles.', 'poles ≈ 2.0 m (worked out from the yurt size) · 0.5 m a level'); }
   { const g = grp(P, .8, 0, -21.6, LEFT); const cv = canvasStack(g, 14, 0, 0, 0, [[0, 1, ['13–17']]]); const cage = grp(g, 0, .84, 0); poleLevel(cage, 0, .76, M.red, 1.2, 1.0, true); lump(cage, 0, .08, 0, 1.0, .55, .85, MX.white);
     const up = canvasStack(g, 14, -.15, -.45, 0, [[0, 3, ['28–32', '18–22', '8–12']]]); up.position.y = 1.6;
     T(g, '14 ft canvas crates', 'Red covers marked "14ft CANVAS" with number ranges (13–17, 28–32, 18–22, 8–12…): 14 ft yurt canvases, five to a crate, numbered so a set goes out together; a red mesh cage of bulk bags between them.', '≈ 1.2 × 1.0 × 0.84 m each'); }
   { const g = trellisStillages(P, 3.4, -21.9, LEFT + .03, [{ sets: 5, per: 3, doors: 1 }, { sets: 5, per: 3, doors: 1 }, { sets: 5, per: 3, doors: 1 }]);   // Josh: 5 doors per stillage, 3 trellis each
     T(g, '14 ft trellis + door stillages', 'Purple stillages three high next to the 14 ft canvas. A 14 ft yurt is 3 trellis sections per door, and each stillage holds 5 doors with their trellis: 15 sections, the folded trellis laid two side by side with each door flat on its set, cling-filmed.', 'stillages 2.32 × 1.35 m · 5 yurts each · ≈ 3.1 m tall'); }
-  { const g = poleStillage(P, .75, -25.4, LEFT, [.5, .5, .5, .5, .5, .5], Array(6).fill('rafters'), M.red, 1.15, 2.6); T(g, 'Pole stillages (red, wall)', 'Red pole stillages six high along the left wall, next to the 14 ft stillages: yurt roof poles in strapped bundles.', '1.15 × 2.6 m'); }
+  { const g = poleStillage(P, .75, -25.4, LEFT, [.5, .5, .5, .5, .5, .5], ['r16', 'r16', 'r16', 'r12', 'r12', 'r12'], M.red, 1.15, 2.4); T(g, 'Pole stillages (red): 16 ft + 12 ft', 'Red pole stillages six high along the left wall: the 16 ft and 12 ft yurt roof poles, strapped in bundles.', 'poles ≈ 2.3 m (16 ft) and 1.7 m (12 ft), worked out from the yurt sizes'); }
   { const g = crownStack(P, K12, 7.2, -15.6, Math.PI, [[0, 1], [1, 1]]); const top = crownCrate(g, K12, .66, 1.24, 0); top.userData.level = 1; CRATES.push(top);   // 3 here + 1 by the door = 4 counted (photo 11)
     const byDoor = crownStack(P, K12, 6.3, -2.6, Math.PI / 2, [[0, 1]]); T(byDoor, '12 ft crown crate (by the door)', 'A single "12FT CROWN × 12" crate near the roller door.', '1.2 × 1.0 × 1.24 m');
     T(g, '12 ft crown crates', 'Green covers "12FT CROWN × 12": twelve 12 ft yurt crowns per crate, out in the middle of the hall.', '1.2 × 1.0 × 1.24 m each'); }
