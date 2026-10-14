@@ -28,5 +28,13 @@ Scripts: `.claude/skills/3d-models/scripts/` in this repo.
 ## Ideas it unlocks
 Site layouts in the Eye with real tents, a kit chip on the Grid that spins, AR "will it fit in the garden" checks, Basecamp Obelisk mock-ups.
 
+## People: fast iteration loop (14 Oct 2026)
+One command does rebuild → page → close-ups → before/after sheet against the last run:
+`.claude/skills/3d-models/scripts/people/iterate.sh <tag> [--only head,hair,beard] [--fast] [--shots face,hand] [grey|kdk]`
+- Full build of both people: ~40 s (was ~9 min). Both build in parallel; `--only` rebuilds just those meshes (ids: body, head, hand, tee, trousers, shoe, sole, hair, beard) and reuses the rest (~25 s); `--fast` is a coarse preview (~18 s) for trying ideas, never for shipping.
+- Shots land in `work/shots/<tag>-*.png`; the sheet is `work/shots/<last>-vs-<tag>.png` (before on top).
+- Why it's fast: `Field.eval_groups` sorts points by x once and binary-searches each part's box (the old full scan of ~3,000 parts was half the time); `eval_grid` evaluates a 3x coarser grid first and only re-evaluates points near the surface (identical mesh, checked).
+
 ## Traps learned
 - People: hair reads as lumps when locks are fat and the smooth-union k is big; thin locks + k ≤ 4 mm + a mesh step under the lock radius fixes it. A NaN in any colour mask turns the whole skin black: clip before sqrt.
+- Speed: profile before optimising (python3 -m cProfile). The slow bit was culling, not the maths.

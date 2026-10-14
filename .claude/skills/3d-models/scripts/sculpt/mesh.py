@@ -5,15 +5,41 @@ from skimage.measure import marching_cubes
 from sdf import f32
 
 
-def eval_grid(fn, lo, hi, h, chunk=600_000):
+def eval_grid(fn, lo, hi, h, chunk=600_000, band=True):
+    """Distance on a regular grid. band=True: evaluate a 3x coarser grid first, then only re-evaluate
+    the fine points near the surface (|d| small); far points keep the interpolated value, which has
+    the right sign. 5-10x fewer distance evaluations for the same mesh."""
     xs, ys, zs = (np.arange(lo[i], hi[i] + h * .5, h, dtype=f32) for i in range(3))
+    o = (xs[0], ys[0], zs[0])
+    F = 3
+    if band and min(len(xs), len(ys), len(zs)) > 4 * F:
+        from scipy.ndimage import map_coordinates
+        H = h * F
+        hic = np.asarray([xs[-1], ys[-1], zs[-1]], f32) + H
+        vc, _ = eval_grid(fn, np.asarray(o, f32), hic, H, chunk, band=False)
+        shape = (len(xs), len(ys), len(zs))
+        vol = np.empty(shape, f32); thr = 2.5 * H
+        per = max(1, chunk // (len(ys) * len(zs)))
+        J, K = np.meshgrid(np.arange(len(ys)) / F, np.arange(len(zs)) / F, indexing='ij')
+        for i in range(0, len(xs), per):
+            n = min(per, len(xs) - i)
+            I = (np.arange(i, i + n) / F)[:, None, None] + 0 * J[None]
+            coords = np.stack([I, np.broadcast_to(J, I.shape), np.broadcast_to(K, I.shape)])
+            approx = map_coordinates(vc, coords.reshape(3, -1), order=1, mode='nearest').reshape(I.shape).astype(f32)
+            near = np.abs(approx) < thr
+            if near.any():
+                X, Y, Z = np.meshgrid(xs[i:i + n], ys, zs, indexing='ij')
+                P = np.stack([X[near], Y[near], Z[near]], 1)
+                approx[near] = fn(P)
+            vol[i:i + n] = approx
+        return vol, o
     vol = np.empty((len(xs), len(ys), len(zs)), f32)
     per = max(1, chunk // (len(ys) * len(zs)))
     for i in range(0, len(xs), per):
         X, Y, Z = np.meshgrid(xs[i:i + per], ys, zs, indexing='ij')
         P = np.stack([X.ravel(), Y.ravel(), Z.ravel()], 1)
         vol[i:i + per] = fn(P).reshape(X.shape)
-    return vol, (xs[0], ys[0], zs[0])
+    return vol, o
 
 
 def region(dist, lo, hi, h, keep=None):

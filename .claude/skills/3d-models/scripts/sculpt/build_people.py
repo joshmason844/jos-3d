@@ -108,16 +108,21 @@ def keep_hands(p, inside):
     return fn
 
 
-def build(key):
+FAST = float(__import__('os').environ.get('PEOPLE_FAST', '1') or 1)   # PEOPLE_FAST=1.6 → coarser preview, ~4x quicker
+
+
+def build(key, only=None, old=None):
+    """only: set of mesh ids to rebuild (e.g. {'head','hair','beard'}); the rest are reused from old."""
     t0 = time.time(); p = Person(key); s = p.S['height'] / H0
     print(key, len(p.F.parts), 'parts')
     tee = p.gdist('tee'); hair = p.gdist('hair'); kh_out = keep_hands(p, False); kh_in = keep_hands(p, True)
     # each surface meshed on its own (clean edges where clothes end), hidden insides carved away
     plan = [('skin', (-.66, 0, -.22), (.66, 1.56, .3), .0075, lambda P: np.maximum.reduce([P[:, 1] - 1.462, kh_out(P), -(tee(P) + .008)]), 8),
             ('skin', (-.17, 1.44, -.18), (.17, 1.89, .19), .0032, lambda P: np.maximum.reduce([1.452 - P[:, 1], -(hair(P) + .004), -(tee(P) + .006)]), 3)]
+    ids = ['body', 'head']
     for hd in p.hands:
         c = hd['W'] + hd['a'] * .06
-        plan.append(('skin', c - .135, c + .135, .0034, kh_in, 3))
+        plan.append(('skin', c - .135, c + .135, .0034, kh_in, 3)); ids.append('hand')
     plan += [('tee', (-.44, .78, -.2), (.44, 1.57, .2), .0075, None, 8),
              ('trousers', (-.3, 0, -.2), (.3, 1.06, .2), .009, None, 8),
              ('shoe', (-.26, 0, -.16), (.26, .17, .26), .006, None, 4), ('sole', (-.26, 0, -.16), (.26, .06, .26), .006, None, 3),
@@ -125,8 +130,15 @@ def build(key):
              ]
     if p.S['beard']['kind'] == 'full':
         plan.append(('beard', (-.1, 1.53, -.06), (.1, 1.66, .13), .0022, None, 1))
+    ids += [e[0] for e in plan[len(ids):]]
+    reuse = {}
+    for m in (old or {}).get('meshes', []):
+        reuse.setdefault(m.get('id', m['name']), []).append(m)
     meshes = []
-    for g, lo, hi, h, keep, sm in plan:
+    for mid, (g, lo, hi, h, keep, sm) in zip(ids, plan):
+        if only and mid not in only and reuse.get(mid):
+            meshes.append(reuse[mid].pop(0)); continue
+        h *= FAST
         fn = p.gdist(g)
         v, f = region(fn, np.asarray(lo, f32), np.asarray(hi, f32), h, keep)
         if not len(v): continue
@@ -139,7 +151,7 @@ def build(key):
         occ = smooth_scalar(ao(p.dist, v, n, .02 if h > .005 else .007), f, 6 if h > .005 else 2)
         if g in ('tee', 'trousers'): occ = .75 + .25 * occ                          # cloth: only a hint of contact shadow
         col = colour(p, v, n, lab, occ)
-        m = pack(v, f, n, col, lab, ORDER, s); m['name'] = g; meshes.append(m)
+        m = pack(v, f, n, col, lab, ORDER, s); m['name'] = g; m['id'] = mid; meshes.append(m)
     eyes = [dict(c=(np.asarray(e['c']) * s).tolist(), r=e['r'] * s) for e in p.extras['eyes']]
     cords = (np.asarray(p.extras['cords'], f32) * s).tolist() if 'cords' in p.extras else []
     S = p.S
@@ -148,19 +160,32 @@ def build(key):
                 logo='KDK' if key == 'kdk' else None)
 
 
+def _job(a):
+    key, only, old = a
+    return key, build(key, only, old)
+
+
 if __name__ == '__main__':
-    out = sys.argv[1] if len(sys.argv) > 1 else 'people_meshes.json'
-    keys = sys.argv[2:] or list(SPECS)
+    import argparse
+    from multiprocessing import Pool
+    ap = argparse.ArgumentParser(description='Build the people meshes. Both people build in parallel.')
+    ap.add_argument('out', nargs='?', default='people_meshes.json')
+    ap.add_argument('keys', nargs='*', help='which people (default: all)')
+    ap.add_argument('--only', default='', help='comma list of mesh ids to rebuild: body,head,hand,tee,trousers,shoe,sole,hair,beard')
+    a = ap.parse_args()
+    keys = a.keys or list(SPECS); only = set(filter(None, a.only.split(','))) or None
     data = {}
     try:
-        data = json.load(open(out))
+        data = json.load(open(a.out))
     except Exception:
         pass
-    for k in keys:
-        data[k] = build(k)
-    json.dump(data, open(out, 'w'))
+    t0 = time.time()
+    jobs = [(k, only, data.get(k)) for k in keys]
+    with Pool(min(len(jobs), __import__('os').cpu_count() or 1)) as pool:
+        for k, d in pool.imap_unordered(_job, jobs):
+            data[k] = d
+    json.dump(data, open(a.out, 'w'))
     import gzip, base64
     gz = gzip.compress(json.dumps(data).encode(), 9)
-    open(out.replace('.json', '.gz.b64'), 'w').write(base64.b64encode(gz).decode())
-    print('gzipped', round(len(gz) / 1e6, 2), 'MB')
-    print('wrote', out, round(len(json.dumps(data)) / 1e6, 2), 'MB')
+    open(a.out.replace('.json', '.gz.b64'), 'w').write(base64.b64encode(gz).decode())
+    print(f'built {",".join(keys)} in {time.time() - t0:.0f}s · gzipped {len(gz) / 1e6:.2f} MB → {a.out}')

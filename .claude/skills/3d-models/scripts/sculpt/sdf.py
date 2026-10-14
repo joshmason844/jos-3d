@@ -102,26 +102,33 @@ class Field:
         self.parts.append(dict(label=label, fn=fn, lo=np.asarray(lo, f32), hi=np.asarray(hi, f32), k=k, group=group or label, sub=sub))
 
     def eval_groups(self, P, margin=.03, only=None):
-        """Distance of each group (smooth union of its parts). Returns dict group -> (N,)."""
+        """Distance of each group (smooth union of its parts). Returns dict group -> (N,).
+        Points are sorted by x once, so each part finds its points with a binary search instead of
+        scanning all N (this cull used to be half the build time)."""
+        order = np.argsort(P[:, 0], kind='stable'); Ps = P[order]; xs = Ps[:, 0]
         out = {}
-        plo, phi = P.min(0), P.max(0)
         for pt in self.parts:
-            if only is not None and pt['group'] not in only:
-                continue
-            mg0 = margin + pt['k']
-            if pt['group'] in out and (np.any(pt['lo'] - mg0 > phi) or np.any(pt['hi'] + mg0 < plo)):
-                continue
             g = pt['group']
+            if only is not None and g not in only:
+                continue
             d = out.get(g)
             if d is None:
                 d = np.full(len(P), 1e3, f32); out[g] = d
-            mg = margin + pt['k']; m = np.all((P >= pt['lo'] - mg) & (P <= pt['hi'] + mg), axis=1)
+            mg = margin + pt['k']; lo = pt['lo'] - mg; hi = pt['hi'] + mg
+            i0 = np.searchsorted(xs, lo[0], 'left'); i1 = np.searchsorted(xs, hi[0], 'right')
+            if i0 >= i1:
+                continue
+            sub = Ps[i0:i1]
+            m = (sub[:, 1] >= lo[1]) & (sub[:, 1] <= hi[1]) & (sub[:, 2] >= lo[2]) & (sub[:, 2] <= hi[2])
             if not m.any():
                 continue
-            idx = np.nonzero(m)[0]
-            dd = pt['fn'](P[idx])
+            idx = i0 + np.nonzero(m)[0]
+            dd = pt['fn'](Ps[idx])
             if pt['sub']:
                 d[idx] = smax(d[idx], -dd, pt['k']) if pt['k'] > 0 else np.maximum(d[idx], -dd)
             else:
                 d[idx] = smin(d[idx], dd, pt['k']) if pt['k'] > 0 else np.minimum(d[idx], dd)
-        return out
+        res = {}
+        for g, d in out.items():
+            r = np.empty_like(d); r[order] = d; res[g] = r
+        return res

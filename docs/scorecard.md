@@ -28,3 +28,7 @@ One row per build, so each run gets measurably better.
 ## 2026-10-14 · Starting scores (Claude, first honest pass)
 - People in 3D: Shape 6 · Detail 5 · Surface 5 · Light 7 · Truth 6 · Works 9 = 6.3
 - Main hall v3: Shape 7 · Detail 6 · Surface 5 · Light 6 · Truth 6 · Works 8 = 6.3
+
+## 2026-10-14 · Tools: people build speed
+- Full build of both people 9 min → 40 s (×13): x-sorted culling in eval_groups, narrow-band grid evaluation, both people in parallel. Same meshes (sign agreement 100%, max error near surface 2e-8).
+- New: `--only` partial rebuilds (~25 s), `--fast` preview (~18 s), `people/iterate.sh` one-command loop with shots and a before/after sheet.
