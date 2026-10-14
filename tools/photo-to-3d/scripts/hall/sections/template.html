@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>__TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--void:#050b16;--glass:rgba(11,21,48,.76);--line:rgba(159,180,204,.22);--ink:#eaf3ff;--mute:#9fb4cc;--blue:#16b4ff;--brass:#e2b766;--green:#3dff8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--void:#050b16}}
+:root[data-theme="dark"]{--void:#050b16}
+html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 15px/1.4 'IBM Plex Sans',system-ui,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#stage{position:fixed;inset:0}
+#photo{position:absolute;display:none;object-fit:fill;pointer-events:none}
+#c{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.top{position:fixed;left:16px;right:16px;top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none;z-index:3}
+.top>*{pointer-events:auto}
+.tag{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:10px 14px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%);max-width:min(520px,calc(100vw - 32px))}
+.tag h1{margin:0;font:700 1.35rem/1 Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.tag p{margin:5px 0 0;font:400 .7rem/1.4 'IBM Plex Mono',monospace;color:var(--mute)}
+#card{max-width:min(420px,calc(100vw - 32px));background:var(--glass);border:1px solid rgba(61,255,138,.45);border-left:3px solid var(--green);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:10px 34px 10px 14px;position:relative}
+#card[hidden]{display:none}
+#card h2{margin:0;font:700 1.05rem/1.1 Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--green)}
+#card p{margin:5px 0 0;font:400 .8rem/1.4 'IBM Plex Sans',sans-serif}
+#cardX{position:absolute;right:6px;top:4px;background:none;border:0;color:var(--mute);font-size:1.3rem;cursor:pointer;padding:4px 6px}
+.parts{position:fixed;right:16px;top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:5px;z-index:3;max-height:60vh;overflow:auto}
+.parts button,.bar button{background:var(--glass);border:1px solid var(--line);color:var(--ink);font:500 .66rem/1 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:9px 11px;cursor:pointer;text-align:left;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.parts button.on,.bar button.on{border-color:var(--green);color:var(--green)}
+.bar{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:7px;justify-content:center;align-items:center;z-index:3}
+.bar button{clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,0 100%);padding:11px 13px;min-height:40px}
+#x{display:none;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--line);padding:6px 10px;font:500 .64rem 'IBM Plex Mono',monospace;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+#y{width:120px;accent-color:#3dff8a}
+@media (max-width:640px){.parts{top:auto;bottom:calc(120px + env(safe-area-inset-bottom));right:12px;max-height:34vh}.parts button{padding:7px 9px;font-size:.6rem}}
+#c{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+#labels{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
+.lb{position:absolute;transform:translate(-50%,-100%);font:500 .58rem/1 'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);background:rgba(5,11,22,.72);border:1px solid rgba(22,180,255,.45);padding:4px 6px;white-space:nowrap;pointer-events:auto;cursor:pointer}
+.lb.ns{border-color:rgba(226,183,102,.7)}
+#card .meta{margin-top:6px;font:500 .64rem 'IBM Plex Mono',monospace;color:var(--mute)}
+#card .meta b{color:var(--brass);font-weight:500}
+#thumbs{display:flex;gap:6px;margin-top:8px;overflow-x:auto}
+#thumbs img{height:84px;border:1px solid var(--line);cursor:pointer}
+#viewer{position:fixed;inset:0;background:rgba(2,6,12,.92);display:none;align-items:center;justify-content:center;z-index:9}
+#viewer img{max-width:94vw;max-height:86vh}
+#viewer span{position:absolute;bottom:18px;left:0;right:0;text-align:center;font:500 .7rem 'IBM Plex Mono',monospace;color:var(--mute)}
+#pmix{display:none;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--line);padding:6px 10px;font:500 .64rem 'IBM Plex Mono',monospace;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+#pmix input{width:130px;accent-color:#3dff8a}
+#photoBg{position:fixed;display:none;pointer-events:none;z-index:0}
+#c{z-index:1}
+</style>
+</head>
+<body>
+<img id="photoBg" alt=""><canvas id="c"></canvas><div id="labels"></div>
+<div class="top"><div class="tag"><h1>__H1__</h1><p>__BLURB__</p></div>
+<div id="card" hidden><button id="cardX" aria-label="close">×</button><h2 id="cName"></h2><p id="cWhat"></p><div class="meta" id="cMeta"></div><div id="thumbs"></div></div></div>
+<div class="bar" id="bar"><button id="pSkin">photo skin</button><button id="pMatch">match photo</button><div id="pmix">model<input id="pmixR" type="range" min="0" max="1" step=".01" value=".5">photo</div><button id="vLab" class="on">labels</button><button id="spin">spin</button><button id="home">reset</button></div>
+<div id="viewer"><img id="vImg" alt=""><span id="vCap"></span></div>
+<script id="ph" type="text/plain">__PHOTO__</script>
+<script id="th" type="application/json">__THUMBS__</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const $ = id => document.getElementById(id);
+const renderer = new THREE.WebGLRenderer({ canvas: $('c'), antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x050b16); scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), .04).texture; scene.environmentIntensity = .5;
+scene.add(new THREE.HemisphereLight(0xf2f5ff, 0x6e6a62, 1.2));
+const sun = new THREE.DirectionalLight(0xfff4e6, 2.0); sun.position.set(6, 12, 8); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8, far: 40 }); sun.shadow.bias = -.0004; scene.add(sun, sun.target);
+const ROOT = new THREE.Group(); scene.add(ROOT);
+__KIT__
+__SECTION__
+const SEC = section(ROOT);
+{ const fl = new THREE.Mesh(new THREE.CircleGeometry(SEC.floor || 8, 64), M.floor); fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; scene.add(fl); }
+sun.target.position.fromArray(SEC.home[1]);
+const camera = new THREE.PerspectiveCamera(45, 1, .02, 200);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.autoRotateSpeed = .8; controls.maxDistance = 30; controls.maxPolarAngle = Math.PI * .495;
+function home() { camera.position.fromArray(SEC.home[0]); controls.target.fromArray(SEC.home[1]); controls.update(); }
+$('home').onclick = home;
+for (const b of (SEC.buttons || []).reverse()) { const el = document.createElement('button'); el.textContent = b.label; el.onclick = () => { const on = b.fn(); if (on !== undefined) el.classList.toggle('on', !!on); }; $('bar').prepend(el); }
+$('spin').onclick = () => { controls.autoRotate = !controls.autoRotate; $('spin').classList.toggle('on', controls.autoRotate); };
+
+// ---------- photo merge: project the real photo onto the model from where it was taken (with a depth check), blend 0–100% ----------
+const PM = { mix: { value: 0 }, on: false, match: false };
+let depthDirty = true, depthPass = () => {};
+if (SEC.photo) {
+  const C = SEC.photo.cam, url = 'data:image/jpeg;base64,' + $('ph').textContent.trim();
+  const pc = new THREE.PerspectiveCamera(THREE.MathUtils.radToDeg(2 * Math.atan(C.H / 2 / C.f)), C.W / C.H, .3, 40);
+  pc.position.fromArray(C.cam); pc.quaternion.setFromRotationMatrix(new THREE.Matrix4().set(...C.R[0], 0, ...C.R[1], 0, ...C.R[2], 0, 0, 0, 0, 1)); pc.updateProjectionMatrix(); pc.updateMatrixWorld();
+  PM.pc = pc; $('photoBg').src = url;
+  const ptex = new THREE.TextureLoader().load(url); ptex.colorSpace = THREE.NoColorSpace; ptex.minFilter = THREE.LinearFilter; ptex.generateMipmaps = false;
+  const dW = 1024, dH = Math.round(1024 * C.H / C.W), rt = new THREE.WebGLRenderTarget(dW, dH); rt.depthTexture = new THREE.DepthTexture(dW, dH);
+  const U = { uPV: { value: new THREE.Matrix4().multiplyMatrices(pc.projectionMatrix, pc.matrixWorldInverse) }, uPhoto: { value: ptex }, uDepth: { value: rt.depthTexture }, uMix: PM.mix };
+  const dm = new THREE.MeshBasicMaterial();
+  depthPass = () => { const hidden = [selBox]; hidden.forEach(o => o.visible = false); scene.overrideMaterial = dm; renderer.setRenderTarget(rt); renderer.render(scene, pc); renderer.setRenderTarget(null); scene.overrideMaterial = null; selBox.visible = !!selO; depthDirty = false; };
+  const patch = m => { if (m.userData.pm) return; m.userData.pm = 1;
+    m.onBeforeCompile = sh => { Object.assign(sh.uniforms, U);
+      sh.vertexShader = 'varying vec4 vPW;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n#ifdef USE_INSTANCING\n vPW = modelMatrix * instanceMatrix * vec4(transformed, 1.0);\n#else\n vPW = modelMatrix * vec4(transformed, 1.0);\n#endif');
+      sh.fragmentShader = 'varying vec4 vPW; uniform mat4 uPV; uniform sampler2D uPhoto; uniform sampler2D uDepth; uniform float uMix;\n' + sh.fragmentShader.replace('#include <colorspace_fragment>', `#include <colorspace_fragment>
+        if (uMix > 0.0) { vec4 pp = uPV * vPW; if (pp.w > 0.0) { vec3 nd = pp.xyz / pp.w; vec2 puv = nd.xy * 0.5 + 0.5;
+          if (puv.x > 0.0 && puv.x < 1.0 && puv.y > 0.0 && puv.y < 1.0) { float sd = texture2D(uDepth, puv).x; float fz = nd.z * 0.5 + 0.5;
+            float vis = 1.0 - smoothstep(0.0004, 0.0012, fz - sd); gl_FragColor.rgb = mix(gl_FragColor.rgb, texture2D(uPhoto, puv).rgb, uMix * vis); } } }`); };
+    m.customProgramCacheKey = () => 'pm'; m.needsUpdate = true; };
+  scene.traverse(o => { if (o.isMesh) [].concat(o.material).forEach(patch); });
+} else { $('pSkin').style.display = $('pMatch').style.display = 'none'; }
+function setSkin(on) { PM.on = on; PM.mix.value = on ? +$('pmixR').value : 0; $('pSkin').classList.toggle('on', on); $('pmix').style.display = on || PM.match ? 'flex' : 'none'; depthDirty = true; }
+function setMatch(on) { PM.match = on; $('pMatch').classList.toggle('on', on); controls.enabled = !on; if (on) { controls.autoRotate = false; $('spin').classList.remove('on'); camera.position.copy(PM.pc.position); camera.quaternion.copy(PM.pc.quaternion); setSkin(true); } else home(); layoutView(); }
+$('pSkin').onclick = () => setSkin(!PM.on); $('pMatch').onclick = () => setMatch(!PM.match);
+$('pmixR').oninput = e => { if (PM.on) PM.mix.value = +e.target.value; };
+const TH = JSON.parse($('th').textContent); let labelsOn = true;
+const labels = INFO.map(o => { const d = document.createElement('div'); d.className = 'lb' + (o.userData.info.sure === 'not sure' ? ' ns' : ''); d.textContent = o.userData.info.name; d.onclick = () => select(o); $('labels').appendChild(d); return { d, o, a: new THREE.Vector3() }; });
+$('vLab').onclick = () => { labelsOn = !labelsOn; $('labels').style.display = labelsOn ? '' : 'none'; $('vLab').classList.toggle('on', labelsOn); };
+const selBox = new THREE.Box3Helper(new THREE.Box3(), 0x3dff8a); selBox.visible = false; selBox.material.depthTest = false; selBox.renderOrder = 9; scene.add(selBox); let selO = null;
+function select(o) { selO = o; if (!o) { $('card').hidden = true; selBox.visible = false; return; } const i = o.userData.info;
+  $('cName').textContent = i.name; $('cWhat').textContent = i.what; $('cMeta').innerHTML = `${i.size ? i.size + ' · ' : ''}<b>${i.sure}</b>${i.photos.length ? ' · in photo' + (i.photos.length > 1 ? 's ' : ' ') + i.photos.join(', ') : ''}`;
+  $('thumbs').innerHTML = ''; for (const n of i.photos) { if (!TH[n - 1]) continue; const im = document.createElement('img'); im.src = 'data:image/jpeg;base64,' + TH[n - 1]; im.alt = 'photo ' + n; im.onclick = () => { $('vImg').src = im.src; $('vCap').textContent = 'photo ' + n + ' · tap to close'; $('viewer').style.display = 'flex'; }; $('thumbs').appendChild(im); }
+  $('card').hidden = false; selBox.box.setFromObject(o); selBox.visible = true; }
+$('viewer').onclick = () => $('viewer').style.display = 'none'; $('cardX').onclick = () => select(null);
+const ray = new THREE.Raycaster(); let down;
+renderer.domElement.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; controls.autoRotate = false; $('spin').classList.remove('on'); });
+renderer.domElement.addEventListener('pointerup', e => { if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
+  { const rc = $('c').getBoundingClientRect(); ray.setFromCamera(new THREE.Vector2((e.clientX - rc.left) / rc.width * 2 - 1, -(e.clientY - rc.top) / rc.height * 2 + 1), camera); }
+  const h = ray.intersectObjects(ROOT.children, true).find(h => h.object.visible); let o = h && h.object; while (o && !o.userData.info) o = o.parent; select(o || null); });
+function layoutView() { const c = $('c'), bg = $('photoBg');
+  if (PM.match) { const a = PM.pc.aspect, w = Math.min(innerWidth, innerHeight * a), h = w / a, l = (innerWidth - w) / 2, tp = (innerHeight - h) / 2; const css = `position:fixed;inset:auto;left:${l}px;top:${tp}px;width:${w}px;height:${h}px`;
+    c.style.cssText = css; bg.style.cssText = css + ';display:block'; renderer.setSize(w, h, false); camera.aspect = a; camera.fov = PM.pc.fov; camera.updateProjectionMatrix(); return; }
+  c.style.cssText = ''; bg.style.display = 'none'; renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.fov = innerWidth / innerHeight < .8 ? 62 : 45; camera.updateProjectionMatrix(); }
+addEventListener('resize', layoutView); layoutView(); home();
+const v = new THREE.Vector3(), bb = new THREE.Box3(); let t0 = performance.now();
+renderer.setAnimationLoop(now => { const dt = Math.min(.05, (now - t0) / 1000); t0 = now; if (SEC.tick && SEC.tick(dt)) depthDirty = true; if (PM.mix.value > 0 && depthDirty) depthPass(); if (!PM.match) controls.update(); renderer.render(scene, camera);
+  if (selO) selBox.box.setFromObject(selO);
+  $('labels').style.visibility = PM.match ? 'hidden' : ''; if (labelsOn && !PM.match) for (const l of labels) { if (!l.o.visible) { l.d.style.display = 'none'; continue; } bb.setFromObject(l.o); l.a.set((bb.min.x + bb.max.x) / 2, bb.max.y + .12, (bb.min.z + bb.max.z) / 2); v.copy(l.a).project(camera); const on = v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05; l.d.style.display = on ? '' : 'none'; if (on) { l.d.style.left = ((v.x + 1) / 2 * innerWidth) + 'px'; l.d.style.top = ((1 - v.y) / 2 * innerHeight) + 'px'; } } });
+window.__ready = true; window.__skin = (on, v) => { if (v !== undefined) $('pmixR').value = v; setSkin(on); }; window.__match = on => setMatch(on); window.__cam = (p, t) => { controls.autoRotate = false; camera.position.fromArray(p); controls.target.fromArray(t); controls.update(); }; window.__pick = n => select(INFO.find(o => o.userData.info.name.startsWith(n)) || null); window.__SEC = SEC;
+</script>
+</body>
+</html>

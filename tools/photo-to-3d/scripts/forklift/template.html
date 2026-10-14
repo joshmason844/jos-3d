@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Forklift G15S</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--void:#050b16;--glass:rgba(11,21,48,.76);--line:rgba(159,180,204,.22);--ink:#eaf3ff;--mute:#9fb4cc;--blue:#16b4ff;--brass:#e2b766;--green:#3dff8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--void:#050b16}}
+:root[data-theme="dark"]{--void:#050b16}
+html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 15px/1.4 'IBM Plex Sans',system-ui,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#stage{position:fixed;inset:0}
+#photo{position:absolute;display:none;object-fit:fill;pointer-events:none}
+#c{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.top{position:fixed;left:16px;right:16px;top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none;z-index:3}
+.top>*{pointer-events:auto}
+.tag{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:10px 14px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%);max-width:min(520px,calc(100vw - 32px))}
+.tag h1{margin:0;font:700 1.35rem/1 Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.tag p{margin:5px 0 0;font:400 .7rem/1.4 'IBM Plex Mono',monospace;color:var(--mute)}
+#card{max-width:min(420px,calc(100vw - 32px));background:var(--glass);border:1px solid rgba(61,255,138,.45);border-left:3px solid var(--green);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:10px 34px 10px 14px;position:relative}
+#card[hidden]{display:none}
+#card h2{margin:0;font:700 1.05rem/1.1 Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--green)}
+#card p{margin:5px 0 0;font:400 .8rem/1.4 'IBM Plex Sans',sans-serif}
+#cardX{position:absolute;right:6px;top:4px;background:none;border:0;color:var(--mute);font-size:1.3rem;cursor:pointer;padding:4px 6px}
+.parts{position:fixed;right:16px;top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:5px;z-index:3;max-height:60vh;overflow:auto}
+.parts button,.bar button{background:var(--glass);border:1px solid var(--line);color:var(--ink);font:500 .66rem/1 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:9px 11px;cursor:pointer;text-align:left;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.parts button.on,.bar button.on{border-color:var(--green);color:var(--green)}
+.bar{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:7px;justify-content:center;align-items:center;z-index:3}
+.bar button{clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,0 100%);padding:11px 13px;min-height:40px}
+#blendWrap{display:none;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--line);padding:6px 10px;font:500 .64rem 'IBM Plex Mono',monospace;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+#blend{width:120px;accent-color:#3dff8a}
+@media (max-width:640px){.parts{top:auto;bottom:calc(120px + env(safe-area-inset-bottom));right:12px;max-height:34vh}.parts button{padding:7px 9px;font-size:.6rem}}
+</style>
+</head>
+<body>
+<div id="stage"><img id="photo" alt=""><canvas id="c"></canvas></div>
+<div class="top"><div class="tag"><h1>Forklift · Doosan G15S</h1><p>Built from your yard photos. 1.5 t LPG counterbalance · 1.07 m wide · guard 2.16 m · forks 1.07 m · FTD 8548. Tap a part.</p></div>
+<div id="card" hidden><button id="cardX" aria-label="close">×</button><h2 id="cName"></h2><p id="cWhat"></p></div></div>
+<div class="parts" id="parts"></div>
+<div class="bar"><button id="spin" class="on">spin</button><button id="match">match photo</button><div id="blendWrap">photo<input id="blend" type="range" min="0" max="1" step=".01" value=".5">model</div><button id="lift">lift forks</button><button id="home">reset</button></div>
+<script id="ph" type="text/plain">__PHOTO__</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+__FORKLIFT__
+const CAM = __CAM__, CROP = [0, 600, 560, 760], PLACE = { x: 1.2067, z: 7.1719, ry: 0.8633 };
+const $ = id => document.getElementById(id);
+const renderer = new THREE.WebGLRenderer({ canvas: $('c'), antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene(); scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), .04).texture; scene.environmentIntensity = .55;
+const sun = new THREE.DirectionalLight(0xfff1dc, 2.4); sun.position.set(6, 9, 7); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4 }); scene.add(sun); scene.add(new THREE.HemisphereLight(0xdfe9f5, 0x3a3a36, .7));
+const floor = new THREE.Mesh(new THREE.CircleGeometry(30, 64), new THREE.MeshStandardMaterial({ color: 0x0b1424, roughness: 1 })); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+const grid = new THREE.GridHelper(30, 30, 0x16b4ff, 0x123050); grid.material.transparent = true; grid.material.opacity = .3; grid.position.y = .002; scene.add(grid);
+const shadowCatcher = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.ShadowMaterial({ opacity: .35 })); shadowCatcher.rotation.x = -Math.PI / 2; shadowCatcher.position.y = .003; shadowCatcher.receiveShadow = true; shadowCatcher.visible = false; scene.add(shadowCatcher);
+const holder = new THREE.Group(); scene.add(holder);
+const fl = buildForklift(); holder.add(fl); fl.position.z = 1.0;
+const carriage = fl.userData.parts['Mast and forks'].children.find(o => o.isGroup);
+// camera
+const camera = new THREE.PerspectiveCamera(38, 1, .05, 200);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.autoRotate = true; controls.autoRotateSpeed = 1.1; controls.maxPolarAngle = Math.PI * .49; controls.minDistance = 2; controls.maxDistance = 14;
+const HOME = () => { camera.position.set(-4.2, 2.4, 3.8); controls.target.set(0, 1.0, 0); camera.fov = 38; camera.clearViewOffset(); camera.updateProjectionMatrix(); controls.update(); };
+// parts list + selection
+const sel = new THREE.Box3Helper(new THREE.Box3(), 0x3dff8a); sel.material.depthTest = false; sel.renderOrder = 9; sel.visible = false; scene.add(sel);
+const parts = Object.values(fl.userData.parts);
+function pick(g) { document.querySelectorAll('#parts button').forEach(b => b.classList.toggle('on', b._g === g)); if (!g) { $('card').hidden = true; sel.visible = false; return; }
+  $('cName').textContent = g.userData.part.name; $('cWhat').textContent = g.userData.part.desc; $('card').hidden = false; sel.box.setFromObject(g); sel.visible = true; }
+parts.forEach(g => { const b = document.createElement('button'); b.textContent = g.userData.part.name; b._g = g; b.onclick = () => pick(sel.visible && b.classList.contains('on') ? null : g); $('parts').appendChild(b); });
+$('cardX').onclick = () => pick(null);
+const ray = new THREE.Raycaster(); let down;
+renderer.domElement.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; controls.autoRotate = false; $('spin').classList.remove('on'); });
+renderer.domElement.addEventListener('pointerup', e => { if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return; const r = renderer.domElement.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), camera); const h = ray.intersectObject(fl, true)[0];
+  let o = h && h.object; while (o && !o.userData.part) o = o.parent; pick(o || null); });
+// match photo: put the camera where your phone was and the forklift where the solve put it
+let matching = false; const img = $('photo'); img.src = 'data:image/jpeg;base64,' + $('ph').textContent.trim();
+const camQ = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().set(...CAM.R[0], 0, ...CAM.R[1], 0, ...CAM.R[2], 0, 0, 0, 0, 1));
+function layout() { const w = innerWidth, h = innerHeight; if (!matching) { renderer.setSize(w, h, false); $('c').style.cssText = ''; camera.aspect = w / h; camera.updateProjectionMatrix(); return; }
+  const a = CROP[2] / CROP[3], cw = Math.min(w, h * a) * .96, ch = cw / a, l = (w - cw) / 2, t = (h - ch) / 2; const css = `left:${l}px;top:${t}px;width:${cw}px;height:${ch}px;inset:auto`;
+  $('c').style.cssText = css; img.style.cssText = css + ';display:block;position:absolute'; renderer.setSize(cw, ch, false);
+  camera.aspect = CAM.W / CAM.H; camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(CAM.H / 2 / CAM.f)); camera.setViewOffset(CAM.W, CAM.H, ...CROP); camera.updateProjectionMatrix(); }
+function setMatch(on) { matching = on; $('match').classList.toggle('on', on); $('blendWrap').style.display = on ? 'flex' : 'none'; img.style.display = on ? 'block' : 'none'; controls.enabled = !on; controls.autoRotate = false; $('spin').classList.remove('on');
+  floor.visible = grid.visible = !on; shadowCatcher.visible = on; scene.environmentIntensity = on ? .8 : .55; sun.position.set(on ? 12 : 6, on ? 9 : 9, on ? 14 : 7);
+  if (on) { fl.position.set(PLACE.x, 0, PLACE.z); fl.rotation.y = PLACE.ry; camera.position.fromArray(CAM.cam); camera.quaternion.copy(camQ); $('c').style.opacity = $('blend').value; }
+  else { fl.position.set(0, 0, 1.0); fl.rotation.y = 0; $('c').style.opacity = 1; HOME(); } layout(); }
+$('match').onclick = () => setMatch(!matching); $('blend').oninput = e => { $('c').style.opacity = e.target.value; };
+$('spin').onclick = () => { if (matching) setMatch(false); controls.autoRotate = !controls.autoRotate; $('spin').classList.toggle('on', controls.autoRotate); };
+$('home').onclick = () => { setMatch(false); };
+let liftT = 0, liftWant = 0; $('lift').onclick = () => { liftWant = liftWant ? 0 : 1; $('lift').classList.toggle('on', !!liftWant); };
+addEventListener('resize', layout); HOME(); layout();
+renderer.setAnimationLoop(() => { liftT += (liftWant - liftT) * .04; if (carriage) carriage.position.y = .08 + liftT * 1.2; if (sel.visible) { const g = parts.find(p => p.userData.part.name === $('cName').textContent); if (g) sel.box.setFromObject(g); }
+  if (!matching) controls.update(); renderer.render(scene, camera); });
+window.__ready = true; window.__match = on => setMatch(on); window.__blend = v => { $('blend').value = v; $('c').style.opacity = v; }; window.__pick = n => pick(parts.find(p => p.userData.part.name.startsWith(n)) || null);
+</script>
+</body>
+</html>

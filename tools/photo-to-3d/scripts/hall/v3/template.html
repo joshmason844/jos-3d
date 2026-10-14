@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Main Hall in 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--void:#050b16;--glass:rgba(11,21,48,.76);--line:rgba(159,180,204,.22);--ink:#eaf3ff;--mute:#9fb4cc;--blue:#16b4ff;--brass:#e2b766;--green:#3dff8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--void:#050b16}}
+:root[data-theme="dark"]{--void:#050b16}
+html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 15px/1.4 'IBM Plex Sans',system-ui,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#stage{position:fixed;inset:0}
+#photo{position:absolute;display:none;object-fit:fill;pointer-events:none}
+#c{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.top{position:fixed;left:16px;right:16px;top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none;z-index:3}
+.top>*{pointer-events:auto}
+.tag{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:10px 14px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%);max-width:min(520px,calc(100vw - 32px))}
+.tag h1{margin:0;font:700 1.35rem/1 Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.tag p{margin:5px 0 0;font:400 .7rem/1.4 'IBM Plex Mono',monospace;color:var(--mute)}
+#card{max-width:min(420px,calc(100vw - 32px));background:var(--glass);border:1px solid rgba(61,255,138,.45);border-left:3px solid var(--green);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:10px 34px 10px 14px;position:relative}
+#card[hidden]{display:none}
+#card h2{margin:0;font:700 1.05rem/1.1 Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--green)}
+#card p{margin:5px 0 0;font:400 .8rem/1.4 'IBM Plex Sans',sans-serif}
+#cardX{position:absolute;right:6px;top:4px;background:none;border:0;color:var(--mute);font-size:1.3rem;cursor:pointer;padding:4px 6px}
+.parts{position:fixed;right:16px;top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:5px;z-index:3;max-height:60vh;overflow:auto}
+.parts button,.bar button{background:var(--glass);border:1px solid var(--line);color:var(--ink);font:500 .66rem/1 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:9px 11px;cursor:pointer;text-align:left;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.parts button.on,.bar button.on{border-color:var(--green);color:var(--green)}
+.bar{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:7px;justify-content:center;align-items:center;z-index:3}
+.bar button{clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,0 100%);padding:11px 13px;min-height:40px}
+#x{display:none;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--line);padding:6px 10px;font:500 .64rem 'IBM Plex Mono',monospace;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+#y{width:120px;accent-color:#3dff8a}
+@media (max-width:640px){.parts{top:auto;bottom:calc(120px + env(safe-area-inset-bottom));right:12px;max-height:34vh}.parts button{padding:7px 9px;font-size:.6rem}}
+#c{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+#labels{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
+.lb{position:absolute;transform:translate(-50%,-100%);font:500 .58rem/1 'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);background:rgba(5,11,22,.72);border:1px solid rgba(22,180,255,.45);padding:4px 6px;white-space:nowrap;pointer-events:auto;cursor:pointer}
+.lb.ns{border-color:rgba(226,183,102,.7)}
+#card .meta{margin-top:6px;font:500 .64rem 'IBM Plex Mono',monospace;color:var(--mute)}
+#card .meta b{color:var(--brass);font-weight:500}
+#thumbs{display:flex;gap:6px;margin-top:8px;overflow-x:auto}
+#thumbs img{height:84px;border:1px solid var(--line);cursor:pointer}
+#viewer{position:fixed;inset:0;background:rgba(2,6,12,.92);display:none;align-items:center;justify-content:center;z-index:9}
+#viewer img{max-width:94vw;max-height:86vh}
+#viewer span{position:absolute;bottom:18px;left:0;right:0;text-align:center;font:500 .7rem 'IBM Plex Mono',monospace;color:var(--mute)}
+#pmix{display:none;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--line);padding:6px 10px;font:500 .64rem 'IBM Plex Mono',monospace;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+#pmix input{width:130px;accent-color:#3dff8a}
+#photoBg{position:fixed;display:none;pointer-events:none;z-index:0}
+#c{z-index:1}
+#secs{position:fixed;right:16px;top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:5px;z-index:3}
+#secs button{background:var(--glass);border:1px solid var(--line);color:var(--ink);font:500 .62rem/1 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:8px 10px;cursor:pointer;text-align:left}
+#secs button.on{border-color:var(--green);color:var(--green)}
+@media (max-width:640px){#secs{top:auto;bottom:calc(118px + env(safe-area-inset-bottom));right:10px}#secs button{padding:6px 8px;font-size:.56rem}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas><div id="labels"></div>
+<div class="top"><div class="tag"><h1>Main hall · remodel</h1><p>The whole hall rebuilt in one plan: every crate, stillage and rack in its place, at real size. Fly round by area on the right, tap anything to see what it is. Orange labels = not sure yet.</p></div>
+<div id="card" hidden><button id="cardX" aria-label="close">×</button><h2 id="cName"></h2><p id="cWhat"></p><div class="meta" id="cMeta"></div></div></div>
+<div id="secs"></div>
+<div class="bar"><button id="vDoor" class="on">walk in</button><button id="vFar">far end</button><button id="vTop">from above</button><button id="inside">look inside</button><button id="vLab">labels</button><button id="hq" class="on">HQ</button><button id="spin">spin</button></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+const THREE_ADDONS = { mergeGeometries };
+const $ = id => document.getElementById(id);
+const renderer = new THREE.WebGLRenderer({ canvas: $('c'), antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b1220); scene.fog = new THREE.Fog(0x2a2a28, 35, 90);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), .04).texture; scene.environmentIntensity = .35;
+// light: soft sky through the roof lights, daylight spilling in at the door, warm LED high-bays
+scene.add(new THREE.HemisphereLight(0xe8eef5, 0x5d5a52, 1.15));
+const sun = new THREE.DirectionalLight(0xfff1de, 1.9); sun.position.set(26, 34, 18); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 110 }); sun.shadow.bias = -.0004; sun.shadow.normalBias = .02; sun.target.position.set(10, 0, -19); scene.add(sun, sun.target);
+const doorLight = new THREE.SpotLight(0xfff6e8, 120, 30, .7, .6, 1.4); doorLight.position.set(9.6, 4.5, 6); doorLight.target.position.set(9.6, 0, -10); scene.add(doorLight, doorLight.target);
+for (let z = -5; z > -39; z -= 8.5) { const l = new THREE.PointLight(0xfff3df, 22, 16, 1.6); l.position.set(10, 6.6, z); scene.add(l); }
+__KIT__
+const noise = speckle;
+__HALL3__
+const { g: shedG, roofG } = shed(); layout();
+const [before, after] = bake(); console.log('baked', before, '->', after);
+const camera = new THREE.PerspectiveCamera(55, 1, .05, 300);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.autoRotateSpeed = .5; controls.maxDistance = 80; controls.maxPolarAngle = Math.PI * .495;
+const composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera)); const gtao = new GTAOPass(scene, camera, innerWidth, innerHeight); gtao.updateGtaoMaterial({ radius: .6, distanceExponent: 1.5, thickness: 1, scale: 1.2 }); gtao.blendIntensity = .9; composer.addPass(gtao); composer.addPass(new OutputPass());
+let HQ = !/Mobi|Android/i.test(navigator.userAgent); $('hq').classList.toggle('on', HQ); $('hq').onclick = () => { HQ = !HQ; $('hq').classList.toggle('on', HQ); };
+const VIEWS = { door: [[9.6, 1.7, 3.5], [9.6, 1.6, -14]], far: [[10.5, 2.4, -30.5], [10, 1.6, -10]], top: [[-12, 34, 12], [10, 0, -19.5]] };
+let fly = null;
+function go(p, t, roof = true) { fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: new THREE.Vector3(...p), t1: new THREE.Vector3(...t), start: performance.now() }; roofG.visible = roof; }
+function view(k) { go(...VIEWS[k], k !== 'top'); for (const id of ['vDoor', 'vFar', 'vTop']) $(id).classList.toggle('on', id === { door: 'vDoor', far: 'vFar', top: 'vTop' }[k]); document.querySelectorAll('#secs button').forEach(b => b.classList.remove('on')); }
+$('vDoor').onclick = () => view('door'); $('vFar').onclick = () => view('far'); $('vTop').onclick = () => view('top');
+ZONES.forEach(zn => { const b = document.createElement('button'); b.textContent = zn.name; b.onclick = () => { const bb = new THREE.Box3(); zn.items.forEach(o => bb.expandByObject(o)); const c = bb.getCenter(new THREE.Vector3()), sz = bb.getSize(new THREE.Vector3()); const toAisle = new THREE.Vector3(10 - c.x, 0, 0); if (Math.abs(toAisle.x) < 2) toAisle.set(0, 0, 1); toAisle.normalize(); const d = Math.max(sz.x, sz.z, 4) * .9 + 3;
+  go(c.clone().addScaledVector(toAisle, d).setY(Math.max(1.7, sz.y * .55)).toArray(), c.clone().setY(Math.min(2, sz.y * .45)).toArray()); document.querySelectorAll('#secs button').forEach(x => x.classList.toggle('on', x === b)); for (const id of ['vDoor', 'vFar', 'vTop']) $(id).classList.remove('on'); }; $('secs').appendChild(b); });
+let liftWant = 0, lift = 0; $('inside').onclick = () => { liftWant = liftWant ? 0 : 1; $('inside').classList.toggle('on', !!liftWant); };
+$('spin').onclick = () => { controls.autoRotate = !controls.autoRotate; $('spin').classList.toggle('on', controls.autoRotate); };
+const PICK = INFO.filter(o => !o.userData.noPick); let labelsOn = false; $('labels').style.display = 'none';
+const labels = PICK.map(o => { const d = document.createElement('div'); d.className = 'lb' + (o.userData.info.sure === 'not sure' ? ' ns' : ''); d.textContent = o.userData.info.name; d.onclick = () => select(o); $('labels').appendChild(d); const b = new THREE.Box3().setFromObject(o); return { d, o, a: new THREE.Vector3((b.min.x + b.max.x) / 2, b.max.y + .12, (b.min.z + b.max.z) / 2) }; });
+$('vLab').onclick = () => { labelsOn = !labelsOn; $('labels').style.display = labelsOn ? '' : 'none'; $('vLab').classList.toggle('on', labelsOn); };
+const selBox = new THREE.Box3Helper(new THREE.Box3(), 0x3dff8a); selBox.visible = false; selBox.material.depthTest = false; selBox.renderOrder = 9; scene.add(selBox); let selO = null;
+function select(o) { selO = o; if (!o) { $('card').hidden = true; selBox.visible = false; return; } const i = o.userData.info;
+  $('cName').textContent = i.name; $('cWhat').textContent = i.what; $('cMeta').innerHTML = `${i.size ? i.size + ' · ' : ''}<b>${i.sure}</b>`; $('card').hidden = false; selBox.box.setFromObject(o); selBox.visible = true; }
+$('cardX').onclick = () => select(null);
+const ray = new THREE.Raycaster(); let down;
+renderer.domElement.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; controls.autoRotate = false; $('spin').classList.remove('on'); fly = null; });
+renderer.domElement.addEventListener('pointerup', e => { if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
+  ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1), camera);
+  let o = null; for (const h of ray.intersectObjects(scene.children, true)) { if (!h.object.visible || h.object === selBox) continue; o = h.object; while (o && !o.userData.info) o = o.parent; if (o && o.userData.noPick) o = null; if (o) break; } select(o); });
+function layoutView() { renderer.setSize(innerWidth, innerHeight, false); composer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.fov = innerWidth / innerHeight < .8 ? 70 : 55; camera.updateProjectionMatrix(); }
+addEventListener('resize', layoutView); layoutView(); camera.position.fromArray(VIEWS.door[0]); controls.target.fromArray(VIEWS.door[1]); controls.update();
+const v = new THREE.Vector3(); let t0 = performance.now();
+renderer.setAnimationLoop(now => { const dt = Math.min(.05, (now - t0) / 1000); t0 = now;
+  if (fly) { const k = Math.min(1, (now - fly.start) / 1400), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; camera.position.lerpVectors(fly.p0, fly.p1, e); controls.target.lerpVectors(fly.t0, fly.t1, e); if (k >= 1) fly = null; }
+  const was = lift; lift += (liftWant - lift) * Math.min(1, dt * 4); if (Math.abs(lift - was) > 1e-4) { CRATES.forEach(c => c.userData.lift(lift)); ONTOP.forEach(u => { u.o.position.y = u.y0 + u.level * lift * (u.h + .5); }); }
+  controls.update(); if (HQ) composer.render(); else renderer.render(scene, camera); if (selO) selBox.box.setFromObject(selO);
+  if (labelsOn) for (const l of labels) { v.copy(l.a).project(camera); const on = v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05 && camera.position.distanceTo(l.a) < 14; l.d.style.display = on ? '' : 'none'; if (on) { l.d.style.left = ((v.x + 1) / 2 * innerWidth) + 'px'; l.d.style.top = ((1 - v.y) / 2 * innerHeight) + 'px'; } } });
+window.__view = view; window.__zone = i => document.querySelectorAll('#secs button')[i].click(); window.__pick = n => select(PICK.find(o => o.userData.info.name.startsWith(n)) || null); window.__inside = () => $('inside').click(); window.__hq = on => { HQ = on; }; window.__cam = (p, t, roof = true) => { fly = null; camera.position.fromArray(p); controls.target.fromArray(t); roofG.visible = roof; controls.update(); }; window.__labels = () => $('vLab').click(); window.__ready = true;
+</script>
+</body>
+</html>

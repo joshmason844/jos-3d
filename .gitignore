@@ -1,0 +1,8 @@
+__pycache__/
+node_modules/
+.cache/
+*.png
+*.mp4
+*.gif
+/work/
+/photos/

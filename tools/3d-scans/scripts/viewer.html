@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>__TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--void:#050b16;--glass:rgba(11,21,48,.72);--line:rgba(159,180,204,.22);--ink:#eaf3ff;--mute:#9fb4cc;--blue:#16b4ff;--brass:#e2b766;--green:#3dff8a}
+:root[data-theme="light"]{--void:#050b16}
+html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 15px/1.4 'IBM Plex Sans',system-ui,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hud{position:fixed;left:16px;right:16px;top:calc(14px + env(safe-area-inset-top));display:flex;justify-content:space-between;align-items:flex-start;gap:12px;pointer-events:none}
+.tag{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:10px 14px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%);pointer-events:auto;max-width:70vw}
+.tag h1{margin:0;font:700 1.35rem/1 Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.tag p{margin:4px 0 0;font:400 .72rem/1.3 'IBM Plex Mono',monospace;color:var(--mute);letter-spacing:.04em}
+.bar{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.bar button{background:var(--glass);border:1px solid var(--line);color:var(--ink);font:500 .74rem/1 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;padding:11px 14px;min-height:40px;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,0 100%)}
+.bar button.on{border-color:var(--green);color:var(--green)}
+#readout{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(72px + env(safe-area-inset-bottom));font:500 1rem/1 'IBM Plex Mono',monospace;color:var(--green);background:var(--glass);border:1px solid rgba(61,255,138,.4);padding:9px 14px;display:none}
+#load{position:fixed;inset:0;display:grid;place-items:center;font:500 .8rem 'IBM Plex Mono',monospace;color:var(--mute);letter-spacing:.14em;text-transform:uppercase;pointer-events:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="hud"><div class="tag"><h1>__TITLE__</h1><p id="meta">__SUB__</p></div></div>
+<div id="load">loading scan…</div>
+<div id="readout"></div>
+<div class="bar"><button id="spin" class="on">spin</button><button id="flip">flip</button><button id="meas">measure</button><button id="home">reset view</button></div>
+<script id="model" type="application/octet-stream" data-name="__FILENAME__" data-kind="__KIND__">__B64__</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/","@sparkjsdev/spark":"https://cdn.jsdelivr.net/npm/@sparkjsdev/spark@2.3.1/dist/spark.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const $ = id => document.getElementById(id);
+const el = $('model'), kind = el.dataset.kind, name = el.dataset.name, FLIP0 = __FLIP__;
+const bytes = Uint8Array.from(atob(el.textContent.trim()), c => c.charCodeAt(0)); el.textContent = '';
+const renderer = new THREE.WebGLRenderer({ canvas: $('c'), antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x050b16); scene.fog = new THREE.Fog(0x050b16, 30, 90);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.8;
+const camera = new THREE.PerspectiveCamera(45, 1, 0.02, 400);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.autoRotate = true; controls.autoRotateSpeed = 0.8;
+const grid = new THREE.GridHelper(40, 40, 0x16b4ff, 0x123050); grid.material.transparent = true; grid.material.opacity = 0.35; scene.add(grid);
+scene.add(new THREE.HemisphereLight(0xcfe3ff, 0x0b1424, 0.6)); const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(5, 9, 6); scene.add(sun);
+const ray = new THREE.Raycaster(); const holder = new THREE.Group(); scene.add(holder); let model, flipped = false, homeView;
+camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+
+if (kind === 'splat') {
+  const { SparkRenderer, SplatMesh } = await import('@sparkjsdev/spark');
+  scene.add(new SparkRenderer({ renderer }));
+  model = new SplatMesh({ fileBytes: bytes, fileName: name }); holder.add(model); await model.initialized;
+} else if (kind === 'points') { // coloured point cloud (photo reconstructions): plain WebGL points, works on every phone
+  const { PLYLoader } = await import('three/addons/loaders/PLYLoader.js');
+  const g = new PLYLoader().parse(bytes.buffer); g.computeBoundingBox(); const ext = g.boundingBox.getSize(new THREE.Vector3()).length();
+  model = new THREE.Points(g, new THREE.PointsMaterial({ size: Math.max(.012, ext / 900), vertexColors: true, sizeAttenuation: true }));
+  ray.params.Points.threshold = ext / 400; holder.add(model);
+} else {
+  model = (await new GLTFLoader().parseAsync(bytes.buffer, '')).scene; holder.add(model);
+}
+if (FLIP0) flip(); else frame();
+$('load').remove();
+
+function bounds() { // splats: use their own bounding box; meshes: Box3
+  holder.updateMatrixWorld(true);
+  if (kind === 'splat' && model.getBoundingBox) { const b = model.getBoundingBox(true).clone(); return b.applyMatrix4(model.matrixWorld); }
+  return new THREE.Box3().setFromObject(model);
+}
+function frame() { // sit the scan on the grid and frame it
+  holder.position.set(0, 0, 0); const b = bounds(), c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3());
+  holder.position.set(-c.x, -b.min.y, -c.z); const r = Math.max(s.x, s.y, s.z) * 0.5 || 1;
+  const fit = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2) * Math.min(1, camera.aspect)) * 1.05, dir = new THREE.Vector3(0.55, 0.42, 0.72).normalize();
+  camera.position.copy(dir.multiplyScalar(fit)).add(new THREE.Vector3(0, s.y * 0.4, 0)); controls.target.set(0, s.y * 0.4, 0); controls.update();
+  homeView = { p: camera.position.clone(), t: controls.target.clone() };
+  grid.scale.setScalar(Math.max(1, r / 6)); camera.far = r * 60; camera.updateProjectionMatrix();
+  $('meta').textContent = `${'__SUB__' ? '__SUB__ · ' : ''}${s.x.toFixed(2)} × ${s.z.toFixed(2)} m · ${s.y.toFixed(2)} m high` + (kind === 'splat' && model.numSplats ? ` · ${(model.numSplats / 1000).toFixed(0)}k splats` : kind === 'points' ? ` · ${(model.geometry.attributes.position.count / 1000).toFixed(0)}k points` : '');
+}
+function flip() { flipped = !flipped; model.quaternion.set(flipped ? 1 : 0, 0, 0, flipped ? 0 : 1); frame(); }
+
+// measure: tap two points on the scan → straight-line distance in metres
+const pts = [], dots = new THREE.Group(); scene.add(dots); let measuring = false, line;
+const dotMat = new THREE.MeshBasicMaterial({ color: 0x3dff8a, depthTest: false }), lineMat = new THREE.LineBasicMaterial({ color: 0x3dff8a, depthTest: false });
+let down;
+renderer.domElement.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; controls.autoRotate = false; $('spin').classList.remove('on'); });
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!measuring || !down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
+  const r = renderer.domElement.getBoundingClientRect(); ray.setFromCamera(new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), camera);
+  const hit = ray.intersectObject(holder, true)[0]; if (!hit) return;
+  if (pts.length === 2) { pts.length = 0; dots.clear(); }
+  pts.push(hit.point.clone()); const d = new THREE.Mesh(new THREE.SphereGeometry(0.012 * camera.position.distanceTo(hit.point), 12, 8), dotMat); d.position.copy(hit.point); d.renderOrder = 9; dots.add(d);
+  if (pts.length === 2) { line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), lineMat); line.renderOrder = 9; dots.add(line); const m = pts[0].distanceTo(pts[1]); $('readout').textContent = m < 1 ? (m * 100).toFixed(1) + ' cm' : m.toFixed(2) + ' m'; }
+  else $('readout').textContent = 'tap the second point';
+});
+$('meas').onclick = () => { measuring = !measuring; $('meas').classList.toggle('on', measuring); $('readout').style.display = measuring ? 'block' : 'none'; $('readout').textContent = 'tap two points'; if (!measuring) { pts.length = 0; dots.clear(); } };
+$('spin').onclick = () => { controls.autoRotate = !controls.autoRotate; $('spin').classList.toggle('on', controls.autoRotate); };
+$('flip').onclick = flip;
+$('home').onclick = () => { camera.position.copy(homeView.p); controls.target.copy(homeView.t); };
+function size() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+addEventListener('resize', size); size();
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+window.__ready = true;
+</script>
+</body>
+</html>

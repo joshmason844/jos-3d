@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Yard in 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--void:#050b16;--glass:rgba(11,21,48,.74);--line:rgba(159,180,204,.22);--ink:#eaf3ff;--mute:#9fb4cc;--blue:#16b4ff;--brass:#e2b766;--green:#3dff8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--void:#050b16}}
+:root[data-theme="dark"]{--void:#050b16}
+html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 15px/1.4 'IBM Plex Sans',system-ui,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.tag{position:fixed;left:16px;top:calc(14px + env(safe-area-inset-top));max-width:min(560px,calc(100vw - 32px));background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:10px 14px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%)}
+.tag h1{margin:0;font:700 1.35rem/1 Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.tag p{margin:5px 0 0;font:400 .72rem/1.35 'IBM Plex Mono',monospace;color:var(--mute);letter-spacing:.03em}
+.tag b{color:var(--green);font-weight:500}
+.bar{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+.bar button{background:var(--glass);border:1px solid var(--line);color:var(--ink);font:500 .72rem/1 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;padding:11px 13px;min-height:40px;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,0 100%)}
+.bar button.on{border-color:var(--green);color:var(--green)}
+.seg{display:flex;gap:0}.seg button+button{margin-left:-1px}
+#readout{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(70px + env(safe-area-inset-bottom));font:500 1rem/1 'IBM Plex Mono',monospace;color:var(--green);background:var(--glass);border:1px solid rgba(61,255,138,.4);padding:9px 14px;display:none;white-space:nowrap}
+#hint{position:fixed;right:16px;top:calc(14px + env(safe-area-inset-top));font:400 .68rem/1.3 'IBM Plex Mono',monospace;color:var(--mute);text-align:right;max-width:160px}
+
+.top{position:fixed;left:16px;right:16px;top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none;z-index:3}
+.top>*{pointer-events:auto}
+.tag{position:static}
+#readout{position:static;transform:none;display:none}
+#card{position:relative;max-width:min(420px,calc(100vw - 32px));background:var(--glass);border:1px solid rgba(61,255,138,.45);border-left:3px solid var(--green);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:10px 34px 10px 14px}
+#card h2{margin:0;font:700 1.05rem/1.1 Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--green)}
+#card p{margin:5px 0 0;font:400 .8rem/1.4 'IBM Plex Sans',sans-serif;color:var(--ink)}
+#card .sz{font:500 .7rem/1.3 'IBM Plex Mono',monospace;color:var(--mute);display:flex;gap:10px;flex-wrap:wrap}
+#cSure{color:var(--brass)}
+#cardX{position:absolute;right:6px;top:4px;background:none;border:0;color:var(--mute);font-size:1.3rem;cursor:pointer;padding:4px 6px}
+#labels{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
+#labels button{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;white-space:nowrap;background:rgba(5,11,22,.78);border:1px solid rgba(22,180,255,.55);color:var(--ink);font:500 .62rem/1 'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;padding:5px 7px;cursor:pointer}
+#labels button::after{content:'';position:absolute;left:50%;top:100%;width:1px;height:10px;background:rgba(22,180,255,.7)}
+#labels button.sel{border-color:var(--green);color:var(--green)}
+.bar{z-index:3}
+#checks{position:fixed;inset:0;z-index:5;background:rgba(5,11,22,.6);display:grid;place-items:center;padding:16px}
+#checks[hidden],#capture[hidden]{display:none}
+#capture{position:fixed;inset:0;z-index:5;background:rgba(5,11,22,.6);display:grid;place-items:center;padding:16px}
+.cap-in{border-left-color:#ff4d6a}.capb{color:#ff8fa3 !important}
+.cap-row{display:flex;gap:8px;margin:6px 0 10px}.cap-row input{flex:1;background:#050b16;border:1px solid var(--line);color:var(--ink);font:400 .9rem 'IBM Plex Sans',sans-serif;padding:9px}
+.cap-row button,.cap-act label{background:none;border:1px solid var(--line);color:var(--ink);font:500 .72rem/1 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;padding:11px 12px;cursor:pointer;text-align:center}
+.cap-act{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cap-act input{display:none}.cap-act .shoot{border-color:#ff4d6a;color:#ffd0d8;background:rgba(255,77,106,.12)}
+.cap-ring{position:relative;width:120px;height:120px;margin:4px auto 12px}.cap-ring svg{transform:rotate(-90deg)}.cap-ring circle{fill:none;stroke-width:8}.cap-ring .bg{stroke:rgba(159,180,204,.18)}.cap-ring .fg{stroke:#3dff8a;stroke-dasharray:326.7;stroke-dashoffset:326.7;transition:stroke-dashoffset .3s}
+.cap-ring div{position:absolute;inset:0;display:grid;place-content:center;text-align:center}.cap-ring b{font:700 2rem/1 Rajdhani,sans-serif}.cap-ring span{font:400 .66rem 'IBM Plex Mono',monospace;color:var(--mute)}
+.cap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:4px;margin-top:8px}.cap-grid img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;background:#0b1424}
+.cap-msg{min-height:1em;font:400 .74rem 'IBM Plex Mono',monospace !important;color:var(--mute)}
+.ch-in h3{margin:16px 0 6px;font:500 .66rem 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.cap-list{list-style:none;margin:0;padding:0;font:400 .8rem 'IBM Plex Sans',sans-serif}.cap-list li{padding:7px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:8px}.cap-list i{font-style:normal;font:500 .66rem 'IBM Plex Mono',monospace;color:var(--brass);text-transform:uppercase;letter-spacing:.08em}
+.ch-in{position:relative;width:min(520px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#0b1530;border:1px solid var(--line);border-left:3px solid var(--brass);padding:16px}
+.ch-in h2{margin:0 0 4px;font:700 1.2rem/1 Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.ch-in p{margin:0 0 10px;font:400 .8rem/1.4 'IBM Plex Sans',sans-serif;color:var(--mute)}
+#chkT{width:100%;border-collapse:collapse;font:400 .78rem/1.3 'IBM Plex Sans',sans-serif}
+#chkT th{font:500 .62rem/1 'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);text-align:left;padding:4px 6px}
+#chkT td{padding:6px;border-top:1px solid var(--line);vertical-align:middle}
+#chkT td:nth-child(2){font-family:'IBM Plex Mono',monospace;color:var(--brass);white-space:nowrap}
+#chkT input{width:74px;background:#050b16;border:1px solid var(--line);color:var(--ink);font:500 .85rem 'IBM Plex Mono',monospace;padding:6px}
+#chkT tr.off td:nth-child(3) input{border-color:#ff6a45}#chkT tr.ok td:nth-child(3) input{border-color:var(--green)}
+.ch-act{display:flex;gap:10px;align-items:center;margin-top:12px}.ch-act button{background:none;border:1px solid var(--green);color:var(--green);font:500 .72rem/1 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;padding:10px 12px;cursor:pointer}
+#chkMsg{font:400 .72rem 'IBM Plex Mono',monospace;color:var(--mute)}
+#chkX,#capX{position:absolute;right:8px;top:6px;background:none;border:0;color:var(--mute);font-size:1.4rem;cursor:pointer}
+@media (max-width:560px){#hint{display:none}.tag p{font-size:.66rem}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="top"><div class="tag"><h1>Yard · bay 1</h1><p id="meta">From one photo: racking 6.1 m high, 2.7 m bays, beams at 1.6 / 3.3 / 4.9 m. Scale from the forklift (Doosan G15S guard 2.16 m). Sizes ±5%. Tap anything to see what it is.</p></div>
+<div id="readout"></div><div id="card" hidden><button id="cardX" aria-label="close">×</button><h2 id="cName"></h2><p id="cWhat"></p><p class="sz"><span id="cSize"></span><span id="cSure"></span></p></div></div>
+<div id="hint">tap anything to identify it<br>drag to look round · pinch to zoom</div>
+<div id="labels"></div>
+<div id="capture" hidden><div class="ch-in cap-in"><button id="capX" aria-label="close">×</button><h2>Capture</h2>
+<p>Like Polycam: walk slowly round the thing (or along the bay) taking a photo every step, about every 10°. Aim for 30, with lots of overlap. Keep the phone at the same height and put an A4 sheet in a few shots for scale. Photos save here and I turn them into 3D.</p>
+<div class="cap-row"><input id="capName" placeholder="Name it, e.g. Bay 2 or Bell tent 14" maxlength="60"><button id="capNew">new</button></div>
+<div class="cap-ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="bg"/><circle id="capArc" cx="60" cy="60" r="52" class="fg"/></svg><div><b id="capN">0</b><span>of 30</span></div></div>
+<div class="cap-act"><label class="shoot">take photo<input id="capShot" type="file" accept="image/*" capture="environment"></label><label class="lib">add from library<input id="capLib" type="file" accept="image/*" multiple></label></div>
+<p id="capMsg" class="cap-msg"></p><div id="capGrid" class="cap-grid"></div>
+<div class="ch-act"><button id="capDone">done: send to Claude</button></div>
+<h3>Earlier captures</h3><ul id="capList" class="cap-list"><li class="muted">none yet</li></ul></div></div>
+<div id="checks" hidden><div class="ch-in"><button id="chkX" aria-label="close">×</button><h2>Check my measurements</h2><p>Tape these at the yard and type what you get. Copy sends them to me and I'll re-solve the model.</p>
+<table id="chkT"><thead><tr><th>what</th><th>mine</th><th>yours</th></tr></thead><tbody></tbody></table>
+<div class="ch-act"><button id="chkCopy">copy results</button><span id="chkMsg"></span></div></div></div>
+<div class="bar">
+  <div class="seg"><button id="mPhoto" class="on">photo 3D</button><button id="mModel">model</button></div>
+  <button id="cap" class="capb">● capture</button><button id="chk">checks</button><button id="lab" class="on">labels</button><button id="tent">4 m bell</button><button id="meas">measure</button><button id="home">reset</button>
+</div>
+<script id="photo" type="text/plain">__PHOTO__</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+// ---- kit models (from the 3d-models skill) ----
+__KIT__
+// ---- the solved photo camera ----
+const CAM = __CAM__;
+const $ = id => document.getElementById(id);
+const renderer = new THREE.WebGLRenderer({ canvas: $('c'), antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x050b16);
+// projector = the phone's camera when the photo was taken
+const proj = new THREE.PerspectiveCamera(THREE.MathUtils.radToDeg(2 * Math.atan(CAM.H / 2 / CAM.f)), CAM.W / CAM.H, 0.1, 200);
+proj.position.fromArray(CAM.cam); const R = CAM.R;
+proj.quaternion.setFromRotationMatrix(new THREE.Matrix4().set(R[0][0], R[0][1], R[0][2], 0, R[1][0], R[1][1], R[1][2], 0, R[2][0], R[2][1], R[2][2], 0, 0, 0, 0, 1));
+proj.updateMatrixWorld(); proj.updateProjectionMatrix();
+const PV = new THREE.Matrix4().multiplyMatrices(proj.projectionMatrix, proj.matrixWorldInverse);
+const img = new Image(); img.src = 'data:image/jpeg;base64,' + $('photo').textContent.trim(); await img.decode();
+const tex = new THREE.Texture(img); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8; tex.needsUpdate = true;
+const seen = new THREE.WebGLRenderTarget(1024, 1365, { depthTexture: new THREE.DepthTexture(1024, 1365) });
+const photoMat = new THREE.ShaderMaterial({ uniforms: { uTex: { value: tex }, uPV: { value: PV }, uDepth: { value: seen.depthTexture } }, toneMapped: false, side: THREE.DoubleSide,
+  vertexShader: `varying vec3 vW;void main(){vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,
+  fragmentShader: `uniform sampler2D uTex,uDepth;uniform mat4 uPV;varying vec3 vW;
+void main(){vec4 p=uPV*vec4(vW,1.);vec3 n=p.xyz/p.w;vec2 uv=n.xy*.5+.5;
+ if(p.w<=0.||uv.x<0.||uv.x>1.||uv.y<0.||uv.y>1.)discard;
+ float d=texture2D(uDepth,uv).r,z=n.z*.5+.5;                      // what the phone saw first along this ray
+ vec4 c=texture2D(uTex,uv);float hid=step(d+.0008,z);              // hidden from the phone: no photo there
+ float e=smoothstep(0.,.015,min(min(uv.x,1.-uv.x),min(uv.y,1.-uv.y)));
+ gl_FragColor=vec4(mix(vec3(.035,.06,.1),c.rgb,e*(1.-hid*.88)),1.);
+ #include <colorspace_fragment>
+}` });
+// ---- the bay, in metres: x along the racking (upright 0 at x = 0), y up, z out from the rack face toward the camera ----
+const photoSet = new THREE.Group(), modelSet = new THREE.Group(), both = new THREE.Group(); scene.add(photoSet, modelSet, both);
+const M = (c, r = .8, x = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: x.metal || 0, ...x });
+function blk(w, h, d, m, x, y, z, ry = 0, grp = modelSet) { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y + h / 2, z); o.rotation.y = ry; o.castShadow = o.receiveShadow = true; grp.add(o); return o; }
+function plane(w, h, m, grp) { const o = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m); grp.add(o); o.receiveShadow = true; return o; }
+// shell: floor, back wall, roof (shared by both modes; photo mode projects the picture on them)
+const shellParts = [];
+{ const f = plane(22, 16, photoMat, both); f.rotation.x = -Math.PI / 2; f.position.set(1.5, 0, 6.8); shellParts.push([f, M(0x8d9093, .95)]);
+  const w = plane(22, 7, photoMat, both); w.position.set(1.5, 3.5, -1.25); shellParts.push([w, M(0x262e36, .9)]);
+  const rf = plane(22, 16, photoMat, both); const pitch = THREE.MathUtils.degToRad(8); rf.rotation.x = Math.PI / 2 - pitch; rf.position.set(1.5, 6.9 + Math.tan(pitch) * 8, -1.25 + 8 * Math.cos(pitch)); shellParts.push([rf, M(0x5d6266, .9)]); }
+// photo mode: the rack face as one card, plus solid stand-ins for things that stick out of the floor
+{ const card = plane(20.5, 6.6, photoMat, photoSet); card.position.set(1.0, 3.3, 0);
+  const pm = photoMat; const fk = forkliftShape(pm, photoSet, true);
+  blk(2.4, 0.95, 1.2, pm, 2.47, 0, 3.75, -Math.atan2(0.2, 2.39), photoSet); blk(1.9, 0.71, 1.0, pm, -0.45, 0, 2.07, 0, photoSet);
+  blk(0.75, 0.98, 0.6, pm, 5.11, 0, 5.22, 0, photoSet); blk(1.3, 1.07, 2.0, pm, 6.75, 0, 6.1, 0, photoSet); }
+__MODEL__
+function forkliftShape(pm, grp, proxy) { // Doosan G15S, rear to camera: 1.07 m wide, 2.16 m to the guard, 2.16 m to the fork face
+  const g = new THREE.Group(); g.position.set(0.99 + .7 * .35, 0, 6.92 + .65 * .35); g.rotation.y = 0.85; grp.add(g);
+  { blk(1.07, 1.05, 2.0, pm, 0, 0, -1.0, 0, g); blk(1.0, 1.1, 0.2, pm, 0, 1.05, -0.35, 0, g); blk(1.0, 0.08, 1.4, pm, 0, 2.08, -1.05, 0, g); blk(0.75, 2.05, 0.18, pm, 0, 0.05, -2.05, 0, g); }
+  return g; }
+// the bell tent from the 3d-models skill, pitched (no guy ropes: it's a concrete floor) on the clear floor to dry
+const bell = tent({ r: 2.0, a: 0, wall: 0.55, peak: 2.5, ropes: false }); bell.position.set(3.9, 0, 7.6); bell.rotation.y = -0.35; bell.visible = false;
+bell.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); scene.add(bell);
+const contact = new THREE.Mesh(new THREE.CircleGeometry(2.45, 48), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .35, depthWrite: false }));
+contact.rotation.x = -Math.PI / 2; contact.position.y = 0.006; bell.add(contact);
+// light for model mode and the tent: low October sun through the open front, from the right
+const hemi = new THREE.HemisphereLight(0xdfe9f5, 0x3a3a36, 1.1); scene.add(hemi);
+const fill = new THREE.DirectionalLight(0xdfe9ff, 0.9); fill.position.set(2, 4, 12); scene.add(fill); fill.visible = false;
+const sun = new THREE.DirectionalLight(0xfff0d8, 2.4); sun.position.set(14, 9, 16); sun.target.position.set(2, 0, 3); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, far: 60 }); sun.shadow.bias = -0.0005; scene.add(sun, sun.target);
+// ---- view ----
+const camera = new THREE.PerspectiveCamera(proj.fov, 1, 0.05, 300);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.08;
+const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(proj.quaternion), TGT = proj.position.clone().add(fwd.clone().multiplyScalar(9));
+let mode = 'photo', sway = true, t0 = performance.now();
+function home() { camera.position.copy(proj.position); camera.fov = proj.fov; camera.updateProjectionMatrix(); controls.target.copy(TGT); controls.update(); }
+function setMode(m) { mode = m; photoSet.visible = m === 'photo'; modelSet.visible = m === 'model'; both.visible = m === 'photo'; if (window.__sel) window.__sel(null); hemi.intensity = m === 'model' ? 1.9 : 1.1; fill.visible = m === 'model';
+  $('mPhoto').classList.toggle('on', m === 'photo'); $('mModel').classList.toggle('on', m === 'model');
+  controls.minDistance = 2; controls.maxDistance = m === 'photo' ? 13 : 30; controls.maxPolarAngle = THREE.MathUtils.degToRad(m === 'photo' ? 96 : 88); }
+setMode('photo'); home();
+{ const vis = [modelSet.visible, bell.visible]; modelSet.visible = false; bell.visible = false; photoSet.visible = true;
+  scene.overrideMaterial = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }); // plain material: the photo shader can't read the depth it's writing
+  renderer.setRenderTarget(seen); renderer.render(scene, proj); renderer.setRenderTarget(null); scene.overrideMaterial = null; modelSet.visible = vis[0]; bell.visible = vis[1]; }
+$('mPhoto').onclick = () => { setMode('photo'); home(); };
+$('mModel').onclick = () => { setMode('model'); sway = false; camera.position.set(11.5, 6.2, 13.5); controls.target.set(1.8, 1.8, 2.4); controls.update(); };
+$('tent').onclick = () => { bell.visible = !bell.visible; $('tent').classList.toggle('on', bell.visible); };
+$('home').onclick = () => { sway = false; mode === 'photo' ? home() : $('mModel').onclick(); };
+// identify: tap a thing (works in both modes: the model is always there to pick against)
+const SHORT = o => o.userData.info.name.replace(/ \(.*?\)/, '').replace(/^Forklift: /, '').replace(/^Yurt lattice walls/, 'Trellis');
+const selBox = new THREE.Box3Helper(new THREE.Box3(), 0x3dff8a); selBox.visible = false; selBox.material.depthTest = false; selBox.renderOrder = 10; scene.add(selBox); let selected = null;
+function select(o) { selected = o; if (!o) { $('card').hidden = true; selBox.visible = false; document.querySelectorAll('#labels button').forEach(b => b.classList.remove('sel')); return; }
+  const i = o.userData.info; $('cName').textContent = i.name; $('cWhat').textContent = i.what; $('cSize').textContent = i.size; $('cSure').textContent = i.sure === 'sure' ? 'identified' : i.sure === 'fairly sure' ? 'fairly sure' : 'not sure: tell me';
+  $('card').hidden = false; const wasVis = modelSet.visible; modelSet.visible = true; selBox.box.setFromObject(o); modelSet.visible = wasVis; selBox.visible = !/floor|wall|roof|frame/i.test(i.name);
+  document.querySelectorAll('#labels button').forEach(b => b.classList.toggle('sel', b._o === o)); }
+$('cardX').onclick = () => select(null); window.__sel = select;
+const ownerOf = h => { let o = h.object; while (o && !o.userData.info) o = o.parent; return o; };
+const LAB = INFO.filter(o => !/floor|wall|roof|frame/i.test(o.userData.info.name));
+LAB.forEach(o => { const b = document.createElement('button'); b.textContent = SHORT(o); b._o = o; b.onclick = () => select(o); $('labels').appendChild(b); const bb = new THREE.Box3().setFromObject(o); o.userData.anchor = new THREE.Vector3((bb.min.x + bb.max.x) / 2, bb.max.y + .05, (bb.min.z + bb.max.z) / 2); });
+let labelsOn = true; $('lab').onclick = () => { labelsOn = !labelsOn; $('lab').classList.toggle('on', labelsOn); $('labels').style.display = labelsOn ? '' : 'none'; };
+const tmpV = new THREE.Vector3();
+function placeLabels() { if (!labelsOn) return; const w = innerWidth, h = innerHeight, placed = [];
+  for (const b of $('labels').children) { tmpV.copy(b._o.userData.anchor).project(camera); const x = (tmpV.x * .5 + .5) * w, y = (-tmpV.y * .5 + .5) * h;
+    const ok = tmpV.z < 1 && x > 8 && x < w - 8 && y > 110 && y < h - 70 && !placed.some(([px, py]) => Math.abs(px - x) < 70 && Math.abs(py - y) < 22);
+    b.style.display = ok || b._o === selected ? '' : 'none'; if (ok) placed.push([x, y]); b.style.left = x + 'px'; b.style.top = (y - 10) + 'px'; } }
+// capture: Polycam-style photo sets, saved to this page's own storage for Claude to process
+{ const TARGET = 30; let db = null, assets = null, cur = null, unsub = null;
+  const say = t => { $('capMsg').textContent = t; };
+  const ring = n => { $('capN').textContent = n; $('capArc').style.strokeDashoffset = 326.7 * (1 - Math.min(1, n / TARGET)); };
+  const esc = t => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function show(d) { const ph = (d && d.photos) || []; ring(ph.length); $('capGrid').innerHTML = ph.map(id => `<img src="/_blob/${id}" alt="" loading="lazy">`).join('');
+    $('capDone').disabled = !ph.length; if (d) $('capName').value = d.name || ''; }
+  async function ready() { if (!window.claude) return false; if (!db) db = await claude.use('db'); if (!assets) assets = await claude.use('assets');
+    if (!db || !assets) { say('Capture saves into this page: open it signed in as its owner (or an editor) to use it.'); ['capShot', 'capLib'].forEach(i => $(i).disabled = true); return false; } return true; }
+  async function listCaps() { try { const q = await db.collection('captures').orderBy('createdAt', 'desc').limit(20).get(); const rows = q.docs.map(d => ({ id: d.id, ...d.data() }));
+      $('capList').innerHTML = rows.length ? rows.map(r => `<li><span>${esc(r.name)} · ${(r.photos || []).length} photos</span>${r.status === 'done' && /^https:\/\/claude\.ai\/artifact\//.test(r.result || '') ? `<a href="${esc(r.result)}" target="_top" style="color:var(--green);font:500 .66rem 'IBM Plex Mono',monospace;text-transform:uppercase">open 3D →</a>` : `<i>${r.status === 'ready' ? 'sent' : r.status === 'done' ? '3D ready' : 'in progress'}</i>`}</li>`).join('') : '<li class="muted">none yet</li>';
+      if (!cur) { const open = rows.find(r => r.status === 'capturing'); if (open) { cur = open.id; show(open); } } } catch (e) { say('Could not load earlier captures.'); } }
+  async function newCap() { const name = $('capName').value.trim() || 'Capture ' + new Date().toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    cur = 'c' + Date.now().toString(36); await db.doc('captures/' + cur).set({ name, photos: [], status: 'capturing', createdAt: new Date().toISOString(), note: '' }); show({ name, photos: [] }); listCaps(); }
+  async function add(files) { if (!(await ready())) return; if (!cur) await newCap();
+    for (const f of files) { say(`saving ${f.name || 'photo'}…`);
+      try { let blob = f; if (!/^image\/(jpeg|png|webp)$/.test(f.type) || f.size > 19e6) blob = await shrink(f); // HEIC or huge: re-encode (loses lens data)
+        const r = await assets.upload(blob, { type: blob.type || 'image/jpeg' }); const ref = db.doc('captures/' + cur); const d = (await ref.get()).data() || {};
+        const photos = [...(d.photos || []), r.id]; await ref.update({ photos }); show({ ...d, photos }); listCaps(); say(`${photos.length} saved${photos.length < TARGET ? `: keep going, ${TARGET - photos.length} to go` : ': that\'s plenty'}`); }
+      catch (e) { say(e && e.code === 'too_large' ? 'That photo is too big.' : e && e.code === 'quota_or_state' ? 'Storage is full.' : 'That one didn\'t save, try again.'); } } }
+  async function shrink(f) { const im = await createImageBitmap(f), k = Math.min(1, 3000 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = im.width * k; c.height = im.height * k; c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); return await new Promise(r => c.toBlob(r, 'image/jpeg', .9)); }
+  $('cap').onclick = async () => { $('capture').hidden = false; if (await ready()) listCaps(); };
+  $('capX').onclick = () => { $('capture').hidden = true; }; $('capture').addEventListener('click', e => { if (e.target.id === 'capture') $('capture').hidden = true; });
+  $('capNew').onclick = async () => { if (await ready()) { cur = null; await newCap(); say('New capture started.'); } };
+  $('capShot').onchange = e => { add([...e.target.files]); e.target.value = ''; }; $('capLib').onchange = e => { add([...e.target.files]); e.target.value = ''; };
+  $('capDone').onclick = async () => { if (!cur || !(await ready())) return; await db.doc('captures/' + cur).update({ status: 'ready', sentAt: new Date().toISOString() }); say('Sent. Tell me in chat "process my capture" and I\'ll build it.'); cur = null; show(null); $('capName').value = ''; listCaps(); }; }
+// checks: my numbers vs his tape
+const CHECKS = [['Upright to upright (centres), middle bays', 2.80, 'assumed: everything scales from this'], ['Top of 1st beam (middle bays)', 1.64], ['Top of 2nd beam', 3.26], ['Top of 3rd beam', 4.88],
+  ['Black unit: width', 1.22], ['Black unit: height', 1.38], ['Trellis stack: height', 0.99], ['Stillage: length (frame)', 2.32], ['Stillage: depth (frame)', 1.35], ['Trellis: one level (stillage to stillage)', 0.20], ['Trellis slat: length', 2.49], ['Trellis: knot to knot along a slat', 0.235], ['Rack face to front of big trellis stack', 4.30],
+  ['Trestle top height', 0.98], ['Workbench top height', 1.07], ['Workbench length', 2.00], ['Forklift guard height (spec 2.16)', 2.16]];
+let chkVals = {}; try { chkVals = JSON.parse(localStorage.getItem('yard-checks') || '{}'); } catch (_) {}
+$('chkT').querySelector('tbody').innerHTML = CHECKS.map(([w, v, n], i) => `<tr data-i="${i}"><td>${w}${n ? `<br><small style="color:var(--mute)">${n}</small>` : ''}</td><td>${v.toFixed(2)} m</td><td><input inputmode="decimal" placeholder="m" value="${chkVals[i] ?? ''}"></td></tr>`).join('');
+const chkGrade = () => $('chkT').querySelectorAll('tr[data-i]').forEach(tr => { const i = +tr.dataset.i, v = parseFloat(chkVals[i]); tr.classList.toggle('ok', v > 0 && Math.abs(v - CHECKS[i][1]) / v <= .05); tr.classList.toggle('off', v > 0 && Math.abs(v - CHECKS[i][1]) / v > .05); });
+$('chkT').addEventListener('input', e => { const tr = e.target.closest('tr'); chkVals[tr.dataset.i] = e.target.value.replace(',', '.'); try { localStorage.setItem('yard-checks', JSON.stringify(chkVals)); } catch (_) {} chkGrade(); }); chkGrade();
+$('chk').onclick = () => { $('checks').hidden = false; }; $('chkX').onclick = () => { $('checks').hidden = true; };
+$('checks').addEventListener('click', e => { if (e.target.id === 'checks') $('checks').hidden = true; });
+$('chkCopy').onclick = async () => { const lines = CHECKS.map(([w, v], i) => `${w}: mine ${v.toFixed(2)} m, tape ${chkVals[i] ? chkVals[i] + ' m' : '–'}`).join('\n');
+  const txt = 'Yard checks (tape vs model):\n' + lines; try { await navigator.clipboard.writeText(txt); $('chkMsg').textContent = 'copied: paste it to Claude'; } catch (_) { $('chkMsg').textContent = 'copy blocked: screenshot this instead'; } };
+// measure: tap two points
+const ray = new THREE.Raycaster(), pts = [], marks = new THREE.Group(); scene.add(marks); let measuring = false, down;
+const dotM = new THREE.MeshBasicMaterial({ color: 0x3dff8a, depthTest: false }), lineM = new THREE.LineBasicMaterial({ color: 0x3dff8a, depthTest: false });
+renderer.domElement.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; sway = false; });
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
+  const r = renderer.domElement.getBoundingClientRect(); ray.setFromCamera(new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), camera);
+  if (!measuring) { const h = ray.intersectObjects([modelSet], true).map(ownerOf).find(Boolean); select(h || null); return; }
+  const hit = ray.intersectObjects([both, mode === 'photo' ? photoSet : modelSet, bell].filter(o => o.visible), true).find(h => h.object.visible !== false); if (!hit) return;
+  if (pts.length === 2) { pts.length = 0; marks.clear(); }
+  pts.push(hit.point.clone()); const d = new THREE.Mesh(new THREE.SphereGeometry(0.01 * camera.position.distanceTo(hit.point), 12, 8), dotM); d.renderOrder = 9; d.position.copy(hit.point); marks.add(d);
+  if (pts.length === 2) { const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), lineM); l.renderOrder = 9; marks.add(l); const m = pts[0].distanceTo(pts[1]); $('readout').textContent = m < 1 ? (m * 100).toFixed(0) + ' cm' : m.toFixed(2) + ' m'; }
+  else $('readout').textContent = 'tap the second point';
+});
+$('meas').onclick = () => { measuring = !measuring; select(null); $('meas').classList.toggle('on', measuring); $('readout').style.display = measuring ? 'block' : 'none'; $('readout').textContent = 'tap two points'; if (!measuring) { pts.length = 0; marks.clear(); } };
+function size() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+addEventListener('resize', size); size();
+renderer.setAnimationLoop(now => {
+  if (sway && mode === 'photo') { const k = (now - t0) / 1000, a = Math.sin(k * 0.55) * 0.22 * Math.min(1, k / 2); const off = proj.position.clone().sub(TGT).applyAxisAngle(new THREE.Vector3(0, 1, 0), a); camera.position.copy(TGT).add(off); camera.lookAt(TGT); }
+  controls.update(); placeLabels(); renderer.render(scene, camera); });
+window.__pick = name => select(INFO.find(o => o.userData.info.name.startsWith(name)) || null); window.__ready = true; window.__set = (m, tentOn, pose) => { sway = false; setMode(m); bell.visible = tentOn; if (pose) { camera.position.fromArray(pose[0]); controls.target.fromArray(pose[1]); controls.update(); } else if (m === 'photo') home(); else $('mModel').onclick(); };
+</script>
+</body>
+</html>
