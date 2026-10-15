@@ -18,9 +18,9 @@ export function trellisSection({ perLayer = 13, holes = 11, s = .235, end = .07,
   for (const [u, vs] of B) if (vs.length > 1) slats.push({ layer: 1, fixed: u, a: Math.min(...vs), b: Math.max(...vs) });
   const tones = [[.5, .36, .22], [.45, .33, .21], [.4, .32, .24], [.36, .32, .28], [.55, .41, .26], [.42, .3, .19]]; // weathered pine, matched to the photos
   const g = new THREE.Group(); g.name = 'Trellis section';
-  const slatMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .88 });
+  const slatMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .88, map: slatGrain() }); // grain + darker rounded edges, so each lath reads as a lath, not a plank
   const sm = new THREE.InstancedMesh(new THREE.BoxGeometry(SW, 1, ST), slatMat, slats.length); sm.castShadow = sm.receiveShadow = true;
-  const kg = new THREE.SphereGeometry(.0095, 10, 6); kg.scale(1.3, 1, .8); const km = new THREE.InstancedMesh(kg, new THREE.MeshStandardMaterial({ color: 0x4a4036, roughness: .45 }), inside.length * 2); // raised cord knot with a sheen, so close up it reads as a knot, not a drilled hole
+  const kg = new THREE.SphereGeometry(.0062, 10, 6); kg.scale(1.5, 1, .75); const km = new THREE.InstancedMesh(kg, new THREE.MeshStandardMaterial({ color: 0x7d6a4f, roughness: .55 }), inside.length * 2); // small raised cord knot in rope colour: big dark ones read as drilled holes from a step back
   const col = new THREE.Color(); slats.forEach((sl, i) => { const t = tones[Math.floor(rnd() * tones.length)], w = rnd() < weathered ? .6 : 1; col.setRGB(t[0] * w + (1 - w) * .52, t[1] * w + (1 - w) * .52, t[2] * w + (1 - w) * .52, THREE.SRGBColorSpace); sm.setColorAt(i, col); sl.jit = (rnd() - .5) * .02; });
   g.add(sm, km);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), P3 = (u, v, th) => new THREE.Vector3(s * Math.sin(th) * (u - v), s * Math.cos(th) * (u + v), 0);
@@ -32,10 +32,24 @@ export function trellisSection({ perLayer = 13, holes = 11, s = .235, end = .07,
     sm.instanceMatrix.needsUpdate = km.instanceMatrix.needsUpdate = true; if (sm.instanceColor) sm.instanceColor.needsUpdate = true;
     const xs = inside.map(([u, v]) => s * Math.sin(th) * (u - v)); g.userData.width = Math.max(...xs) - Math.min(...xs) + SW; g.userData.cx = (Math.max(...xs) + Math.min(...xs)) / 2; g.userData.end0 = end * Math.cos(th); g.userData.height = s * Math.cos(th) * (holes - 1) + 2 * end * Math.cos(th);
     sm.computeBoundingSphere(); km.computeBoundingSphere(); g.userData.open = deg; };
-  g.minOpen = Math.asin(SW * 1.08 / (2 * s)) * 180 / Math.PI; // folded shut: neighbouring slats touching
+  g.minOpen = Math.asin(SW * 1.08 / (2 * s)) * 180 / Math.PI; // folded shut: neighbouring slats touching (wider opened the bundle into its neighbour; the darkened lath edges show the gaps instead)
   g.userData.counts = { slats: slats.length, knots: inside.length, perLayer: [...A.values()].filter(x => x.length > 1).length };
   g.setOpen(design); return g;
 }
+
+// pine lath texture (u across the 45 mm face, v along the length): pale base (instance colour tints it), grain streaks along the
+// length, the two long edges darkened as if rounded over, and the odd small knot. One canvas, shared by every section
+let _grain;
+function slatGrain() { if (_grain) return _grain;
+  let q = 4242; const r = () => (q = (q * 16807) % 2147483647) / 2147483647;
+  const c = document.createElement('canvas'); c.width = 64; c.height = 512; const x = c.getContext('2d');
+  x.fillStyle = '#f2ece2'; x.fillRect(0, 0, 64, 512);
+  for (let i = 0; i < 18; i++) { const u = r() * 64, w = .6 + r() * 1.6; x.strokeStyle = `rgba(110,80,50,${.10 + r() * .18})`; x.lineWidth = w; x.beginPath(); x.moveTo(u, 0);
+    for (let v = 0; v <= 512; v += 64) x.lineTo(u + Math.sin(v * .012 + i) * (1 + r() * 2), v); x.stroke(); }
+  for (let i = 0; i < 3; i++) { x.fillStyle = 'rgba(90,60,35,.45)'; x.beginPath(); x.ellipse(10 + r() * 44, r() * 512, 2.5 + r() * 2, 5 + r() * 4, 0, 0, 7); x.fill(); }
+  const e = x.createLinearGradient(0, 0, 64, 0); e.addColorStop(0, 'rgba(40,25,10,.55)'); e.addColorStop(.12, 'rgba(40,25,10,0)'); e.addColorStop(.88, 'rgba(40,25,10,0)'); e.addColorStop(1, 'rgba(40,25,10,.55)');
+  x.fillStyle = e; x.fillRect(0, 0, 64, 512);
+  _grain = new THREE.CanvasTexture(c); _grain.colorSpace = THREE.SRGBColorSpace; _grain.anisotropy = 8; return _grain; }
 
 export function buildTrellisStack(o = {}) {
   const P = { ...TRELLIS_FIT, ...o };

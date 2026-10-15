@@ -107,3 +107,10 @@ One row per build, so each run gets measurably better.
 - Still weak: floor reads as a flat slab next to the speckled scanned floor, faint halo at the fade, left upright strand dips into the floor, holes in the shelf faces, foreground clutter a mush up close.
 - Reviewer (fresh eyes, round 3, same cameras): BEFORE 5.2 → AFTER 5.5.
 - Score: Shape 6 · Detail 4 · Surface 5 · Light 5 · Truth 6 · Works 7 = 5.5
+
+## 2026-10-15 · Yard in 3D: trellis laths that read as laths
+- 3d-models/scripts/trellis.js: every lath gets a shared pine texture (grain streaks along the length, both long edges darkened as if rounded, a few wood knots); cord knots shrunk from 12 mm dark ovals to 6 mm rope-tan bumps. Tried opening the folded bundle wider for gaps between laths: it pushed slats into each other, so reverted; the dark lath edges do that job.
+- Better: the stillage stack in the close view reads as bundled timber laths, not planks drilled with holes. Overviews unchanged.
+- Still weak: no stillage frame or banding visible, crossing slats cut through each other, upper racking bays are flat photo panels, blotchy floor, hint text unreadable over the racking, cable line across the close view.
+- Reviewer (fresh eyes, round 2, same cameras): BEFORE 5.8 → AFTER 6.0 (round 1 had 5.5 → 5.7).
+- Score: Shape 6 · Detail 5 · Surface 6 · Light 6 · Truth 6 · Works 7 = 6.0
