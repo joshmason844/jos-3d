@@ -2,27 +2,29 @@
 
 How the overnight runs are staffed. Josh set the hierarchy on 15 Oct 2026 and told the team to change the order or roles themselves if a better setup exists. The huddle (below) is where that happens; this file is the result.
 
-## Roles
-| Role       | Model                     | Does                                                                                   |
-|------------|---------------------------|----------------------------------------------------------------------------------------|
-| CEO        | Fable                     | Picks page and item, writes the brief, checks the work, holds the blind key, ships, messages Josh |
-| Researcher | Sonnet                    | Runs BEFORE the brief when the item needs a technique the skill doesn't hold: one question, one page back (technique, API traps, real sizes, a snippet, sources). Changes no files |
-| Builder    | Opus 5.5                  | The hands-on work: BEFORE shots, source change, rebuild, AFTER shots, fixes. Drafts the scorecard and backlog lines (has the facts) |
-| Checker    | Haiku                     | Error report before every review: reads the build's console log and page-error list, looks at every BEFORE/AFTER shot for blank or black canvases, missing models, overlapping buttons or labels, text off-screen, and huge file sizes. Writes `work/review/errors.md` (pass/fail + one line per problem). A fail goes straight back to the builder, so the reviewer only sees builds worth judging. Changes no files in the repo |
-| Reviewer   | Opus 5.5, fresh each round | Scores two unlabelled image sets against docs/standard.md. Never sees the work or which set is new |
+## Roles (Josh, 15 Oct evening: leaner, to save usage)
+| Role             | Model                                  | Does                                                                                   |
+|------------------|----------------------------------------|----------------------------------------------------------------------------------------|
+| Boss + builder   | Opus 5.5 (the run itself)              | Plans, picks page and item, decides, and does the hands-on build: BEFORE shots, source change, rebuild, AFTER shots, fixes, scorecard and backlog lines. Holds the blind key, ships, and is the only one who publishes or messages Josh. No separate builder agent |
+| Researcher       | Sonnet                                 | Only when an item needs a technique the skill's SKILL.md doesn't hold: one question in, one page back. Changes no files |
+| Checker          | Haiku                                  | Error report on every build: console log and page-error list, every BEFORE/AFTER shot for blank or black canvases, missing models, overlapping or off-screen labels, page over 16 MB, failed feature test. Writes `work/review/errors.md` (PASS/FAIL + one line per problem). A FAIL goes back to the build first |
+| Reviewer         | Opus 5.5, fresh each time              | Hired only on every 5th run of the night (5th, 10th, …) and on anything shown to Josh (before/after picture, 07:xx summary). Reviews every build shipped since the last review, blind (X/Y in an order only the boss knows), against docs/standard.md |
 
 ## Order
-1. CEO reads the docs and picks the page and item. Items under "Josh's requests" in the backlog always come first.
-2. Researcher, only if needed, so the brief already names the technique.
-3. Builder builds and shoots.
-4. Checker (Haiku) writes the error report; any fail goes back to the builder first. Then the CEO checks the shots and runs the blind review: before and after are copied to `work/review/X-*.png` and `work/review/Y-*.png` in a coin-flip order; only the CEO knows which is which. Reference photos and phone shots go in when the page is photo-fitted.
-5. Ship rule (not a judgement call): AFTER's average beats BEFORE's, no line of the standard drops, zero page errors. For a Josh's-request feature (like the planner): no line drops, checker PASS, and the builder's headless test proves the feature works. Otherwise back to the builder (up to 3 rounds), then don't ship.
-6. Builder drafts the records, CEO checks and commits, CEO publishes and messages.
+1. Boss reads the docs and picks the page and item. Items under "Josh's requests" in the backlog always come first.
+2. Researcher, only if needed.
+3. Boss builds and shoots.
+4. Checker (Haiku) writes the error report; a FAIL goes back to the build first.
+5. Ship rule: checker PASS, no line of the standard drops, AFTER beats BEFORE. On non-review runs the boss scores it honestly and marks the scorecard "self-scored, review due". For a Josh's-request feature: checker PASS and the headless test proves it works.
+6. On review runs, the fresh Opus reviewer scores all builds since the last review. If it finds a shipped build made things worse, the next run reverts it.
+7. Boss writes the records, commits, publishes. One "Meeting:" line in the scorecard is enough for the team meeting.
 
 ## Huddle
-On the first run of each night (23:xx), before any work, the CEO asks the builder and researcher in one line each: is there a better order, or a role another model would do better? The CEO decides, updates this file and logs it below. Changes start that run.
+On the first run of each night (23:xx), before any work, the boss weighs in one line each: is there a better order, or a role another model would do better? The boss decides, updates this file and logs it below. Changes start that run. (Kept in the boss's head now; no agents hired for it.)
 
 ## Log
 - 15 Oct: first huddle (Opus and Sonnet asked). Agreed: research moves up front and gets a size limit; the review goes blind; ship becomes a rule; the builder drafts the records. Not taken: a minimum +0.5 gain to ship (recent good runs gained 0.1–0.4) and swapping in Sonnet reviewers (it would make the scores even less consistent between runs). Still open: saved anchor images so reviewers mark the same way from night to night.
 - 15 Oct (Josh): Haiku joins as the checker. It writes an error report on every build before the expensive review.
 - 15 Oct (Josh): Josh's requests jump the queue. First two: merge the yard model into the workshop warehouse, then a yard planner on it.
+- 15 Oct evening (Josh, to save usage): Fable steps out of the overnight runs. Opus 5.5 is boss and builder in one; Sonnet only for research the skill doesn't hold; Haiku checks every build; a fresh Opus reviewer only every 5th run and on anything shown to Josh. Non-review runs ship on checker PASS plus the boss's honest look, marked "self-scored, review due".
+- 15 Oct, 23:0x huddle (night of 15–16 Oct): no further change. Parked idea: a fixed set of camera poses per page saved in the repo, so self-scores and the 5th-run review compare the exact same shots.

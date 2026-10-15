@@ -1,0 +1,11 @@
+<!doctype html><html><body style="margin:0;background:#fff"><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three'; import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); r.setSize(innerWidth, innerHeight); r.setClearColor(0xffffff); document.body.appendChild(r.domElement); r.localClippingEnabled = true;
+const s = new THREE.Scene(); s.add(new THREE.AmbientLight(0xffffff, 3)); const G = new THREE.Group(); s.add(G);
+const q = new URLSearchParams(location.search); const f = q.get('f'); G.rotation.y = +q.get('rot'); G.position.y = +q.get('fy');
+new GLTFLoader().load(f, g => { g.scene.traverse(o => { if (o.material) { o.material.side = THREE.DoubleSide; o.material.metalness = 0; o.material.roughness = 1; } }); G.add(g.scene); window.__ready = true; });
+// view: [eye, target, [l,r,t,b] in world units, clip planes [[nx,ny,nz,c],...]]
+window.__set = (e, t, lrtb, planes) => { const c = new THREE.OrthographicCamera(...lrtb, .01, 100); c.position.set(...e); c.up.set(0, 1, 0); if (Math.abs(e[1] - t[1]) > 5) c.up.set(0, 0, -1); c.lookAt(...t);
+  r.clippingPlanes = (planes || []).map(p => new THREE.Plane(new THREE.Vector3(p[0], p[1], p[2]), p[3])); r.render(s, c); };
+</script></body></html>

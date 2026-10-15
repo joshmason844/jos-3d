@@ -120,3 +120,13 @@ One row per build, so each run gets measurably better.
 - Better: no see-through black notches in the dark panels up close. Still weak: rack base a ragged fringe over a dark gap, bays dark smears with no crates or joints, rack ends break into chunks, foreground fat splats, floor a flat slab with a glowing edge, phone close-up labels on the rack.
 - Reviewer (fresh eyes, same cameras): BEFORE 5.2 → AFTER 5.3. Close-up only; "better, only just".
 - Score: Shape 5 · Detail 4 · Surface 5 · Light 5 · Truth 6 · Works 7 = 5.3
+
+## 2026-10-15 23:xx · WW: lined up with Josh's LiDAR scan (Josh's request, step 1) · run 1 of the night
+- Meeting: huddle done (docs/team.md now matches Josh's leaner team: Opus boss + builder, Haiku checks, Sonnet only for research, fresh Opus reviewer every 5th run). Top Josh's request taken; split into 2 steps.
+- Team: Opus 5.5 (boss + builder) fitted and measured the scan, moved the model, shot BEFORE/AFTER; Haiku checker PASS; no researcher needed. Self-scored, review due (run 5).
+- Scan fit: turned 1.80°, floor plane y −1.509 (rms 1.7 cm; README's −1.94 was a noise point), 4 mm/m fall to the right. WW x = scan x + 10.0, z = scan z − 13.75. Walls 19.95 m apart. Evidence: docs/ww-scan-top.png, numbers in docs/ww-measurements.md.
+- Changed in hall3.js: workshop 4 × 8 → 6.1 × 10.6 m (front 2.45 m in, door + windows clear of the racking); yellow racking onto the workshop's outside wall (2 × 2.8 m); IBCs to x 6.75, z −14.2; right-wall orange racking 3 × 2.7 → 5 × 2.77 m (uprights measured, beams 1.55/3.03); new door-wall orange bay and yellow run across the back of the yard bay; 14 ft crowns mid-hall where the scan reads "14FT CROWN 5"; floor panels to the scanned pile. Moved off scanned kit with NOT SURE: ovens, Bedouin Extra, lime stillages, crate tower, rugs, ply crate.
+- Still weak: workshop deck height (scan 3.8 m vs 3.0), side door not drawn, guessed spots for ovens/Bedouin/lime, a thin dark line across the aisle in plan, phone zone buttons over the scene.
+- Checker (Haiku): PASS. No page errors, 0.11 MB; only old overlaps (title card, zone list on phone).
+- Score: Shape 7 · Detail 6 · Surface 6 · Light 7 · Truth 7 · Works 7 = 6.7 (BEFORE by the same eye: 6 · 6 · 6 · 7 · 5 · 7 = 6.2)
+
