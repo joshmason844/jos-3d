@@ -14,3 +14,10 @@ Each run scores its page out of 10 with fresh eyes on every line below. A page i
 | Works      | Zero page errors, loads on a phone, buttons don't overlap, labels readable           |
 
 Scores go in `docs/scorecard.md` as `Score: Shape x · Detail x · Surface x · Light x · Truth x · Works x = avg`.
+
+## What the numbers mean (so every reviewer marks the same way)
+- **4**: obviously computer-made at a glance; blocks, blobs, holes or smears you notice straight away.
+- **6**: reads as the right thing from normal distance; falls apart close up or at an angle (plain blocks, soft smears, flat light).
+- **8**: holds up close and from any angle on a phone; real materials and contact shadows; you'd only spot it's 3D if you looked for it.
+- **10**: could pass for a photo.
+Reviewers score BEFORE and AFTER with this scale. Progress uses the AFTER score, but a run only counts as better if AFTER beats BEFORE from the same reviewer.
