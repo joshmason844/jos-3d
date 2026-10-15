@@ -4,12 +4,11 @@ Every page in the challenge, its latest score from a fresh-eyes review, and the 
 
 | Page               | Start (14 Oct) | Latest | Target | At standard? |
 |--------------------|----------------|--------|--------|--------------|
-| Multi-photo test   | 5.5            | 5.3    | 8      | no           |
 | Yard in 3D         | 6.0            | 6.0    | 8      | no           |
 | People in 3D       | 6.3            | 6.3    | 8      | no           |
 | Main hall v3       | 6.3            | 6.3    | 8      | no           |
 | Sections 1–5       | 7.0            | 7.0    | 8      | no           |
 
-Pages: 0 of 5 at standard.
+Pages: 0 of 4 at standard.
 
-Dropped by Josh (14 Oct): Bell tent viewer, Yard with People, Forklift, Trellis Stack. Don't work on them.
+Dropped by Josh (14 Oct): Bell tent viewer, Yard with People, Forklift, Trellis Stack. Dropped 15 Oct: Multi-photo test (last score 5.3). Don't work on them.
