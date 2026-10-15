@@ -12,11 +12,11 @@ How the overnight runs are staffed. Josh set the hierarchy on 15 Oct 2026 and to
 | Reviewer   | Opus 5.5, fresh each round | Scores two unlabelled image sets against docs/standard.md. Never sees the work or which set is new |
 
 ## Order
-1. CEO reads the docs and picks the page and item.
+1. CEO reads the docs and picks the page and item. Items under "Josh's requests" in the backlog always come first.
 2. Researcher, only if needed, so the brief already names the technique.
 3. Builder builds and shoots.
 4. Checker (Haiku) writes the error report; any fail goes back to the builder first. Then the CEO checks the shots and runs the blind review: before and after are copied to `work/review/X-*.png` and `work/review/Y-*.png` in a coin-flip order; only the CEO knows which is which. Reference photos and phone shots go in when the page is photo-fitted.
-5. Ship rule (not a judgement call): AFTER's average beats BEFORE's, no line of the standard drops, zero page errors. Otherwise back to the builder (up to 3 rounds), then don't ship.
+5. Ship rule (not a judgement call): AFTER's average beats BEFORE's, no line of the standard drops, zero page errors. For a Josh's-request feature (like the planner): no line drops, checker PASS, and the builder's headless test proves the feature works. Otherwise back to the builder (up to 3 rounds), then don't ship.
 6. Builder drafts the records, CEO checks and commits, CEO publishes and messages.
 
 ## Huddle
@@ -25,3 +25,4 @@ On the first run of each night (23:xx), before any work, the CEO asks the builde
 ## Log
 - 15 Oct: first huddle (Opus and Sonnet asked). Agreed: research moves up front and gets a size limit; the review goes blind; ship becomes a rule; the builder drafts the records. Not taken: a minimum +0.5 gain to ship (recent good runs gained 0.1–0.4) and swapping in Sonnet reviewers (it would make the scores even less consistent between runs). Still open: saved anchor images so reviewers mark the same way from night to night.
 - 15 Oct (Josh): Haiku joins as the checker. It writes an error report on every build before the expensive review.
+- 15 Oct (Josh): Josh's requests jump the queue. First two: merge the yard model into the workshop warehouse, then a yard planner on it.
