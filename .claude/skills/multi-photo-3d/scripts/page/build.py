@@ -16,6 +16,8 @@ ap.add_argument('--title', default='Yard · multi-photo test'); ap.add_argument(
 ap.add_argument('--min-clump', type=float, default=0.015, help='smallest clump kept, as a share of the cloud')
 ap.add_argument('--prior-strays', type=int, default=0, help='strays already removed before (when rebuilding from a cloud pulled out of the published page: 14287)')
 ap.add_argument('--keep-strays', action='store_true', help='skip the clean-up (to compare)')
+ap.add_argument('--no-denoise', action='store_true', help='skip the colour median (the cloud in the published page already had it)')
+ap.add_argument('--no-tone', action='store_true', help='skip the local shadow lift (to compare)')
 a = ap.parse_args()
 
 
@@ -56,10 +58,32 @@ def clean(raw):
     gaps = np.round(local * 64).astype(np.uint8).tobytes()
     # calm the colour speckle (each point's colour comes from one photo pair, so neighbours disagree): half its own colour,
     # half the median of its 4 nearest neighbours. Median, not mean, so beam and canvas edges stay crisp
-    out = out.copy(); nb = out['c'][_[:, 1:5]].astype(np.float32)
-    out['c'] = np.clip(0.5 * out['c'] + 0.5 * np.median(nb, 1), 0, 255).round().astype(np.uint8)
+    out = out.copy()
+    if not a.no_denoise:
+        nb = out['c'][_[:, 1:5]].astype(np.float32)
+        out['c'] = np.clip(0.5 * out['c'] + 0.5 * np.median(nb, 1), 0, 255).round().astype(np.uint8)
+    if not a.no_tone: out['c'] = tone(out['p'].astype(np.float64), out['c'])
     head = raw[:h].decode().replace(f'element vertex {len(pts)}', f'element vertex {len(out)}')
     return head.encode() + out.tobytes(), med, int((~keep).sum()), gaps
+
+
+def tone(P, C):
+    """Local shadow lift (a 3D version of what a phone does to a dark photo): the racking bays came out of the photos
+    near-black, so on a phone they read as mush. Each point gets the mean brightness of its neighbourhood (~35 cm, from a
+    1-in-8 sample so it's fast), dark neighbourhoods are lifted towards mid-grey, and each point's difference from its
+    neighbourhood is boosted a little so crate edges, boxes and slats inside the bays separate. Hue is kept (RGB scaled
+    together), bright things (orange canvas, the yellow forklift) barely move."""
+    import numpy as np
+    from scipy.spatial import cKDTree
+    c = C.astype(np.float32) / 255; L = c @ np.float32([.2126, .7152, .0722]) + 1e-4
+    rng = np.random.default_rng(1); s = rng.choice(len(P), max(len(P) // 8, 1), replace=False)
+    _, i = cKDTree(P[s]).query(P, k=64, workers=-1); Lloc = L[s][i].mean(1)
+    gain = np.clip((0.42 / np.maximum(Lloc, 0.03)) ** 0.65, 1.0, 3.5)
+    Lnew = Lloc * gain + (L - Lloc) * gain * 1.35          # lift the neighbourhood, boost local detail a bit more
+    Lnew = Lnew / (1 + np.maximum(Lnew - 0.75, 0) * 2.0)  # soft shoulder so nothing clips to white
+    c = c * (np.maximum(Lnew, 0.01) / L)[:, None]
+    print(f'tone: median brightness {np.median(L):.2f} → {np.median(Lnew):.2f}, {np.mean(gain > 1.5) * 100:.0f}% of points lifted 1.5×+')
+    return np.clip(c * 255, 0, 255).round().astype(np.uint8)
 
 
 data = open(a.src, 'rb').read()

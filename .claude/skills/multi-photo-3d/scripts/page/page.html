@@ -69,7 +69,7 @@ const pointMat = new THREE.ShaderMaterial({
     void main(){ vec2 d = gl_PointCoord * 2. - 1.; float r = dot(d, d); if (r > 1.) discard;
       float z = vZ + vR * sqrt(1. - r) + pass * vR; vec4 c = projectionMatrix * vec4(0., 0., z, 1.); gl_FragDepth = .5 * c.z / c.w + .5;
       float w = exp(-3. * r); // soft centre-weighted splat
-      gl_FragColor = vec4(min(pow(vC, vec3(.6)) * 1.15 + .02, 1.) * w, w); }`, // lifted: the photos are dark inside the racking
+      gl_FragColor = vec4(min(pow(vC, vec3(.7)) * 1.1 + .02, 1.) * w, w); }`, // lifted a touch more on top of build.py's local shadow lift
 });
 pointMat.uniforms.pass = { value: 0 };
 const depthMat = pointMat.clone(); depthMat.colorWrite = false; depthMat.uniforms.pass.value = 0;

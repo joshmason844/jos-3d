@@ -62,3 +62,10 @@ One row per build, so each run gets measurably better.
 - Better: orange canvas solid, bay backs closed, no pinholes. Still weak: beam and upright edges read as beads, no detail gained (clips, joints), bays near-black on a phone, warped left end and strays unchanged.
 - Reviewer (fresh eyes, 3 rounds, all "better, only just"): BEFORE 4.8 → AFTER 5.0.
 - Score: Shape 5 · Detail 3 · Surface 5 · Light 4 · Truth 6 · Works 7 = 5.0
+
+## 2026-10-15 · Multi-photo test: bays out of the dark
+- build.py: local shadow lift. Each point gets the mean brightness of its ~35 cm neighbourhood (1-in-8 sample, k=64), dark neighbourhoods lifted towards mid-grey (up to 3.5×), each point's difference from its neighbourhood boosted 1.35× so edges inside the bays separate; hue kept, soft shoulder so bright things don't clip. Median brightness 0.17 → 0.29. Shader lift eased (pow .6 → .7) so white uprights don't blow out.
+- `--no-denoise` for rebuilds from the published page (its cloud already had the colour median, doing it twice smeared it); `--no-tone` to compare.
+- Better: bay backs, inner uprights and lower-shelf contents now readable on a phone. Still weak: close-ups are dabs with dark rims, loose fragments off the rack plane (right-end wing, top-left slab), button bar has no backing on busy close-ups.
+- Reviewer (fresh eyes, same cameras): BEFORE 4.5 → AFTER 5.2.
+- Score: Shape 5 · Detail 4 · Surface 4 · Light 5 · Truth 6 · Works 7 = 5.2
