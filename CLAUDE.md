@@ -32,4 +32,5 @@ Josh's 3D toolkit for Green Yurts kit and spaces. Open this folder in Claude Cod
 - Bags: green = Emperors, grey and beige = bells, pink = unknown. Tags: lime = good, red = bad.
 - White crates = safari tents. 6×6 = marquee. Timber blocks on the racking = yurt doors.
 - Crates 1.2 × 1.0 m, 1.24 m a level. Crowns: 12 ft ×4, 14 ft ×7, 16 ft ×7 crates. 16 ft canvas in the far corner and along the right wall.
+- The "Main hall" is called the workshop warehouse: use that name in page titles and messages.
 - Mezzanine on the left as you walk in, about 8 × 4 m, sewing room on top.
