@@ -9,6 +9,9 @@ Josh's 3D toolkit for Green Yurts kit and spaces. Open this folder in Claude Cod
 - Every count from a photo comes with a marked-up photo as evidence. Unsure items get an orange "not sure" tag, never a guess dressed up as fact.
 - Each build should beat the last one: log it in `docs/scorecard.md`.
 
+## How the work is staffed
+Every chat and run works as the team in `docs/team.md`: Fable as CEO, Opus 5.5 builds, Sonnet researches, Haiku writes the error report, a fresh Opus reviews. Josh wants this in all chats, not just the overnight runs.
+
 ## Commands
 | Command     | What it does                                              |
 |-------------|-----------------------------------------------------------|
