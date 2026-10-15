@@ -85,8 +85,8 @@ for (const b of BAYS) for (const h of b.lv) for (const z of [-RD, 0]) { box(2.72
   tagIt(ys, 'Bagged canvas', 'Yellow shelving full of white and green bags on pallets: looks like packed tent canvas and covers.', '3 levels, ~10 bags each', 'fairly sure'); }
 
 // ---------- what's on the racking ----------
-// black ribbed units, strapped in pairs on pallets: bay 0 (three levels), bay 2.8 (two levels)
-const ribbedAll = grp(); tagIt(ribbedAll, 'Black ribbed units ×10', 'Ten black ribbed boxes with silver trim, strapped in pairs (blue ratchet straps) on pallets. I can\'t tell what they are from the photo; tell me and I\'ll label them.', '≈ 1.2 × 1.4 × 1.0 m each', 'not sure');
+// black ribbed planters (Josh, 15 Oct), strapped in pairs on pallets: bay 0 (three levels), bay 2.8 (two levels)
+const ribbedAll = grp(); tagIt(ribbedAll, 'Black planters ×10', 'Ten black ribbed planters with silver trim, strapped in pairs (blue ratchet straps) on pallets.', '≈ 1.2 × 1.4 × 1.0 m each');
 for (const [x0, lvs] of [[0, [1.64, 3.26, 4.88]], [2.8, [1.64, 3.26]]]) for (const h of lvs) { pallet(ribbedAll, x0 + 1.4, h, -.55, 2.5, 1.0, MAT.bluePallet);
   for (const dx of [.72, 2.08]) box(1.24, 1.38, 1.0, MAT.ribs, x0 + dx, h + .14, -.55, 0, ribbedAll);
   box(.05, 1.42, .01, MAT.strapBlue, x0 + 1.4, h + .14, -.04, 0, ribbedAll); box(.05, .02, 1.02, MAT.strapBlue, x0 + 1.4, h + 1.54, -.55, 0, ribbedAll); }

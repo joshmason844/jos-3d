@@ -30,6 +30,7 @@ Josh's 3D toolkit for Green Yurts kit and spaces. Open this folder in Claude Cod
 - 16 ft yurt = 4 trellis sections + a double door. 14 ft = 3 trellis per door, 5 doors per 14 ft stillage.
 - Pole stillages: red = 16 and 12 ft, blue = 14 ft. Pole lengths (from yurt geometry, ~32° pitch): 16 ft ≈ 2.3 m, 14 ft ≈ 2.0 m, 12 ft ≈ 1.7 m.
 - Bags: green = Emperors, grey and beige = bells, pink = unknown. Tags: lime = good, red = bad.
+- Black ribbed boxes strapped in pairs on the racking = planters.
 - White crates = safari tents. 6×6 = marquee. Timber blocks on the racking = yurt doors.
 - Crates 1.2 × 1.0 m, 1.24 m a level. Crowns: 12 ft ×4, 14 ft ×7, 16 ft ×7 crates. 16 ft canvas in the far corner and along the right wall.
 - The "Main hall" is the workshop warehouse, called **WW** for short: use "WW" in messages and "Workshop warehouse (WW)" in page titles.
