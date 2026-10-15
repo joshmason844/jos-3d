@@ -87,6 +87,51 @@ if (gB && gB.length === g.attributes.position.count) g.setAttribute('gap', new T
 else g.setAttribute('gap', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count).fill(1), 1));
 model = new THREE.Points(g, pointMat); ray.params.Points.threshold = SPACING * 1.5; holder.add(model);
 
+// floor: the photos only caught the floor 2+ m in front of the rack, so the rack hung in the air over a black gap. A concrete
+// floor (the scanned floor's own colour, a shade darker so it reads as filled in) runs under and between everything the scan
+// touched, fading out at the edges, with a soft contact shadow baked from the points: the lower a point, the darker under it
+const FLOOR = (() => {
+  const a = g.attributes.position, col = g.attributes.color, N = a.count, S = 384;
+  let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; const fc = [[], [], []];
+  for (let i = 0; i < N; i += 3) { const x = a.getX(i), z = a.getZ(i); x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z);
+    if (a.getY(i) < 0.1 && i % 9 === 0) for (let k = 0; k < 3; k++) fc[k].push(col.getComponent(i, k)); }
+  const pad = 2.2, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, span = Math.max(x1 - x0, z1 - z0) + 2 * pad, cell = span / S;
+  const occ = new Float32Array(S * S), sh = new Float32Array(S * S), at = (x, z) => { const u = Math.floor((x - cx) / cell + S / 2), v = Math.floor((z - cz) / cell + S / 2);
+    return u >= 0 && v >= 0 && u < S && v < S ? v * S + u : -1; };
+  for (let i = 0; i < N; i++) { const y = a.getY(i), k = at(a.getX(i), a.getZ(i)); if (k < 0) continue; occ[k] = 1;
+    if (y > 0.04 && y < 1.6) sh[k] += Math.exp(-y / 0.4); }
+  const pass = (src, r, op) => { // separable max (dilate) or mean (blur) filter, radius r cells
+    const tmp = new Float32Array(S * S), out = new Float32Array(S * S);
+    for (const [from, to, horiz] of [[src, tmp, true], [tmp, out, false]]) for (let j = 0; j < S; j++) for (let i = 0; i < S; i++) {
+      let m = 0; for (let d = -r; d <= r; d++) { const p = i + d; if (p < 0 || p >= S) continue; const v = from[horiz ? j * S + p : p * S + j]; m = op ? Math.max(m, v) : m + v; }
+      to[horiz ? j * S + i : i * S + j] = op ? m : m / (2 * r + 1); }
+    return out; };
+  const R = c => Math.max(1, Math.round(c / cell));
+  let mask = pass(occ, R(0.6), 1);
+  // close the gap between the rack and the scanned floor: in each column across the floor, fill from the first covered cell to the
+  // last, then do the same along the other axis, so the floor is one piece with no black notches showing through
+  for (const horiz of [false, true]) for (let j = 0; j < S; j++) { let lo = -1, hi = -1;
+    for (let i = 0; i < S; i++) if (mask[horiz ? j * S + i : i * S + j] > 0) { if (lo < 0) lo = i; hi = i; }
+    for (let i = lo; i >= 0 && i <= hi; i++) mask[horiz ? j * S + i : i * S + j] = 1; }
+  for (let k = 0; k < 3; k++) mask = pass(mask, R(0.2), 0); // soft edge
+  let s = sh; for (let k = 0; k < 3; k++) s = pass(s, R(0.16), 0);
+  const ref = [...s].sort((p, q) => p - q)[Math.floor(S * S * 0.995)] || 1; // normalise on the densest footprints (the uprights)
+  const med = fc.map(v => { v.sort((p, q) => p - q); return v.length ? v[v.length >> 1] : 0.45; });
+  const base = med.map(v => Math.min(Math.pow(v, 0.7) * 1.1 + 0.02, 1) * 0.93 * 255); // same lift as the splats, a touch darker (0.82 read as a separate slab)
+  const cv = document.createElement('canvas'); cv.width = cv.height = S; const cx2 = cv.getContext('2d'), img = cx2.createImageData(S, S);
+  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647); // same grain every build
+  for (let k = 0; k < S * S; k++) { const dark = 1 - 0.72 * (1 - Math.exp(-2.2 * s[k] / ref)), m = Math.min(1, mask[k] * 1.6);
+    // a little grain so it doesn't read as a flat sheet: seeded per-texel noise (±5%, texels are ~4 cm), smoothed by the texture filter.
+    // (A sin-based hash drew diagonal stripes up close.)
+    const grain = 1 + 0.1 * (rnd() - 0.5);
+    for (let c = 0; c < 3; c++) img.data[k * 4 + c] = Math.min(255, base[c] * dark * grain * (0.12 + 0.88 * m * m)); // darkens as it fades, or the edge reads as a glow
+    img.data[k * 4 + 3] = 255 * m * m * (3 - 2 * m); }
+  cx2.putImageData(img, 0, 0); const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(span, span).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
+  window.__floorCanvas = cv; mesh.userData.at = new THREE.Vector3(cx, -0.04, cz); mesh.renderOrder = 1; scene.add(mesh); grid.position.y = -0.06; // just under the scanned floor, over the grid
+  return mesh;
+})();
+
 // eye-dome lighting: darken each pixel by how much nearer it is than its neighbours → edges, depth and contact read without normals
 const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthTexture: new THREE.DepthTexture(1, 1, THREE.UnsignedIntType) });
 const edl = new THREE.ShaderMaterial({
@@ -125,6 +170,7 @@ function rackPt(t, d, y) { // a point in the scan's own coordinates: t metres al
 function frame() { // sit the scan on the grid and frame it: on the rack face when there is one, else the whole cloud
   holder.position.set(0, 0, 0); const b = bounds(), c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3());
   holder.position.set(-c.x, -b.min.y, -c.z); const r = s.length() * 0.5 || 1;
+  FLOOR.position.copy(FLOOR.userData.at).add(holder.position); FLOOR.visible = !flipped; // upside down there's no floor to stand on
   const R = RACK && !flipped, aspect = camera.aspect, tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), tanH = tanV * aspect;
   let target, dir, corners;
   if (R) { // look at the face from the camera side, a little from the right and above, and fit its 8 corners to the screen

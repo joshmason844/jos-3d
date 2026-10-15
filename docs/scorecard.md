@@ -99,3 +99,11 @@ One row per build, so each run gets measurably better.
 - Still weak: trellis stillages are planks with dots up close, small kit seems to hover on the back wall, phone labels crowd round the stillages and the NOT SURE tag rarely wins a slot, pallet loads read as dark panels.
 - Reviewer round 1 (5.8 → 6.2) flagged a brown smudge from the patch and the workbench label lost to the NOT SURE bonus; both fixed. Round 2, new reviewer, same cameras: BEFORE 5.2 → AFTER 5.5 (scale moved again; the pair is the fair comparison).
 - Score: Shape 6 · Detail 5 · Surface 5 · Light 6 · Truth 5 · Works 6 = 5.5
+
+## 2026-10-15 · Multi-photo test: a floor to stand on
+- page.html bakes a floor at load: footprint of every point (dilated 0.6 m, then filled across each row and column so the 2.2 m strip between the scanned floor and the rack closes), feathered, in the scanned floor's own colour with a little seeded grain; contact shadow from every point under 1.6 m (weight e^(-y/0.4), blurred 16 cm). Sits just under the scanned floor, over the grid; hidden when flipped.
+- Better: rack, forklift and benches stand on one floor with soft shadow under the rack, no longer hanging over a black gap.
+- Round 1 reviewer flagged the slab as a different colour with a glowing edge; floor brought to 0.93 of the scanned colour, edge darkened as it fades and tightened. Rounds 2 and 3 still saw a faint halo.
+- Still weak: floor reads as a flat slab next to the speckled scanned floor, faint halo at the fade, left upright strand dips into the floor, holes in the shelf faces, foreground clutter a mush up close.
+- Reviewer (fresh eyes, round 3, same cameras): BEFORE 5.2 → AFTER 5.5.
+- Score: Shape 6 · Detail 4 · Surface 5 · Light 5 · Truth 6 · Works 7 = 5.5
