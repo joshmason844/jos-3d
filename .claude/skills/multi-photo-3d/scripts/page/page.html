@@ -73,7 +73,10 @@ const pointMat = new THREE.ShaderMaterial({
 });
 pointMat.uniforms.pass = { value: 0 };
 const depthMat = pointMat.clone(); depthMat.colorWrite = false; depthMat.uniforms.pass.value = 0;
-const accMat = pointMat.clone(); accMat.uniforms.pass.value = 1; accMat.depthWrite = false; accMat.depthFunc = THREE.LessEqualDepth;
+// blend window: every disc whose front is within 4 disc-radii of the nearest surface joins the blend. At 1 radius the cloud's
+// own depth noise (a few cm) let one disc win its whole footprint, so splats read as coins with dark rims
+const BLEND = 4;
+const accMat = pointMat.clone(); accMat.uniforms.pass.value = BLEND; accMat.depthWrite = false; accMat.depthFunc = THREE.LessEqualDepth;
 accMat.transparent = true; accMat.blending = THREE.CustomBlending; accMat.blendEquation = THREE.AddEquation;
 accMat.blendSrc = accMat.blendDst = accMat.blendSrcAlpha = accMat.blendDstAlpha = THREE.OneFactor;
 for (const m of [depthMat, accMat]) { m.uniforms.size = pointMat.uniforms.size; m.uniforms.scale = pointMat.uniforms.scale; m.uniforms.cap = pointMat.uniforms.cap; }
@@ -97,7 +100,7 @@ const edl = new THREE.ShaderMaterial({
         vec3 c = vec3(0.); float n = 0., dd = 0.;
         for (int i = 0; i < 8; i++) { float a = float(i) * .7854; vec2 q = vUv + vec2(cos(a), sin(a)) * px * 1.5; float d = texture2D(tD, q).x;
           if (d < 1.) { c += col(q); dd += d; n += 1.; } }
-        if (n >= 5.) { gl_FragColor = vec4(c / n * .9, 1.); gl_FragDepth = dd / n; return; }
+        if (n >= 5.) { gl_FragColor = vec4(c / n, 1.); gl_FragDepth = dd / n; return; } // no darkening: it drew seams between splats
         gl_FragColor = vec4(bg * (1. - .06 * n), 1.); gl_FragDepth = 1.; return; }
       float z = lz(vUv), s = 0.;
       for (int i = 0; i < 8; i++) { float a = float(i) * .7854; vec2 o = vec2(cos(a), sin(a)) * px;

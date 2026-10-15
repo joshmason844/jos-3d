@@ -47,9 +47,11 @@ Runs alternate: one People item, then one Warehouse item (Main hall, sections, y
 - [ ] Multi-photo test: close-up silhouettes still look like strings of beads (beam and upright edges made of round splats, dark-coloured edge points). Try elliptical splats aligned to local surface (PCA normals) or trim edge splats.
 - [ ] Multi-photo test: home view shows no contact with the floor grid: ragged bottom edge breaks into specks, no shadow. Add a soft contact shadow under the cloud footprint and clip specks under the bottom beam.
 - [ ] Multi-photo test: title panel covers the top-left of the cloud in close-ups on phone; collapse it to one line after the first interaction.
-- [ ] Multi-photo test: close-up splats show dark rims, so beams, timber and crates read as paint dabs. Drop the rim (check the EDL halo and the gap-fill ×0.9 darkening at splat edges) and shrink discs a little with distance.
+- [x] Multi-photo test: close-up splats showed dark rims (coins). Not the EDL (tested off): the blend window was 1 disc-radius, so the cloud's depth noise let one disc win its whole footprint. Window now 4 radii, gap-fill no longer darkened ×0.9. 15 Oct
 - [ ] Multi-photo test: loose fragments off the rack plane: grey wing at the right end, dark slab top left, clusters bottom left. Likely what's stretching the 8.9 m depth readout. Plane-fit the rack face and drop or tag pieces far behind/in front of it.
 - [ ] Multi-photo test: button bar sits straight on the busy cloud in close-ups (no backing strip), and on a phone the subtitle wraps "high" onto its own line. Give the bar a blurred strip and shorten the phone subtitle.
 - [ ] Yard in 3D: help text top right ("tap anything to identify…") sits on the scene with no backing and crowds the CODE tab. Put it on a glass panel or hide it after the first tap.
 - [ ] Yard in 3D: concrete texture is random per build (Math.random), so stains move between builds and before/after shots. Seed it.
 - [ ] Yard in 3D: small white box floats on the back wall above the ply crate with no bracket (desk close-up). Mount it or check what it is.
+- [ ] Multi-photo test: close-ups are now smooth but soft (smeared), with no new detail; beam and upright silhouettes still beady with soft dark halos against the gaps. Try a per-point sharpen at build time or elliptical (PCA-normal) splats so edges go crisp again.
+- [ ] Multi-photo test: phone home view leaves the cloud small in the upper middle above a big empty grid; frame the bay to fill the phone (fit width of the rack face, not the bounding sphere).

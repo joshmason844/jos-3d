@@ -76,3 +76,10 @@ One row per build, so each run gets measurably better.
 - Better: crates, boxes, totes and cans read as what they are up close; knots read as knots. Still weak: photo view smears when orbited, flat floor patch and hard shadow block in the model overview, help text has no backing, trellis tops read as planks.
 - Reviewer (fresh eyes, same cameras): BEFORE 5.8 → AFTER 6.2. A new reviewer: last run's reviewer had this page at 5.3, so the scale moved; this run's pair is the fair comparison.
 - Score: Shape 6 · Detail 6 · Surface 6 · Light 6 · Truth 6 · Works 7 = 6.2
+
+## 2026-10-15 · Multi-photo test: splats blend instead of stacking like coins
+- page.html: the colour pass now blends every disc whose front is within 4 disc-radii of the nearest surface (was 1). At 1 radius the cloud's own depth noise let one disc win its whole footprint, so close-ups read as coins with dark rims. Gap fill no longer darkens neighbours ×0.9 (drew seams). Tested the eye-dome pass off first: not the cause.
+- Tried and dropped: fading low-weight pixels into the background for softer silhouettes; it drew dark crescents inside surfaces.
+- Better: close-up panels, beams and canvas read as continuous surfaces, no coin outlines. Still weak: soft/smeared with no new detail, beady silhouettes and dark halos along uprights, holes and loose chunks unchanged, phone home view leaves the cloud small.
+- Reviewer (fresh eyes, same cameras): BEFORE 4.8 → AFTER 5.0. Home views unchanged; gain is close-up only. (A different reviewer had the last run at 5.2, so the scale moved again; this run's pair is the fair comparison.)
+- Score: Shape 5 · Detail 3 · Surface 4 · Light 4 · Truth 6 · Works 8 = 5.0
