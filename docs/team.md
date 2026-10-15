@@ -10,6 +10,11 @@ How the overnight runs are staffed. Josh set the hierarchy on 15 Oct 2026 and to
 | Checker          | Haiku                                  | Error report on every build: console log and page-error list, every BEFORE/AFTER shot for blank or black canvases, missing models, overlapping or off-screen labels, page over 16 MB, failed feature test. Writes `work/review/errors.md` (PASS/FAIL + one line per problem). A FAIL goes back to the build first |
 | Reviewer         | Opus 5.5, fresh each time              | Hired only on every 5th run of the night (5th, 10th, …) and on anything shown to Josh (before/after picture, 07:xx summary). Reviews every build shipped since the last review, blind (X/Y in an order only the boss knows), against docs/standard.md |
 
+## Who builds what (Josh, 15 Oct late)
+- **Opus 5.5 (bulk worker): detail and placement.** Section by section, get every item in its right spot and built in detail from the scan and photos: rack contents bay by bay, stacks, labels, what's really on each shelf.
+- **Hand the easy, self-contained jobs down** so Opus stays on detail: floor (concrete texture, joints, stains, aisle lines) and ceiling/roof (purlins, roof lights, high-bays, cladding seams) go to **Sonnet** as a build job (one file area, clear brief, before/after shots); the very simple ones (colour/texture tweaks, a single material) can go to **Haiku**. Opus checks their before/after and ships.
+- **Locked, leave alone:** things that are already good and in the right place. Don't rebuild them, only nudge position if the scan says so. Locked now: the forklift, cardboard boxes / ply crates / totes / jerry cans (yard builders), crown crates and their covers, the trellis, pallets.
+
 ## Order
 1. Boss reads the docs and picks the page and item. Items under "Josh's requests" in the backlog always come first.
 2. Researcher, only if needed.
@@ -28,3 +33,4 @@ On the first run of each night (23:xx), before any work, the boss weighs in one 
 - 15 Oct (Josh): Josh's requests jump the queue. First two: merge the yard model into the workshop warehouse, then a yard planner on it.
 - 15 Oct evening (Josh, to save usage): Fable steps out of the overnight runs. Opus 5.5 is boss and builder in one; Sonnet only for research the skill doesn't hold; Haiku checks every build; a fresh Opus reviewer only every 5th run and on anything shown to Josh. Non-review runs ship on checker PASS plus the boss's honest look, marked "self-scored, review due".
 - 15 Oct, 23:0x huddle (night of 15–16 Oct): no further change. Parked idea: a fixed set of camera poses per page saved in the repo, so self-scores and the 5th-run review compare the exact same shots.
+- 15 Oct late (Josh): Opus is the bulk worker on detail and placement, section by section; floor and ceiling jobs go to Sonnet (simplest tweaks to Haiku); things already good and in place (forklift, boxes, crates, trellis, pallets) are locked.
