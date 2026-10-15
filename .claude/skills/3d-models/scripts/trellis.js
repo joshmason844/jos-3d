@@ -20,7 +20,7 @@ export function trellisSection({ perLayer = 13, holes = 11, s = .235, end = .07,
   const g = new THREE.Group(); g.name = 'Trellis section';
   const slatMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .88 });
   const sm = new THREE.InstancedMesh(new THREE.BoxGeometry(SW, 1, ST), slatMat, slats.length); sm.castShadow = sm.receiveShadow = true;
-  const kg = new THREE.SphereGeometry(.009, 6, 4); kg.scale(1, 1, .6); const km = new THREE.InstancedMesh(kg, new THREE.MeshStandardMaterial({ color: 0x141414, roughness: .7 }), inside.length * 2);
+  const kg = new THREE.SphereGeometry(.0095, 10, 6); kg.scale(1.3, 1, .8); const km = new THREE.InstancedMesh(kg, new THREE.MeshStandardMaterial({ color: 0x4a4036, roughness: .45 }), inside.length * 2); // raised cord knot with a sheen, so close up it reads as a knot, not a drilled hole
   const col = new THREE.Color(); slats.forEach((sl, i) => { const t = tones[Math.floor(rnd() * tones.length)], w = rnd() < weathered ? .6 : 1; col.setRGB(t[0] * w + (1 - w) * .52, t[1] * w + (1 - w) * .52, t[2] * w + (1 - w) * .52, THREE.SRGBColorSpace); sm.setColorAt(i, col); sl.jit = (rnd() - .5) * .02; });
   g.add(sm, km);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), P3 = (u, v, th) => new THREE.Vector3(s * Math.sin(th) * (u - v), s * Math.cos(th) * (u + v), 0);
@@ -28,7 +28,7 @@ export function trellisSection({ perLayer = 13, holes = 11, s = .235, end = .07,
     slats.forEach((sl, i) => { const p0 = sl.layer ? P3(sl.fixed, sl.a, th) : P3(sl.a, sl.fixed, th), p1 = sl.layer ? P3(sl.fixed, sl.b, th) : P3(sl.b, sl.fixed, th);
       const dir = p1.clone().sub(p0).normalize(), len = p0.distanceTo(p1) + 2 * end + sl.jit, mid = p0.clone().add(p1).multiplyScalar(.5);
       mid.z = sl.layer ? -ST / 2 - .0005 : ST / 2 + .0005; e.set(0, 0, Math.atan2(-dir.x, dir.y)); q.setFromEuler(e); m4.compose(mid, q, new THREE.Vector3(1, len, 1)); sm.setMatrixAt(i, m4); });
-    for (const [u, v] of inside) { const p = P3(u, v, th); for (const z of [ST + .004, -ST - .004]) { m4.makeTranslation(p.x, p.y, z); km.setMatrixAt(ki++, m4); } }
+    for (const [u, v] of inside) { const p = P3(u, v, th); for (const z of [ST + .0065, -ST - .0065]) { m4.makeTranslation(p.x, p.y, z); km.setMatrixAt(ki++, m4); } }
     sm.instanceMatrix.needsUpdate = km.instanceMatrix.needsUpdate = true; if (sm.instanceColor) sm.instanceColor.needsUpdate = true;
     const xs = inside.map(([u, v]) => s * Math.sin(th) * (u - v)); g.userData.width = Math.max(...xs) - Math.min(...xs) + SW; g.userData.cx = (Math.max(...xs) + Math.min(...xs)) / 2; g.userData.end0 = end * Math.cos(th); g.userData.height = s * Math.cos(th) * (holes - 1) + 2 * end * Math.cos(th);
     sm.computeBoundingSphere(); km.computeBoundingSphere(); g.userData.open = deg; };

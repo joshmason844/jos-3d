@@ -35,6 +35,31 @@ const grp = (x = 0, y = 0, z = 0, ry = 0, p = modelSet) => { const g = new THREE
 function pallet(p, x, y, z, w = 1.2, d = 1.0, m = MAT.pallet) { const g = grp(x, y, z, 0, p); for (let i = 0; i < 5; i++) box(w, .022, .1, m, 0, .122, -d / 2 + .05 + i * (d - .1) / 4, 0, g); for (const zz of [-d / 2 + .05, 0, d / 2 - .05]) box(w, .022, .1, m, 0, .1 - .022, zz, 0, g); for (const xx of [-w / 2 + .05, 0, w / 2 - .05]) for (const zz of [-d / 2 + .05, 0, d / 2 - .05]) box(.1, .078, .1, m, xx, 0, zz, 0, g); box(w, .022, d, m, 0, 0, 0, 0, g).scale.set(1, 1, 1); return g; }
 const RD = 1.1; // rack depth
 
+// ---------- small-kit builders (close-up detail pass, 15 Oct): cardboard with tape and labels, battened ply crate, ribbed totes, pressed jerry cans ----------
+T.cardboard = canvasTex(256, 256, (x, w, h) => { noise(x, w, h, '#b88d5c', .05, 3000); for (let i = 0; i < h; i += 6) { x.fillStyle = 'rgba(95,62,30,.05)'; x.fillRect(0, i, w, 2); }
+  const g = x.createRadialGradient(w / 2, h / 2, w * .25, w / 2, h / 2, w * .72); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(70,42,18,.28)'); x.fillStyle = g; x.fillRect(0, 0, w, h); });
+T.shipLabel = canvasTex(128, 96, (x, w, h) => { x.fillStyle = '#f3f1ea'; x.fillRect(0, 0, w, h); x.fillStyle = '#222'; for (let i = 8; i < w - 8; i += 2 + Math.floor(Math.random() * 3)) x.fillRect(i, 56, 1 + Math.floor(Math.random() * 2), 30); for (let r = 0; r < 4; r++) x.fillRect(8, 10 + r * 10, 40 + Math.random() * 60, 4); });
+T.tote = canvasTex(64, 64, (x, w, h) => noise(x, w, h, '#ffffff', .05, 600));
+Object.assign(MAT, { cardboard: STD(0xffffff, .92, { map: T.cardboard }), tape: STD(0xc59c5f, .32), shipLabel: STD(0xffffff, .7, { map: T.shipLabel }), slot: STD(0x07090b, .9),
+  jerryDark: STD(0x3b5629, .6), cap: STD(0x22261f, .5), screw: STD(0x6d7177, .35, { metalness: .8 }) });
+function cardBox(p, w, h, d, x, y, z, ry = 0) { const g = grp(x, y, z, ry, p); box(w, h, d, MAT.cardboard, 0, 0, 0, 0, g);
+  box(.05, .003, d + .006, MAT.tape, 0, h, 0, 0, g); for (const sz of [-1, 1]) box(.05, .09, .003, MAT.tape, 0, h - .09, sz * (d / 2 + .0015), 0, g); // packing tape over the flap seam, down both ends
+  box(w - .01, .002, .003, MAT.slot, 0, h - .004, d / 2 + .0016, 0, g); // the flap fold line on the front
+  const l = new THREE.Mesh(new THREE.PlaneGeometry(Math.min(.12, w * .3), Math.min(.09, h * .35)), MAT.shipLabel); l.position.set(w * .22, h * .45, d / 2 + .002); g.add(l); return g; }
+function plyCrate(p, w, h, d, x, y, z) { const g = grp(x, y, z, 0, p), b = .045; box(w - .024, h - .02, d - .024, MAT.ply, 0, .01, 0, 0, g); // ply panels sit inside a pine batten frame
+  for (const yy of [0, h - b]) { for (const sz of [-1, 1]) box(w, b, b, MAT.pine, 0, yy, sz * (d - b) / 2, 0, g); for (const sx of [-1, 1]) box(b, b, d - 2 * b, MAT.pine, sx * (w - b) / 2, yy, 0, 0, g); }
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(b, h - 2 * b, b, MAT.pine, sx * (w - b) / 2, b, sz * (d - b) / 2, 0, g);
+  for (const yy of [b / 2, h - b / 2]) for (let i = 0; i < 5; i++) { const s = new THREE.Mesh(new THREE.CylinderGeometry(.0055, .0055, .004, 8), MAT.screw); s.rotation.x = Math.PI / 2; s.position.set(-w / 2 + .07 + i * (w - .14) / 4, yy, d / 2 + .001); g.add(s); }
+  return g; }
+function tote(p, w, h, d, m, x, y, z) { const g = grp(x, y, z, 0, p); box(w * .95, h - .03, d * .95, m, 0, 0, 0, 0, g); box(w, .03, d, m, 0, h - .03, 0, 0, g); // tapered body, rim lip
+  for (const sx of [-1, 1]) box(.004, .035, .13, MAT.slot, sx * (w * .475 + .002), h - .085, 0, 0, g); // hand slots in the ends
+  for (let i = 0; i < 4; i++) box(.014, h - .07, .01, m, -w * .36 + i * w * .24, .02, d * .475 + .005, 0, g); // moulded ribs on the front
+  return g; }
+function jerryCan(p, x, y, z) { const g = grp(x, y, z, 0, p), W = .165, H = .40, D = .345; box(W, H, D, MAT.jerry, 0, 0, 0, 0, g); box(W + .008, .02, D + .008, MAT.jerry, 0, H * .5, 0, 0, g); // body + the welded waist seam
+  const a = Math.atan2(D - .06, H - .06), L = Math.hypot(D - .06, H - .06); for (const sx of [-1, 1]) for (const k of [1, -1]) { const s = box(.006, L, .028, MAT.jerryDark, sx * (W / 2 + .001), 0, 0, 0, g); s.position.y = H / 2; s.rotation.x = k * a; } // the X pressing
+  for (const dz of [-.085, 0, .085]) box(.028, .055, .022, MAT.jerry, 0, H, dz - .03, 0, g); box(.028, .024, .22, MAT.jerry, 0, H + .055, -.03, 0, g); // three-bar handle
+  const sp = cyl(.022, .024, .045, MAT.jerry, 0, H, .13, g); sp.rotation.x = .5; cyl(.026, .026, .02, MAT.cap, 0, H + .035, .145, g); return g; }
+
 // ---------- building: concrete floor, clad back wall, steel portal frames, timber purlins, corrugated roof ----------
 { const f = new THREE.Mesh(new THREE.PlaneGeometry(26, 26), MAT.floor); f.rotation.x = -Math.PI / 2; f.position.set(1.5, 0, 9.5); f.receiveShadow = true; modelSet.add(f); tagIt(f, 'Concrete floor', 'Power-floated slab. The clear patch in front of the racking is about 5.5 × 4.5 m.', '≈ 5.5 × 4.5 m clear');
   const w = new THREE.Mesh(new THREE.PlaneGeometry(26, 7.2), MAT.clad); w.position.set(1.5, 3.6, -1.3); w.receiveShadow = true; modelSet.add(w); tagIt(w, 'Back wall', 'Dark profiled steel cladding on the portal frame.', 'eaves ≈ 6.9 m');
@@ -87,14 +112,14 @@ for (const [x, w, h, d] of [[-4.35, 1.8, 2.3, 1.0], [-1.25, 2.2, 2.45, 1.05]]) {
   for (let i = 0; i < 4; i++) { const t = new THREE.Mesh(new THREE.TorusGeometry(.32 - i * .03, .025, 6, 30), MAT.hose); t.position.set(.25, .5 + i * .02, .1); t.rotation.y = .3; t.rotation.x = .2; h.add(t); }
   tagIt(h, 'Water kit', 'A coiled green water hose with stainless units, probably the water supply and hand-wash kit.', 'hose ≈ 25 m coil', 'fairly sure'); }
 // bay 0 ground: wooden crate, boxes, a pole
-{ const g = grp(.7, 0, -.5); box(.9, .6, .6, MAT.ply, 0, 0, 0, 0, g); const disc = new THREE.Mesh(new THREE.CircleGeometry(.12, 20), MAT.white); disc.position.set(.25, .35, .301); g.add(disc); box(.7, .3, .5, MAT.cardPlain, 1.0, 0, 0, 0, g); box(.5, .25, .4, MAT.cardPlain, 1.6, 0, 0, 0, g);
+{ const g = grp(.7, 0, -.5); plyCrate(g, .9, .6, .6, 0, 0, 0); const disc = new THREE.Mesh(new THREE.CircleGeometry(.12, 20), MAT.white); disc.position.set(.25, .33, .291); g.add(disc); cardBox(g, .7, .3, .5, 1.0, 0, 0, .04); cardBox(g, .5, .25, .4, 1.6, 0, 0, -.06);
   const pole = cyl(.015, .015, 1.6, MAT.pine, .45, 0, .35, g); pole.rotation.z = .08;
   tagIt(g, 'Crates and boxes', 'A ply crate with a round logo, cardboard boxes, and a broom pole leaning on the beam.', 'crate ≈ 0.9 × 0.6 m'); }
 // bays 2.8 + 5.6 low shelf (0.95 m): jerry cans, lantern, bottles; storage boxes underneath
-{ const g = grp(3.0, .95, -.45); for (let i = 0; i < 3; i++) { box(.17, .45, .35, MAT.jerry, -.6 + i * .25, 0, 0, 0, g); box(.06, .05, .2, MAT.jerry, -.6 + i * .25, .45, 0, 0, g); }
+{ const g = grp(3.0, .95, -.45); for (let i = 0; i < 3; i++) jerryCan(g, -.6 + i * .25, 0, 0);
   box(.12, .3, .12, MAT.black, .2, 0, 0, 0, g); cyl(.05, .05, .25, MAT.yellow, .4, 0, .05, g); cyl(.09, .09, .3, MAT.black, .65, 0, 0, g); cyl(.06, .06, .22, STD(0x3aa66a, .5), .95, 0, .05, g); box(.22, .3, .18, MAT.white, 1.3, 0, 0, 0, g);
   const lamp = cyl(.06, .06, .18, MAT.white, -1.05, 0, .1, g); tagIt(g, 'Jerry cans and fluids', 'Green jerry cans (fuel or water), a lantern, oil and spray bottles on the low shelf.', 'jerry cans ≈ 20 L');
-  const u = grp(3.4, 0, -.5); box(.6, .4, .45, STD(0x2c6db5, .6), 0, 0, 0, 0, u); box(.6, .4, .45, MAT.black, 0, .42, 0, 0, u); box(.65, .55, .5, MAT.cardPlain, .75, 0, 0, 0, u); box(.6, .25, .45, STD(0x2c3a46, .6), -.75, 0, 0, 0, u);
+  const u = grp(3.4, 0, -.5); tote(u, .6, .4, .45, STD(0x2c6db5, .6), 0, 0, 0); tote(u, .6, .4, .45, STD(0x23272c, .6), 0, .4, 0); cardBox(u, .65, .55, .5, .75, 0, 0, -.05); tote(u, .6, .25, .45, STD(0x2c3a46, .6), -.75, 0, 0);
   tagIt(u, 'Storage boxes', 'Blue and black stacking boxes and a cardboard box under the shelf.', '≈ 0.6 × 0.4 m'); }
 // bay 5.6, level 3.26: boxed canvas tents on a blue pallet
 { const g = grp(7.0, 3.26, -.55); pallet(g, 0, 0, 0, 2.4, 1.0, MAT.bluePallet); for (let r = 0; r < 4; r++) for (let c = 0; c < 2; c++) box(1.15, .26, .95, MAT.card, -.6 + c * 1.18, .14 + r * .265, 0, 0, g);

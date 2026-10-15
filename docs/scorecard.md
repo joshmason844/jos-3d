@@ -69,3 +69,10 @@ One row per build, so each run gets measurably better.
 - Better: bay backs, inner uprights and lower-shelf contents now readable on a phone. Still weak: close-ups are dabs with dark rims, loose fragments off the rack plane (right-end wing, top-left slab), button bar has no backing on busy close-ups.
 - Reviewer (fresh eyes, same cameras): BEFORE 4.5 → AFTER 5.2.
 - Score: Shape 5 · Detail 4 · Surface 4 · Light 5 · Truth 6 · Works 7 = 5.2
+
+## 2026-10-15 · Yard in 3D: close-up detail on the small kit
+- model.js: new builders `cardBox` (packing tape over the flaps and down both ends, fold line, shipping label, edge-darkened cardboard), `plyCrate` (ply panels inset in a pine batten frame, screw heads), `tote` (tapered body, rim lip, front ribs, hand slots), `jerryCan` (X pressing, waist seam, three-bar handle, spout and cap). The plain cubes in bays 0 and 2.8 now use them.
+- trellis.js: knots raised and given a sheen (was flush black dots that read as drilled holes).
+- Better: crates, boxes, totes and cans read as what they are up close; knots read as knots. Still weak: photo view smears when orbited, flat floor patch and hard shadow block in the model overview, help text has no backing, trellis tops read as planks.
+- Reviewer (fresh eyes, same cameras): BEFORE 5.8 → AFTER 6.2. A new reviewer: last run's reviewer had this page at 5.3, so the scale moved; this run's pair is the fair comparison.
+- Score: Shape 6 · Detail 6 · Surface 6 · Light 6 · Truth 6 · Works 7 = 6.2
