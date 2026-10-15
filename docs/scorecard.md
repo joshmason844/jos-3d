@@ -83,3 +83,10 @@ One row per build, so each run gets measurably better.
 - Better: close-up panels, beams and canvas read as continuous surfaces, no coin outlines. Still weak: soft/smeared with no new detail, beady silhouettes and dark halos along uprights, holes and loose chunks unchanged, phone home view leaves the cloud small.
 - Reviewer (fresh eyes, same cameras): BEFORE 4.8 → AFTER 5.0. Home views unchanged; gain is close-up only. (A different reviewer had the last run at 5.2, so the scale moved again; this run's pair is the fair comparison.)
 - Score: Shape 5 · Detail 3 · Surface 4 · Light 4 · Truth 6 · Works 8 = 5.0
+
+## 2026-10-15 · Multi-photo test: the rack measured, seen from the front
+- build.py `rack_box`: RANSAC vertical plane on everything above 30 cm (70% of those points sit on it), refined; back beams found 1.15 m behind. Header now gives the rack (9.9 m long · 1.2 deep · 6.0 high) instead of the cloud box (9.8 × 9.0 m, the 9 m was floor). Green dimension lines with labels on the floor and up the far end.
+- Home view now looks from the camera side and fits the rack's corners to the width (phone) and rack + floor to the height, between the title panel and buttons. The forklift, pallets and benches in front were there all along, hidden behind the rack from the old angle.
+- Still weak: gap between the floor patch and rack base (looks floating), close-ups still soft with holes, phone crops the forklift, height line pokes past the rack top.
+- Reviewer (fresh eyes, same cameras): BEFORE 4.7 → AFTER 5.5.
+- Score: Shape 6 · Detail 4 · Surface 5 · Light 5 · Truth 6 · Works 7 = 5.5

@@ -21,6 +21,7 @@ html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 
 .bar button{background:var(--glass);border:1px solid var(--line);color:var(--ink);font:500 .74rem/1 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;padding:11px 14px;min-height:40px;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,0 100%)}
 .bar button.on{border-color:var(--green);color:var(--green)}
 #readout{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(72px + env(safe-area-inset-bottom));font:500 1rem/1 'IBM Plex Mono',monospace;color:var(--green);background:var(--glass);border:1px solid rgba(61,255,138,.4);padding:9px 14px;display:none}
+.dim{position:fixed;left:0;top:0;pointer-events:none;font:500 .7rem/1 'IBM Plex Mono',monospace;color:var(--green);background:rgba(5,11,22,.78);border:1px solid rgba(61,255,138,.45);padding:4px 7px;white-space:nowrap;transform:translate(-50%,-50%);display:none}
 #load{position:fixed;inset:0;display:grid;place-items:center;font:500 .8rem 'IBM Plex Mono',monospace;color:var(--mute);letter-spacing:.14em;text-transform:uppercase;pointer-events:none}
 </style>
 </head>
@@ -30,7 +31,7 @@ html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 
 <div id="load">loading scan…</div>
 <div id="readout"></div>
 <div class="bar"><button id="spin" class="on">spin</button><button id="flip">flip</button><button id="meas">measure</button><button id="home">reset view</button></div>
-<script id="model" type="application/octet-stream" data-name="__FILENAME__" data-kind="__KIND__" data-spacing="__SPACING__" data-strays="__STRAYS__">__B64__</script>
+<script id="model" type="application/octet-stream" data-name="__FILENAME__" data-kind="__KIND__" data-spacing="__SPACING__" data-strays="__STRAYS__" data-rack="__RACK__">__B64__</script>
 <script id="gaps" type="application/octet-stream">__GAPS__</script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 <script type="module">
@@ -110,8 +111,6 @@ const edl = new THREE.ShaderMaterial({
   depthWrite: true, depthTest: true, depthFunc: THREE.AlwaysDepth
 });
 const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), edl), quadScene = new THREE.Scene(), quadCam = new THREE.OrthographicCamera(); quad.frustumCulled = false; quadScene.add(quad);
-if (FLIP0) flip(); else frame();
-$('load').remove();
 
 function bounds() { // robust box: 1st–99th percentile of the points on each axis, so a few stray points can't stretch the size readout
   holder.updateMatrixWorld(true); const a = model.geometry.attributes.position, v = new THREE.Vector3(), xs = [], ys = [], zs = [];
@@ -119,16 +118,73 @@ function bounds() { // robust box: 1st–99th percentile of the points on each a
   const q = (arr, f) => { arr.sort((p, r) => p - r); return arr[Math.floor(f * (arr.length - 1))]; };
   return new THREE.Box3(new THREE.Vector3(q(xs, .01), q(ys, .01), q(zs, .01)), new THREE.Vector3(q(xs, .99), q(ys, .99), q(zs, .99)));
 }
-function frame() { // sit the scan on the grid and frame it
+// the rack, measured at build time (build.py rack_box): face origin and directions on the floor, ends along the face, depth, height
+const RACK = (() => { try { return el.dataset.rack ? JSON.parse(el.dataset.rack) : null; } catch (e) { return null; } })();
+function rackPt(t, d, y) { // a point in the scan's own coordinates: t metres along the face, d metres back from it, y up
+  return new THREE.Vector3(RACK.o[0] + RACK.t[0] * t + RACK.n[0] * d, y, RACK.o[1] + RACK.t[1] * t + RACK.n[1] * d); }
+function frame() { // sit the scan on the grid and frame it: on the rack face when there is one, else the whole cloud
   holder.position.set(0, 0, 0); const b = bounds(), c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3());
-  holder.position.set(-c.x, -b.min.y, -c.z); const r = s.length() * 0.5 || 1; // bounding sphere, so a long bay still fits a narrow phone
-  const fit = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2) * Math.min(1, camera.aspect)) * 0.95, dir = new THREE.Vector3(0.55, 0.42, 0.72).normalize();
-  camera.position.copy(dir.multiplyScalar(fit)).add(new THREE.Vector3(0, s.y * 0.4, 0)); controls.target.set(0, s.y * 0.4, 0); controls.update();
+  holder.position.set(-c.x, -b.min.y, -c.z); const r = s.length() * 0.5 || 1;
+  const R = RACK && !flipped, aspect = camera.aspect, tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), tanH = tanV * aspect;
+  let target, dir, corners;
+  if (R) { // look at the face from the camera side, a little from the right and above, and fit its 8 corners to the screen
+    const f = RACK.f, D = RACK.depth || 0, tm = (RACK.t0 + RACK.t1) / 2;
+    corners = []; for (const t of [RACK.t0, RACK.t1]) for (const d of [f, f + D]) for (const y of [0, RACK.h * 1.05]) corners.push(rackPt(t, d, y).add(holder.position));
+    // plus the floor in front (forklift, pallets): the 5th–95th percentile of the cloud's footprint, so it isn't cropped off
+    const fb = bounds(), fc = fb.getCenter(new THREE.Vector3()); fb.min.lerp(fc, 0.08); fb.max.lerp(fc, 0.08); for (const x of [fb.min.x, fb.max.x]) for (const z of [fb.min.z, fb.max.z]) corners.push(new THREE.Vector3(x, 0, z));
+    target = rackPt(tm, f + D / 2, RACK.h * 0.45).add(holder.position);
+    const n = new THREE.Vector3(RACK.n[0], 0, RACK.n[1]), t = new THREE.Vector3(RACK.t[0], 0, RACK.t[1]);
+    dir = n.clone().multiplyScalar(-1).add(t.multiplyScalar(0.55)).add(new THREE.Vector3(0, 0.38, 0)).normalize();
+  } else { target = new THREE.Vector3(0, s.y * 0.4, 0); dir = new THREE.Vector3(0.55, 0.42, 0.72).normalize(); }
+  let dist;
+  if (R) { // fit: the rack's 8 corners set the width on a phone (rack + floor on a wide screen), rack + floor set the height,
+    // centred in the space between the title panel and the buttons. A few passes, since moving the camera changes the perspective
+    const fwd = dir.clone().negate(), right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize(), up = new THREE.Vector3().crossVectors(right, fwd);
+    const Hp = innerHeight, top = 1 - 2 * (document.querySelector('.tag').getBoundingClientRect().bottom + 12) / Hp,
+      bot = -1 + 2 * (Hp - document.querySelector('.bar').getBoundingClientRect().top + 12) / Hp, nW = aspect > 1 ? corners.length : 8;
+    dist = r * 2;
+    for (let it = 0; it < 8; it++) {
+      let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+      corners.forEach((p, i) => { const v = p.clone().sub(target), z = Math.max(dist + v.dot(fwd), 0.1), x = v.dot(right) / (z * tanH), y = v.dot(up) / (z * tanV);
+        if (i < nW) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); } y0 = Math.min(y0, y); y1 = Math.max(y1, y); });
+      target.addScaledVector(right, (x0 + x1) / 2 * tanH * dist).addScaledVector(up, ((y0 + y1) / 2 - (top + bot) / 2) * tanV * dist);
+      dist *= Math.max((x1 - x0) / 1.8, (y1 - y0) / ((top - bot) * 0.96));
+    }
+  } else dist = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2) * Math.min(1, aspect)) * 0.95; // bounding sphere
+  camera.position.copy(target).add(dir.multiplyScalar(dist)); controls.target.copy(target); controls.update();
   homeView = { p: camera.position.clone(), t: controls.target.clone() };
-  grid.scale.setScalar(Math.max(1, r / 6)); camera.far = r * 12; camera.updateProjectionMatrix(); edl.uniforms.far.value = camera.far;
-  $('meta').innerHTML = `${'__SUB__' ? '__SUB__ · ' : ''}cloud ≈ ${s.x.toFixed(1)} × ${s.z.toFixed(1)} m · ${s.y.toFixed(1)} m high`
+  grid.scale.setScalar(Math.max(1, r / 6)); camera.far = Math.max(r * 12, dist * 4); camera.updateProjectionMatrix(); edl.uniforms.far.value = camera.far;
+  dims.visible = !!R; if (R) dims.position.copy(holder.position);
+  const size = R ? `rack ≈ ${(RACK.t1 - RACK.t0).toFixed(1)} m<span class="wide"> long</span>${RACK.depth ? ` · ${RACK.depth.toFixed(1)} deep` : ''} · ${RACK.h.toFixed(1)} high`
+    : `cloud ≈ ${s.x.toFixed(1)} × ${s.z.toFixed(1)} m · ${s.y.toFixed(1)} m high`;
+  $('meta').innerHTML = `<span class="wide">${'__SUB__' ? '__SUB__ · ' : ''}</span>${size}`
     + `<span class="wide"> · ${(model.geometry.attributes.position.count / 1000).toFixed(0)}k points` + (el.dataset.strays ? ` · ${el.dataset.strays} strays removed` : '') + `</span>`
-    + `<br><span class="unsure" title="Sizes are 1st–99th percentile of the points. The test run read heights ~7 cm low and the top edge is ragged.">not sure · size ±10 cm, top edge ragged</span>`;
+    + `<br><span class="unsure" title="${R ? 'Rack face fitted to the points; length is 1st–99th percentile along it, depth is front beams to back beams, height the 99th percentile.' : 'Sizes are 1st–99th percentile of the points.'} The test run read heights ~7 cm low and the top edge is ragged.">not sure · ±10 cm, ends ragged</span>`;
+}
+// dimension lines on the floor and up one end, with their sizes: green like the measure tool
+const dims = new THREE.Group(); scene.add(dims); const dimLabels = [];
+if (RACK) {
+  const m = new THREE.LineBasicMaterial({ color: 0x3dff8a, transparent: true, opacity: 0.9 }), f = RACK.f, D = RACK.depth, y0 = 0.03, gap = 0.35, tk = 0.18;
+  const seg = (...p) => { const l = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(p), m); l.renderOrder = 5; dims.add(l); };
+  const label = (text, p) => { const e = document.createElement('div'); e.className = 'dim'; e.textContent = text; document.body.appendChild(e); dimLabels.push({ e, p }); };
+  const a = rackPt(RACK.t0, f - gap, y0), z = rackPt(RACK.t1, f - gap, y0); // length: along the floor just in front of the face
+  seg(a, z, rackPt(RACK.t0, f - gap - tk, y0), rackPt(RACK.t0, f - gap + tk, y0), rackPt(RACK.t1, f - gap - tk, y0), rackPt(RACK.t1, f - gap + tk, y0));
+  label(`${(RACK.t1 - RACK.t0).toFixed(1)} m`, a.clone().lerp(z, 0.5));
+  const e = RACK.t0 - gap; // depth and height go at the far end from the home camera, so they don't fill the foreground
+  if (D) { const p = rackPt(e, f, y0), q = rackPt(e, f + D, y0); // depth: across the floor past the end
+    seg(p, q, rackPt(e - tk, f, y0), rackPt(e + tk, f, y0), rackPt(e - tk, f + D, y0), rackPt(e + tk, f + D, y0));
+    label(`${D.toFixed(1)} m deep`, p.clone().lerp(q, 0.5)); }
+  const h0 = rackPt(e, f - gap, 0), h1 = rackPt(e, f - gap, RACK.h); // height: up the front corner
+  seg(h0, h1, h1.clone().add(rackPt(-tk, 0, 0).sub(rackPt(0, 0, 0))), h1.clone().add(rackPt(tk, 0, 0).sub(rackPt(0, 0, 0))));
+  label(`${RACK.h.toFixed(1)} m high`, h0.clone().lerp(h1, 0.6));
+}
+function placeLabels() { // project each label's anchor; hide it if it's behind the camera, off screen or under the HUD/buttons
+  const v = new THREE.Vector3(), W = innerWidth, H = innerHeight, top = document.querySelector('.tag').getBoundingClientRect().bottom + 14, bot = document.querySelector('.bar').getBoundingClientRect().top - 14;
+  for (const { e, p } of dimLabels) { v.copy(p).add(dims.position).project(camera);
+    let x = (v.x + 1) / 2 * W; const y = (1 - v.y) / 2 * H, ok = dims.visible && v.z < 1 && x > 0 && x < W && y > top && y < bot;
+    e.style.display = ok ? 'block' : 'none'; if (!ok) continue;
+    const hw = e.offsetWidth / 2 + 6; x = Math.min(Math.max(x, hw), W - hw); // keep the whole label on screen near the edges
+    e.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`; }
 }
 function flip() { flipped = !flipped; model.quaternion.set(flipped ? 1 : 0, 0, 0, flipped ? 0 : 1); frame(); }
 
@@ -154,12 +210,15 @@ function size() { const w = innerWidth, h = innerHeight, dpr = renderer.getPixel
   rt.setSize(Math.round(w * dpr), Math.round(h * dpr)); edl.uniforms.px.value.set(1 / (w * dpr), 1 / (h * dpr));
   pointMat.uniforms.scale.value = h * dpr / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))); pointMat.uniforms.cap.value = 40 * dpr; }
 addEventListener('resize', size); size();
+if (FLIP0) flip(); else frame();
+$('load').remove();
 renderer.setAnimationLoop(() => {
   controls.update();
   renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.clear();
   model.material = depthMat; renderer.render(cloud, camera); model.material = accMat; renderer.render(cloud, camera);
   renderer.setRenderTarget(null); renderer.setClearColor(BG, 1); renderer.clear(); renderer.render(quadScene, quadCam);
-  renderer.render(scene, camera); // grid + measure marks, depth-tested against the cloud
+  renderer.render(scene, camera); // grid, dimension lines and measure marks, depth-tested against the cloud
+  placeLabels();
 });
 window.__cam = camera; window.__ctl = controls; window.__ready = true;
 </script>

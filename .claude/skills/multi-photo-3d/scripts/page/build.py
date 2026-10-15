@@ -86,13 +86,49 @@ def tone(P, C):
     return np.clip(c * 255, 0, 255).round().astype(np.uint8)
 
 
+def rack_box(raw):
+    """Measure the racking, not the cloud. The cloud's box is stretched by the floor in front of the rack (the 9 m "depth"
+    was floor), so: fit a vertical plane to everything above 30 cm (RANSAC on x/z, then a least-squares refine) = the rack
+    face. Points 0.5–2 m behind it are the back beams; front-to-back = the gap between the two layers' medians.
+    Length is the 1st–99th percentile along the face, height the 99th percentile above the floor (y = 0).
+    Returns a dict for the page (face origin, along and depth directions on the floor, ends, depth, height) or None."""
+    import json
+    import numpy as np
+    h = raw.index(b'end_header\n') + len(b'end_header\n')
+    P = np.frombuffer(raw[h:], dtype=[('p', '<f4', 3), ('c', 'u1', 3)])['p'].astype(np.float64)
+    up = P[P[:, 1] > 0.3]
+    if len(up) < 1000: return None
+    xz = up[:, [0, 2]]; rng = np.random.default_rng(0); best = 0
+    for _ in range(500):
+        p0, p1 = xz[rng.choice(len(xz), 2, replace=False)]; v = p1 - p0
+        if np.linalg.norm(v) < 1: continue
+        n = np.array([-v[1], v[0]]) / np.linalg.norm(v); k = int((np.abs((xz - p0) @ n) < 0.12).sum())
+        if k > best: best, bn, bp = k, n, p0
+    if best < 0.3 * len(xz): return None  # no clear face: leave the page on the plain cloud box
+    q = xz[np.abs((xz - bp) @ bn) < 0.12]; o = q.mean(0)
+    _, _, vt = np.linalg.svd(q - o, full_matrices=False); t, n = vt[0], vt[1]
+    d = (xz - o) @ n
+    back = (d > 0.5) & (d < 2.0); front = np.abs(d) < 0.3
+    if back.sum() < ((d < -0.5) & (d > -2.0)).sum(): n, d = -n, -d; back = (d > 0.5) & (d < 2.0)  # depth points away from the cameras
+    depth = float(np.median(d[back]) - np.median(d[front])) if back.sum() > 0.03 * front.sum() else None
+    s = front | back; tt = (xz - o) @ t
+    t0, t1 = np.percentile(tt[s], [1, 99]); H = float(np.percentile(up[s, 1], 99))
+    if t[0] < 0: t, t0, t1 = -t, -t1, -t0  # left to right along +x, so labels read the same way each build
+    r = dict(o=[round(float(o[0]), 3), round(float(o[1]), 3)], t=[round(float(t[0]), 4), round(float(t[1]), 4)], n=[round(float(n[0]), 4), round(float(n[1]), 4)],
+             t0=round(float(t0), 3), t1=round(float(t1), 3), f=round(float(np.median(d[front])), 3), depth=None if depth is None else round(depth, 3), h=round(H, 3))
+    print(f'rack: {t1 - t0:.2f} m long × {depth if depth is None else round(depth, 2)} m deep × {H:.2f} m high (face holds {best / len(xz) * 100:.0f}% of the points above 30 cm)')
+    return json.dumps(r, separators=(',', ':'))
+
+
 data = open(a.src, 'rb').read()
 if b'red' not in data[:600]: sys.exit('expected a plain xyz + rgb point cloud PLY (sfm.py dense.ply)')
 data, spacing, strays, gaps = clean(data)
+rack = rack_box(data)
 safe = lambda s: html.escape(s).replace("'", '&#39;').replace('`', '')
 t = (HERE / 'page.html').read_text()
 for k, v in {'__TITLE__': safe(a.title), '__SUB__': safe(a.sub), '__FILENAME__': os.path.basename(a.src),
-             '__KIND__': 'points', '__FLIP__': 'false', '__SPACING__': f'{spacing:.4f}', '__STRAYS__': f'{strays + a.prior_strays:,}', '__B64__': base64.b64encode(data).decode(), '__GAPS__': base64.b64encode(gaps).decode()}.items():
+             '__KIND__': 'points', '__FLIP__': 'false', '__SPACING__': f'{spacing:.4f}', '__STRAYS__': f'{strays + a.prior_strays:,}', '__B64__': base64.b64encode(data).decode(), '__GAPS__': base64.b64encode(gaps).decode(),
+             '__RACK__': html.escape(rack or '', quote=True)}.items():
     t = t.replace(k, v)
 Path(a.out).parent.mkdir(parents=True, exist_ok=True); Path(a.out).write_text(t)
 print(f'{a.out}: {len(data) / 1e6:.1f} MB cloud, page {os.path.getsize(a.out) / 1e6:.1f} MB')
