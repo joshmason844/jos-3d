@@ -1,22 +1,23 @@
 // ===== detailed yard model (metres; x along racking from upright 0, y up, z out of the rack face) =====
-const INFO = []; // every tappable thing: { obj, name, what, size, sure }
+const INFO = [];
+const rnd = (s => () => { s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; })(20261015); // seeded: same stains every build // every tappable thing: { obj, name, what, size, sure }
 function tagIt(obj, name, what, size, sure = 'sure', anchor) { obj.userData.info = { name, what, size, sure }; obj.userData.anchor = anchor; INFO.push(obj); return obj; }
 const canvasTex = (w, h, draw, rep = [1, 1]) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...rep); t.anisotropy = 8; return t; };
-const noise = (x, w, h, base, amt, n = 9000) => { x.fillStyle = base; x.fillRect(0, 0, w, h); for (let i = 0; i < n; i++) { const v = (Math.random() - .5) * amt; x.fillStyle = `rgba(${v > 0 ? 255 : 0},${v > 0 ? 255 : 0},${v > 0 ? 255 : 0},${Math.abs(v)})`; x.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 2, 1 + Math.random() * 2); } };
+const noise = (x, w, h, base, amt, n = 9000) => { x.fillStyle = base; x.fillRect(0, 0, w, h); for (let i = 0; i < n; i++) { const v = (rnd() - .5) * amt; x.fillStyle = `rgba(${v > 0 ? 255 : 0},${v > 0 ? 255 : 0},${v > 0 ? 255 : 0},${Math.abs(v)})`; x.fillRect(rnd() * w, rnd() * h, 1 + rnd() * 2, 1 + rnd() * 2); } };
 const STD = (c, r = .8, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: r, ...o });
 // textures
 const T = {
-  concrete: canvasTex(512, 512, (x, w, h) => { noise(x, w, h, '#9a9c9c', .16, 26000); for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(60,60,55,${Math.random() * .12})`; x.beginPath(); x.ellipse(Math.random() * w, Math.random() * h, 10 + Math.random() * 60, 6 + Math.random() * 30, Math.random() * 3, 0, 7); x.fill(); } }, [8, 8]),
+  concrete: canvasTex(512, 512, (x, w, h) => { noise(x, w, h, '#9a9c9c', .16, 26000); for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(60,60,55,${rnd() * .12})`; x.beginPath(); x.ellipse(rnd() * w, rnd() * h, 10 + rnd() * 60, 6 + rnd() * 30, rnd() * 3, 0, 7); x.fill(); } }, [8, 8]),
   cladding: canvasTex(256, 64, (x, w, h) => { x.fillStyle = '#272e35'; x.fillRect(0, 0, w, h); for (let i = 0; i < w; i += 32) { const g = x.createLinearGradient(i, 0, i + 32, 0); g.addColorStop(0, '#20262c'); g.addColorStop(.5, '#3a434c'); g.addColorStop(1, '#20262c'); x.fillStyle = g; x.fillRect(i + 4, 0, 14, h); } }, [40, 3]),
   roof: canvasTex(256, 64, (x, w, h) => { noise(x, w, h, '#8f8f88', .1, 3000); for (let i = 0; i < w; i += 16) { x.fillStyle = 'rgba(40,40,40,.35)'; x.fillRect(i, 0, 5, h); x.fillStyle = 'rgba(255,255,255,.12)'; x.fillRect(i + 8, 0, 3, h); } }, [50, 4]),
   upright: canvasTex(32, 256, (x, w, h) => { x.fillStyle = '#c9ced2'; x.fillRect(0, 0, w, h); x.fillStyle = '#3b4148'; for (let y = 4; y < h; y += 14) { x.fillRect(9, y, 5, 8); x.fillRect(19, y, 5, 8); } }, [1, 12]),
   ribs: canvasTex(256, 128, (x, w, h) => { x.fillStyle = '#2a3038'; x.fillRect(0, 0, w, h); for (let i = 0; i < w; i += 9) { const g = x.createLinearGradient(i, 0, i + 9, 0); g.addColorStop(0, '#1b2026'); g.addColorStop(.5, '#8a96a3'); g.addColorStop(1, '#1b2026'); x.fillStyle = g; x.fillRect(i, 0, 9, h); } x.fillStyle = '#dfe3e7'; x.fillRect(0, 0, w, 5); x.fillRect(0, h - 5, w, 5); }, [2, 1]),
   pine: canvasTex(256, 256, (x, w, h) => { noise(x, w, h, '#c4823c', .08, 4000); for (let y = 0; y < h; y += 32) { x.fillStyle = 'rgba(90,50,20,.45)'; x.fillRect(0, y, w, 2); for (let k = 0; k < 6; k++) { x.strokeStyle = 'rgba(120,70,30,.25)'; x.beginPath(); x.moveTo(0, y + 6 + k * 4); x.bezierCurveTo(w * .3, y + 2 + k * 4, w * .6, y + 12 + k * 4, w, y + 6 + k * 4); x.stroke(); } } }),
-  ply: canvasTex(256, 256, (x, w, h) => { noise(x, w, h, '#c7a27a', .1, 5000); for (let k = 0; k < 18; k++) { x.strokeStyle = 'rgba(140,100,60,.25)'; x.lineWidth = 3; x.beginPath(); const y = Math.random() * h; x.moveTo(0, y); x.bezierCurveTo(w * .3, y - 20, w * .6, y + 20, w, y); x.stroke(); } }),
+  ply: canvasTex(256, 256, (x, w, h) => { noise(x, w, h, '#c7a27a', .1, 5000); for (let k = 0; k < 18; k++) { x.strokeStyle = 'rgba(140,100,60,.25)'; x.lineWidth = 3; x.beginPath(); const y = rnd() * h; x.moveTo(0, y); x.bezierCurveTo(w * .3, y - 20, w * .6, y + 20, w, y); x.stroke(); } }),
   pallet: canvasTex(128, 64, (x, w, h) => noise(x, w, h, '#a8875c', .14, 1500)),
   card: canvasTex(512, 256, (x, w, h) => { noise(x, w, h, '#b5926a', .07, 3000); x.fillStyle = '#3a2a1c'; x.font = 'bold 34px Arial'; x.fillText('CANVAS TENT', 30, 70); x.font = '20px Arial'; x.fillText('5 M BELL · COTTON', 32, 100); x.fillStyle = '#eee'; x.fillRect(360, 150, 110, 70); x.fillStyle = '#e8e2d6'; x.fillRect(120, 0, 10, h); x.fillRect(360, 0, 10, h); }),
   khana: canvasTex(512, 64, (x, w, h) => { x.clearRect(0, 0, w, h); x.strokeStyle = '#c99358'; x.lineWidth = 7; for (let i = -64; i < w + 64; i += 34) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i + 64, h); x.stroke(); x.beginPath(); x.moveTo(i + 64, 0); x.lineTo(i, h); x.stroke(); } x.fillStyle = '#5a3a1e'; for (let i = 0; i < w; i += 34) x.fillRect(i + 30, h / 2 - 3, 6, 6); }, [1, 1]),
-  label: canvasTex(128, 32, (x, w, h) => { x.fillStyle = '#f4d23c'; x.fillRect(0, 0, w, h); x.fillStyle = '#222'; x.font = 'bold 18px monospace'; x.fillText('1DD02' + Math.floor(Math.random() * 90 + 10), 8, 22); }),
+  label: canvasTex(128, 32, (x, w, h) => { x.fillStyle = '#f4d23c'; x.fillRect(0, 0, w, h); x.fillStyle = '#222'; x.font = 'bold 18px monospace'; x.fillText('1DD02' + Math.floor(rnd() * 90 + 10), 8, 22); }),
 };
 const MAT = {
   orange: STD(0xd2531c, .5, { metalness: .35 }), upright: STD(0xffffff, .45, { metalness: .5, map: T.upright }), galv: STD(0xb8c0c8, .4, { metalness: .65 }),
@@ -38,7 +39,7 @@ const RD = 1.1; // rack depth
 // ---------- small-kit builders (close-up detail pass, 15 Oct): cardboard with tape and labels, battened ply crate, ribbed totes, pressed jerry cans ----------
 T.cardboard = canvasTex(256, 256, (x, w, h) => { noise(x, w, h, '#b88d5c', .05, 3000); for (let i = 0; i < h; i += 6) { x.fillStyle = 'rgba(95,62,30,.05)'; x.fillRect(0, i, w, 2); }
   const g = x.createRadialGradient(w / 2, h / 2, w * .25, w / 2, h / 2, w * .72); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(70,42,18,.28)'); x.fillStyle = g; x.fillRect(0, 0, w, h); });
-T.shipLabel = canvasTex(128, 96, (x, w, h) => { x.fillStyle = '#f3f1ea'; x.fillRect(0, 0, w, h); x.fillStyle = '#222'; for (let i = 8; i < w - 8; i += 2 + Math.floor(Math.random() * 3)) x.fillRect(i, 56, 1 + Math.floor(Math.random() * 2), 30); for (let r = 0; r < 4; r++) x.fillRect(8, 10 + r * 10, 40 + Math.random() * 60, 4); });
+T.shipLabel = canvasTex(128, 96, (x, w, h) => { x.fillStyle = '#f3f1ea'; x.fillRect(0, 0, w, h); x.fillStyle = '#222'; for (let i = 8; i < w - 8; i += 2 + Math.floor(rnd() * 3)) x.fillRect(i, 56, 1 + Math.floor(rnd() * 2), 30); for (let r = 0; r < 4; r++) x.fillRect(8, 10 + r * 10, 40 + rnd() * 60, 4); });
 T.tote = canvasTex(64, 64, (x, w, h) => noise(x, w, h, '#ffffff', .05, 600));
 Object.assign(MAT, { cardboard: STD(0xffffff, .92, { map: T.cardboard }), tape: STD(0xc59c5f, .32), shipLabel: STD(0xffffff, .7, { map: T.shipLabel }), slot: STD(0x07090b, .9),
   jerryDark: STD(0x3b5629, .6), cap: STD(0x22261f, .5), screw: STD(0x6d7177, .35, { metalness: .8 }) });
@@ -134,8 +135,8 @@ for (const [x, w, h, d] of [[-4.35, 1.8, 2.3, 1.0], [-1.25, 2.2, 2.45, 1.05]]) {
 // yurt lattice walls (trellis): stacked layers of real lattice
 function khanaStack(x, z, len, layers, ry, name) { const g = grp(x, 0, z, ry); box(len, .1, .9, MAT.pallet, 0, 0, 0, 0, g);
   const latM = new THREE.MeshStandardMaterial({ map: T.khana.clone(), transparent: true, alphaTest: .4, side: THREE.DoubleSide, roughness: .8 }); latM.map.repeat.set(len / 1.6, 1); latM.map.needsUpdate = true;
-  for (let i = 0; i < layers; i++) { const y = .12 + i * .072, j = (Math.random() - .5) * .08;
-    const top = new THREE.Mesh(new THREE.PlaneGeometry(len, .85), latM); top.rotation.x = -Math.PI / 2; top.position.set(j, y + .035, (Math.random() - .5) * .05); top.castShadow = top.receiveShadow = true; g.add(top);
+  for (let i = 0; i < layers; i++) { const y = .12 + i * .072, j = (rnd() - .5) * .08;
+    const top = new THREE.Mesh(new THREE.PlaneGeometry(len, .85), latM); top.rotation.x = -Math.PI / 2; top.position.set(j, y + .035, (rnd() - .5) * .05); top.castShadow = top.receiveShadow = true; g.add(top);
     box(len + .05, .045, .05, MAT.pine, j, y, -.42, 0, g); box(len + .05, .045, .05, MAT.pine, j, y, .42, 0, g); }
   for (let i = 0; i < 9; i++) { const s = new THREE.Mesh(new THREE.CylinderGeometry(.004, .004, layers * .072 + .3, 4), MAT.cable); s.position.set(-len / 2 + .15 + i * (len - .3) / 8, .1 + layers * .036, .46); g.add(s); }
   return tagIt(g, name, 'Folded yurt trellis sections: criss-cross timber slats tied with cord at every crossing, stacked flat. These open out to form the yurt wall.', `${len} m long · ${(layers * .072 + .12).toFixed(2)} m high · ${layers} sections`, 'sure'); }
@@ -160,6 +161,7 @@ khanaStack(-.45, 2.07, 1.9, 8, 0, 'Trellis: second stack');
   box(6.0, 3.0, 3.0, STD(0xffffff, .9, { map: OSB }), 0, 0, 0, 0, ws); for (const x of [-1.3, 0]) box(1.1, .35, .02, STD(0xdfe9ef, .2, { metalness: .2 }), x, 2.3, 1.51, 0, ws);
   box(1.0, 2.1, .02, STD(0x3a2a1c, .7), 1.8, 0, 1.51, 0, ws);
   const bins = grp(-4.6, .4, 1.6, 0, ws); for (let r = 0; r < 4; r++) for (let c = 0; c < 6; c++) box(.22, .16, .2, [STD(0x2a5bd6, .5), STD(0xc8352a, .5), STD(0x2b3036, .5)][(r + c) % 3], c * .25 - .6, r * .2, 0, 0, bins);
+  ws.traverse(o => { o.castShadow = false; }); // off-screen and only roughly placed: its sun shadow drew a hard block across the floor
   tagIt(ws, 'Workshop cabin', 'OSB-clad office and workshop cabin opposite the racking, with windows, a whiteboard inside and a wall of blue, red and grey parts bins beside it. Position is approximate (from the back photo and video).', '≈ 6 × 3 m', 'fairly sure');
   tagIt(bins, 'Parts bins', 'Wall of louvre panel parts bins (blue, red, grey) for fixings and small parts.', '≈ 1.6 m wide', 'sure'); }
 
@@ -190,11 +192,16 @@ function forklift(p) { // the detailed G15S from the 3d-models skill (forklift.j
   return tagIt(g, 'Forklift: Doosan G15S', 'LPG counterbalance forklift (reg FTD 8548) with an 18 kg Calor bottle on the back, orange beacon and round mirror. Its 2.16 m guard height scales this whole model. Full detailed model: Forklift G15S page.', '1.07 m wide · 2.16 m to the guard · 1.5 t', 'sure'); }
 forklift(modelSet);
 
+// the photo floor patch had a hard cut-out edge: keep its own alpha but fade it in over ~25 px so it melts into the slab
+function featherTex(src) { const img = new Image(), c = document.createElement('canvas'), t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  img.onload = () => { c.width = img.width; c.height = img.height; const x = c.getContext('2d'), b = document.createElement('canvas'); b.width = c.width; b.height = c.height; const y = b.getContext('2d');
+    y.filter = 'blur(18px)'; y.drawImage(img, 0, 0); y.filter = 'none'; y.globalCompositeOperation = 'destination-in'; y.drawImage(img, 0, 0); // blurred alpha, clipped to the sharp one
+    x.drawImage(img, 0, 0); x.globalCompositeOperation = 'destination-in'; x.drawImage(b, 0, 0); x.drawImage(b, 0, 0); t.needsUpdate = true; }; img.src = src; return t; }
 // ---------- photo-baked surfaces: the real look of each face, cut from the photo and squared up ----------
 { const BAKE = __BAKE__, L = new THREE.TextureLoader();
   for (const [k, v] of Object.entries(BAKE)) { const t = L.load(v.img); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
     if (k === 'khanaB') continue; // replaced by the photo-skinned cradle stack
-    if (k === 'floor') { const [x0, x1, z0, z1] = v.rect; const f = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), new THREE.MeshBasicMaterial({ map: t, transparent: true, toneMapped: false, depthWrite: false }));
-      f.rotation.x = -Math.PI / 2; f.position.set((x0 + x1) / 2, .004, (z0 + z1) / 2); f.raycast = () => {}; f.renderOrder = 1; modelSet.add(f); continue; }
+    if (k === 'floor') { const [x0, x1, z0, z1] = v.rect; t.dispose(); const t2 = featherTex(v.img); const f = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), new THREE.MeshLambertMaterial({ map: t2, color: 0xd2d2d2, opacity: .5, transparent: true, depthWrite: false }));
+      f.receiveShadow = true; f.userData.noContact = true; f.rotation.x = -Math.PI / 2; f.position.set((x0 + x1) / 2, .004, (z0 + z1) / 2); f.raycast = () => {}; f.renderOrder = 1; modelSet.add(f); continue; }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(v.c.flat(), 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute([0, 1, 1, 1, 1, 0, 0, 0], 2)); g.setIndex([0, 3, 1, 1, 3, 2]); g.computeVertexNormals();
     const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: t, toneMapped: false, side: THREE.DoubleSide })); m.raycast = () => {}; modelSet.add(m); } }

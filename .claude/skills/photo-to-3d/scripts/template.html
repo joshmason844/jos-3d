@@ -37,6 +37,8 @@ html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 
 #labels button{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;white-space:nowrap;background:rgba(5,11,22,.78);border:1px solid rgba(22,180,255,.55);color:var(--ink);font:500 .62rem/1 'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;padding:5px 7px;cursor:pointer}
 #labels button::after{content:'';position:absolute;left:50%;top:100%;width:1px;height:10px;background:rgba(22,180,255,.7)}
 #labels button.sel{border-color:var(--green);color:var(--green)}
+#labels button.ns{border-color:#ff8a2a;color:#ffd2ad}#labels button.ns::after{background:#ff8a2a}#labels button.ns i{font-style:normal;margin-left:6px;padding:1px 4px;background:#ff8a2a;color:#1a0d00;font-weight:600}
+#cSure.ns{color:#ff8a2a;font-weight:600}
 .bar{z-index:3}
 #checks{position:fixed;inset:0;z-index:5;background:rgba(5,11,22,.6);display:grid;place-items:center;padding:16px}
 #checks[hidden],#capture[hidden]{display:none}
@@ -99,7 +101,7 @@ const CAM = __CAM__;
 const $ = id => document.getElementById(id);
 const renderer = new THREE.WebGLRenderer({ canvas: $('c'), antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
-renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x050b16);
 // projector = the phone's camera when the photo was taken
 const proj = new THREE.PerspectiveCamera(THREE.MathUtils.radToDeg(2 * Math.atan(CAM.H / 2 / CAM.f)), CAM.W / CAM.H, 0.1, 200);
@@ -145,12 +147,41 @@ function forkliftShape(pm, grp, proxy) { // Doosan G15S, rear to camera: 1.07 m 
 const bell = tent({ r: 2.0, a: 0, wall: 0.55, peak: 2.5, ropes: false }); bell.position.set(3.9, 0, 7.6); bell.rotation.y = -0.35; bell.visible = false;
 bell.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); scene.add(bell);
 const contact = new THREE.Mesh(new THREE.CircleGeometry(2.45, 48), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .35, depthWrite: false }));
-contact.rotation.x = -Math.PI / 2; contact.position.y = 0.006; bell.add(contact);
+contact.rotation.x = -Math.PI / 2; contact.position.y = 0.006; contact.userData.noContact = true; bell.add(contact);
 // light for model mode and the tent: low October sun through the open front, from the right
 const hemi = new THREE.HemisphereLight(0xdfe9f5, 0x3a3a36, 1.1); scene.add(hemi);
 const fill = new THREE.DirectionalLight(0xdfe9ff, 0.9); fill.position.set(2, 4, 12); scene.add(fill); fill.visible = false;
 const sun = new THREE.DirectionalLight(0xfff0d8, 2.4); sun.position.set(14, 9, 16); sun.target.position.set(2, 0, 3); sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, far: 60 }); sun.shadow.bias = -0.0005; scene.add(sun, sun.target);
+sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, far: 60 }); sun.shadow.bias = -0.0005; sun.shadow.normalBias = .02; sun.shadow.radius = 5; sun.shadow.blurSamples = 12; scene.add(sun, sun.target);
+
+// ---- soft contact shadows (model mode): everything within 1.3 m of the floor, seen from below, blurred, laid on the floor ----
+const CS = { w: 22, d: 17, cx: 1.5, cz: 5.6, H: 1.3, res: 768, dark: .8 };
+const csRes = [CS.res, Math.round(CS.res * CS.d / CS.w)];
+const csRT = [0, 1].map(() => new THREE.WebGLRenderTarget(...csRes, { type: THREE.HalfFloatType })); csRT.forEach(r => r.texture.generateMipmaps = false);
+const csCam = new THREE.OrthographicCamera(-CS.w / 2, CS.w / 2, CS.d / 2, -CS.d / 2, 0, CS.H); csCam.position.set(CS.cx, .012, CS.cz); csCam.lookAt(CS.cx, 5, CS.cz); csCam.up.set(0, 0, -1); csCam.lookAt(CS.cx, 5, CS.cz);
+const csDepth = new THREE.ShaderMaterial({ side: THREE.DoubleSide, blending: THREE.NoBlending, uniforms: { uH: { value: CS.H } },
+  vertexShader: `varying float vY;void main(){vec4 p=vec4(position,1.);
+  #ifdef USE_INSTANCING
+  p=instanceMatrix*p;
+  #endif
+  vec4 w=modelMatrix*p;vY=w.y;gl_Position=projectionMatrix*viewMatrix*w;}`,
+  fragmentShader: `uniform float uH;varying float vY;void main(){float k=clamp(1.-vY/uH,0.,1.);gl_FragColor=vec4(0.,0.,0.,k*k);}` });
+const csBlur = new THREE.ShaderMaterial({ uniforms: { tMap: { value: null }, uDir: { value: new THREE.Vector2() } }, depthTest: false, depthWrite: false, blending: THREE.NoBlending,
+  vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy*2.,0.,1.);}`,
+  fragmentShader: `uniform sampler2D tMap;uniform vec2 uDir;varying vec2 vUv;void main(){float a=0.;float w[5];w[0]=.227;w[1]=.195;w[2]=.122;w[3]=.054;w[4]=.016;
+  a+=texture2D(tMap,vUv).a*w[0];for(int i=1;i<5;i++){a+=texture2D(tMap,vUv+uDir*float(i)).a*w[i];a+=texture2D(tMap,vUv-uDir*float(i)).a*w[i];}gl_FragColor=vec4(0.,0.,0.,a);}` });
+const csQuad = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), csBlur), csScene = new THREE.Scene(); csScene.add(csQuad); csQuad.frustumCulled = false;
+const csPlane = new THREE.Mesh(new THREE.PlaneGeometry(CS.w, CS.d), new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { tMap: { value: csRT[0].texture }, uDark: { value: CS.dark } },
+  vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader: `uniform sampler2D tMap;uniform float uDark;varying vec2 vUv;void main(){vec2 e=smoothstep(0.,.06,vUv)*smoothstep(0.,.06,1.-vUv);gl_FragColor=vec4(0.,0.,0.,texture2D(tMap,vec2(1.-vUv.x,vUv.y)).a*uDark*e.x*e.y);}` /* the camera looks up, so x is mirrored */ + `` }));
+csPlane.rotation.x = -Math.PI / 2; csPlane.position.set(CS.cx, .006, CS.cz); csPlane.renderOrder = 2; csPlane.raycast = () => {}; csPlane.userData.noContact = true; modelSet.add(csPlane);
+function bakeContact() { // static scene: once at start and when the tent goes up or down
+  const hidden = []; modelSet.traverse(o => { if (o.visible && (o.userData.noContact || (o.userData.info && /floor/i.test(o.userData.info.name)))) { o.visible = false; hidden.push(o); } });
+  const vis = [modelSet.visible, photoSet.visible, both.visible, scene.background]; modelSet.visible = true; photoSet.visible = false; both.visible = false; scene.background = null;
+  const cc = renderer.getClearColor(new THREE.Color()), ca = renderer.getClearAlpha(); renderer.setClearColor(0x000000, 0);
+  scene.overrideMaterial = csDepth; renderer.setRenderTarget(csRT[0]); renderer.clear(); renderer.render(scene, csCam); scene.overrideMaterial = null;
+  for (const s of [1.6, 1.0]) for (const [i, d] of [[0, [s / csRes[0], 0]], [1, [0, s / csRes[1]]]]) { csBlur.uniforms.tMap.value = csRT[i].texture; csBlur.uniforms.uDir.value.set(...d); renderer.setRenderTarget(csRT[1 - i]); renderer.clear(); renderer.render(csScene, csCam); }
+  renderer.setRenderTarget(null); renderer.setClearColor(cc, ca); hidden.forEach(o => o.visible = true); [modelSet.visible, photoSet.visible, both.visible, scene.background] = vis; }
 // ---- view ----
 const camera = new THREE.PerspectiveCamera(proj.fov, 1, 0.05, 300);
 const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.08;
@@ -166,19 +197,20 @@ setMode('photo'); home();
   renderer.setRenderTarget(seen); renderer.render(scene, proj); renderer.setRenderTarget(null); scene.overrideMaterial = null; modelSet.visible = vis[0]; bell.visible = vis[1]; }
 $('mPhoto').onclick = () => { setMode('photo'); home(); };
 $('mModel').onclick = () => { setMode('model'); sway = false; camera.position.set(11.5, 6.2, 13.5); controls.target.set(1.8, 1.8, 2.4); controls.update(); };
-$('tent').onclick = () => { bell.visible = !bell.visible; $('tent').classList.toggle('on', bell.visible); };
+$('tent').onclick = () => { bell.visible = !bell.visible; $('tent').classList.toggle('on', bell.visible); bakeContact(); };
+bakeContact();
 $('home').onclick = () => { sway = false; mode === 'photo' ? home() : $('mModel').onclick(); };
 // identify: tap a thing (works in both modes: the model is always there to pick against)
 const SHORT = o => o.userData.info.name.replace(/ \(.*?\)/, '').replace(/^Forklift: /, '').replace(/^Yurt lattice walls/, 'Trellis');
 const selBox = new THREE.Box3Helper(new THREE.Box3(), 0x3dff8a); selBox.visible = false; selBox.material.depthTest = false; selBox.renderOrder = 10; scene.add(selBox); let selected = null;
 function select(o) { selected = o; if (!o) { $('card').hidden = true; selBox.visible = false; document.querySelectorAll('#labels button').forEach(b => b.classList.remove('sel')); return; }
-  const i = o.userData.info; $('cName').textContent = i.name; $('cWhat').textContent = i.what; $('cSize').textContent = i.size; $('cSure').textContent = i.sure === 'sure' ? 'identified' : i.sure === 'fairly sure' ? 'fairly sure' : 'not sure: tell me';
+  const i = o.userData.info; $('cName').textContent = i.name; $('cWhat').textContent = i.what; $('cSize').textContent = i.size; $('cSure').textContent = i.sure === 'sure' ? 'identified' : i.sure === 'fairly sure' ? 'fairly sure' : 'not sure: tell me'; $('cSure').classList.toggle('ns', i.sure === 'not sure');
   $('card').hidden = false; const wasVis = modelSet.visible; modelSet.visible = true; selBox.box.setFromObject(o); modelSet.visible = wasVis; selBox.visible = !/floor|wall|roof|frame/i.test(i.name);
   document.querySelectorAll('#labels button').forEach(b => b.classList.toggle('sel', b._o === o)); }
 $('cardX').onclick = () => select(null); window.__sel = select;
 const ownerOf = h => { let o = h.object; while (o && !o.userData.info) o = o.parent; return o; };
 const LAB = INFO.filter(o => !/floor|wall|roof|frame/i.test(o.userData.info.name));
-LAB.forEach(o => { const b = document.createElement('button'); b.textContent = SHORT(o); b._o = o; b.onclick = () => select(o); $('labels').appendChild(b); const bb = new THREE.Box3().setFromObject(o); o.userData.anchor = new THREE.Vector3((bb.min.x + bb.max.x) / 2, bb.max.y + .05, (bb.min.z + bb.max.z) / 2); });
+LAB.forEach(o => { const b = document.createElement('button'); b.textContent = SHORT(o); if (o.userData.info.sure === 'not sure') { b.classList.add('ns'); b.insertAdjacentHTML('beforeend', '<i>not sure</i>'); } b._o = o; b.onclick = () => select(o); $('labels').appendChild(b); const bb = new THREE.Box3().setFromObject(o); o.userData.anchor = new THREE.Vector3((bb.min.x + bb.max.x) / 2, bb.max.y + .05, (bb.min.z + bb.max.z) / 2); });
 let labelsOn = true; $('lab').onclick = () => { labelsOn = !labelsOn; $('lab').classList.toggle('on', labelsOn); $('labels').style.display = labelsOn ? '' : 'none'; };
 const tmpV = new THREE.Vector3(), camW = new THREE.Vector3();
 // labels: biggest-and-nearest first, real box-vs-box overlap test, never under the title, hint or button bar, fewer on a phone

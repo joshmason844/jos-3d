@@ -90,3 +90,12 @@ One row per build, so each run gets measurably better.
 - Still weak: gap between the floor patch and rack base (looks floating), close-ups still soft with holes, phone crops the forklift, height line pokes past the rack top.
 - Reviewer (fresh eyes, same cameras): BEFORE 4.7 → AFTER 5.5.
 - Score: Shape 6 · Detail 4 · Surface 5 · Light 5 · Truth 6 · Works 7 = 5.5
+
+## 2026-10-15 · Yard in 3D: soft contact shadows, floor patch blended in
+- The "hard shadow block" on the model floor was the off-screen workshop cabin's sun shadow: cabin no longer casts. Sun shadows switched to PCF with radius 5 (PCFSoft ignores radius), so edges soften.
+- New contact shadows (template.html `bakeContact`): an ortho camera at the floor looks up, draws everything within 1.3 m as darkness fading with height, two blur passes, laid on the floor (×0.8). Baked once, and again when the bell tent toggles. Mirror trap: a camera looking up flips x.
+- Photo floor patch was a bright unlit sticker: now lit (Lambert, takes shadows), edges feathered from its own alpha (canvas blur), half strength over the slab.
+- Guessed items get an orange NOT SURE tag on their label and card. Concrete and label textures seeded (stains don't move between builds).
+- Still weak: trellis stillages are planks with dots up close, small kit seems to hover on the back wall, phone labels crowd round the stillages and the NOT SURE tag rarely wins a slot, pallet loads read as dark panels.
+- Reviewer round 1 (5.8 → 6.2) flagged a brown smudge from the patch and the workbench label lost to the NOT SURE bonus; both fixed. Round 2, new reviewer, same cameras: BEFORE 5.2 → AFTER 5.5 (scale moved again; the pair is the fair comparison).
+- Score: Shape 6 · Detail 5 · Surface 5 · Light 6 · Truth 5 · Works 6 = 5.5
