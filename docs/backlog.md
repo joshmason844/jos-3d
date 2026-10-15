@@ -23,6 +23,7 @@ Runs alternate: one People item, then one Warehouse item (Main hall, sections, y
 - [ ] Warehouse: when Josh sends iPhone LiDAR scans (Polycam/Scaniverse), use them as the ground truth for sizes and layout.
 
 ## Queue
+- [ ] WW: pole lengths to Josh's sizes (15 Oct): 16 ft yurt poles 8 ft (2.44 m), 14 ft = 7 ft (2.13 m), 12 ft = 6 ft (1.83 m). Check every pole bundle on the pole stillages (`hall/v3/hall3.js` pole stillages, sections 2 and 4) and set lengths to match; red stillages hold 16 and 12 ft, blue hold 14 ft.
 - [ ] People: beard still a bit spiky and sparse at the edges; hair needs strand-direction colour streaks and scalp shading at the parting.
 - [ ] People: lips still look stuck on. Blend into the face, softer edges, colour fades out.
 - [ ] People: reshoot the KDK tee hand close-up for a fair before/after.

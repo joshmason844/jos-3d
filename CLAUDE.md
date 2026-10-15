@@ -32,7 +32,7 @@ Every chat and run works as the team in `docs/team.md`: Fable as CEO, Opus 5.5 b
 
 ## Josh's kit facts
 - 16 ft yurt = 4 trellis sections + a double door. 14 ft = 3 trellis per door, 5 doors per 14 ft stillage.
-- Pole stillages: red = 16 and 12 ft, blue = 14 ft. Pole lengths (from yurt geometry, ~32° pitch): 16 ft ≈ 2.3 m, 14 ft ≈ 2.0 m, 12 ft ≈ 1.7 m.
+- Pole stillages: red = 16 and 12 ft, blue = 14 ft. Pole lengths (Josh, 15 Oct): a 16 ft yurt's poles are 8 ft (2.44 m), 14 ft = 7 ft (2.13 m), 12 ft = 6 ft (1.83 m). Half the yurt size; replaces the old geometry guess (2.3 / 2.0 / 1.7 m).
 - Bags: green = Emperors, grey and beige = bells, pink = unknown. Tags: lime = good, red = bad.
 - Black ribbed boxes strapped in pairs on the racking = planters.
 - White crates = safari tents. 6×6 = marquee. Timber blocks on the racking = yurt doors.
