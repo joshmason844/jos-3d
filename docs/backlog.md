@@ -74,3 +74,4 @@ Runs alternate: one People item, then one Warehouse item (Main hall, sections, y
 - [ ] Multi-photo test: rack base ends in a ragged fringe of drips over a dark gap; no feet meeting the floor, left-end debris "legs" hang in mid-air (desk close-up, left).
 - [ ] Multi-photo test: rack ends (left orange stack, right-hand columns) break up into ragged fringes and floating chunks.
 - [ ] Multi-photo test: phone close-up: title panel sits over the top beam, and the "1.2 m deep" / "6.0 m high" labels sit on the rack itself.
+- [ ] Team: saved anchor images (one 4, one 6, one 8 example per page) for reviewers to calibrate against, so scores stop moving between reviewers.
