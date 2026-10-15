@@ -4,7 +4,7 @@ usage: python3 build.py [dense.ply] [out.html] [--title T] [--sub S]
 Defaults: work/yard-test/dense.ply → work/yard-test/multiphoto.html
 dense.ply comes from sfm.py (photos → cameras → dense cloud). If you only have the published page,
 pull the cloud back out with:  python3 extract_ply.py <page.html> work/yard-test/dense.ply"""
-import argparse, base64, html, os, subprocess, sys
+import argparse, base64, html, json, os, subprocess, sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -18,6 +18,7 @@ ap.add_argument('--prior-strays', type=int, default=0, help='strays already remo
 ap.add_argument('--keep-strays', action='store_true', help='skip the clean-up (to compare)')
 ap.add_argument('--no-denoise', action='store_true', help='skip the colour median (the cloud in the published page already had it)')
 ap.add_argument('--no-tone', action='store_true', help='skip the local shadow lift (to compare)')
+ap.add_argument('--no-fill', action='store_true', help='skip filling the holes in the rack face (to compare)')
 a = ap.parse_args()
 
 
@@ -117,13 +118,48 @@ def rack_box(raw):
     r = dict(o=[round(float(o[0]), 3), round(float(o[1]), 3)], t=[round(float(t[0]), 4), round(float(t[1]), 4)], n=[round(float(n[0]), 4), round(float(n[1]), 4)],
              t0=round(float(t0), 3), t1=round(float(t1), 3), f=round(float(np.median(d[front])), 3), depth=None if depth is None else round(depth, 3), h=round(H, 3))
     print(f'rack: {t1 - t0:.2f} m long × {depth if depth is None else round(depth, 2)} m deep × {H:.2f} m high (face holds {best / len(xz) * 100:.0f}% of the points above 30 cm)')
-    return json.dumps(r, separators=(',', ':'))
+    return r
+
+
+def fill_face(raw, gaps, r):
+    """Close the holes in the rack face. Dark panels give the stereo matcher nothing to lock onto, so the face has
+    black holes you can see straight through (up to ~0.1 m²). Lay the front layer (within 30 cm of the face) on a 4 cm
+    grid along the face × height; any empty cell fully enclosed by covered cells (after a one-cell closing) is a hole.
+    Each hole cell gets 4 points jittered in the cell, at the local face depth, coloured by a distance-weighted mean
+    of the nearest 12 real points (so a hole in a dark panel fills dark, one in a beam fills orange). Open bays and the
+    ragged ends aren't enclosed, so they stay open: only what the photos plainly missed gets filled."""
+    import numpy as np
+    from scipy import ndimage as nd
+    from scipy.spatial import cKDTree
+    h = raw.index(b'end_header\n') + len(b'end_header\n')
+    pts = np.frombuffer(raw[h:], dtype=[('p', '<f4', 3), ('c', 'u1', 3)]); P = pts['p'].astype(np.float64)
+    o, T, N = np.array(r['o']), np.array(r['t']), np.array(r['n'])
+    xz = P[:, [0, 2]]; d = (xz - o) @ N; tt = (xz - o) @ T
+    m = (np.abs(d - r['f']) < 0.3) & (P[:, 1] > 0.05); c = 0.04
+    i = np.floor((tt[m] - r['t0']) / c).astype(int); j = np.floor(P[m, 1] / c).astype(int)
+    W, H = int((r['t1'] - r['t0']) / c) + 1, int(r['h'] / c) + 1
+    ok = (i >= 0) & (i < W) & (j < H); occ = np.zeros((H, W), bool); occ[j[ok], i[ok]] = True
+    holes = (nd.binary_fill_holes(nd.binary_closing(occ, np.ones((3, 3)))) | occ) & ~occ
+    hj, hi = np.nonzero(holes)
+    if not len(hj): return raw, gaps, 0
+    rng = np.random.default_rng(2); k = 4
+    ft = r['t0'] + (np.repeat(hi, k) + rng.random(len(hi) * k)) * c; fy = (np.repeat(hj, k) + rng.random(len(hj) * k)) * c
+    face = np.c_[tt[m], P[m, 1]]; dist, nb = cKDTree(face).query(np.c_[ft, fy], k=12, workers=-1)
+    w = 1 / np.maximum(dist, 0.01) ** 2; w /= w.sum(1, keepdims=True)
+    fd = (d[m][nb] * w).sum(1); col = (pts['c'][m][nb].astype(np.float64) * w[:, :, None]).sum(1)
+    xy = o + ft[:, None] * T + fd[:, None] * N
+    new = np.zeros(len(ft), pts.dtype); new['p'] = np.c_[xy[:, 0], fy, xy[:, 1]]; new['c'] = np.clip(col.round(), 0, 255)
+    head = raw[:h].decode().replace(f'element vertex {len(pts)}', f'element vertex {len(pts) + len(new)}')
+    print(f'fill: {holes.sum():,} hole cells in the rack face ({holes.sum() * c * c:.2f} m²) → {len(new):,} points')
+    return head.encode() + raw[h:] + new.tobytes(), gaps + bytes([64]) * len(new), len(new)
 
 
 data = open(a.src, 'rb').read()
 if b'red' not in data[:600]: sys.exit('expected a plain xyz + rgb point cloud PLY (sfm.py dense.ply)')
 data, spacing, strays, gaps = clean(data)
 rack = rack_box(data)
+if rack and not a.no_fill: data, gaps, _ = fill_face(data, gaps, rack)
+rack = json.dumps(rack, separators=(',', ':')) if rack else None
 safe = lambda s: html.escape(s).replace("'", '&#39;').replace('`', '')
 t = (HERE / 'page.html').read_text()
 for k, v in {'__TITLE__': safe(a.title), '__SUB__': safe(a.sub), '__FILENAME__': os.path.basename(a.src),

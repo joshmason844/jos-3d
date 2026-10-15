@@ -114,3 +114,9 @@ One row per build, so each run gets measurably better.
 - Still weak: no stillage frame or banding visible, crossing slats cut through each other, upper racking bays are flat photo panels, blotchy floor, hint text unreadable over the racking, cable line across the close view.
 - Reviewer (fresh eyes, round 2, same cameras): BEFORE 5.8 → AFTER 6.0 (round 1 had 5.5 → 5.7).
 - Score: Shape 6 · Detail 5 · Surface 6 · Light 6 · Truth 6 · Works 7 = 6.0
+
+## 2026-10-15 · Multi-photo test: holes in the rack face filled
+- build.py `fill_face`: the front layer (within 30 cm of the fitted rack face) laid on a 4 cm grid along the face × height; empty cells enclosed by covered ones (after a one-cell closing) are holes the stereo matcher missed on the dark panels. 1,394 cells (2.2 m²) get 4 points each at the local face depth, coloured by an inverse-distance mean of the 12 nearest real points. Open bays and the ragged ends aren't enclosed, so they stay open. `--no-fill` to compare.
+- Better: no see-through black notches in the dark panels up close. Still weak: rack base a ragged fringe over a dark gap, bays dark smears with no crates or joints, rack ends break into chunks, foreground fat splats, floor a flat slab with a glowing edge, phone close-up labels on the rack.
+- Reviewer (fresh eyes, same cameras): BEFORE 5.2 → AFTER 5.3. Close-up only; "better, only just".
+- Score: Shape 5 · Detail 4 · Surface 5 · Light 5 · Truth 6 · Works 7 = 5.3

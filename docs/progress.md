@@ -4,7 +4,7 @@ Every page in the challenge, its latest score from a fresh-eyes review, and the 
 
 | Page               | Start (14 Oct) | Latest | Target | At standard? |
 |--------------------|----------------|--------|--------|--------------|
-| Multi-photo test   | 5.5            | 5.5    | 8      | no           |
+| Multi-photo test   | 5.5            | 5.3    | 8      | no           |
 | Yard in 3D         | 6.0            | 6.0    | 8      | no           |
 | People in 3D       | 6.3            | 6.3    | 8      | no           |
 | Main hall v3       | 6.3            | 6.3    | 8      | no           |
