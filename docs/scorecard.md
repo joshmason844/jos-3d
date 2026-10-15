@@ -130,3 +130,12 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS. No page errors, 0.11 MB; only old overlaps (title card, zone list on phone).
 - Score: Shape 7 · Detail 6 · Surface 6 · Light 7 · Truth 7 · Works 7 = 6.7 (BEFORE by the same eye: 6 · 6 · 6 · 7 · 5 · 7 = 6.2)
 
+## 2026-10-16 00:xx · WW: the floor, worn concrete from the scan (Josh's request) · run 2 of the night
+- Meeting: top open Josh's request was the WW floor. Josh's late note wanted it handed to Sonnet, but the overnight brief says no builder agents and Sonnet changes no files, so Opus built it; docs/team.md brought back in line and flagged for Josh. Workshop/mezzanine left alone (another session owns it tonight); workshop scan not used.
+- Team: Opus 5.5 (boss + builder) sampled the floor colours from the main LiDAR scan (colours only, nothing from the scan saved to the repo), wrote `wwFloor()`, shot BEFORE/AFTER (door, close, low, top; phone + desktop), one fix round (first AFTER was paler than BEFORE and the lanes didn't show). Haiku checker PASS. No researcher. Self-scored, review due (run 5).
+- Scan says: pale warm-grey power-floated concrete (median sRGB ≈ 197/194/178 under the phone's exposure), soft grey streaks where traffic runs, warm dust by the kit, no painted aisle lines.
+- Changed (hall3.js): old marble-veined tiled floor + black joint strips out. New floor = 2 m detail tile (aggregate flecks, pin-hole pores, float swirls, bump map) × one wear layer stretched over the whole 20 × 39 m at ≈1 cm/px (shader multiply, own seeded RNG so nothing else in the layout moves): mottling ±8%, polished tyre lanes (darker, lower roughness) from the door down the hall and curving into each of the 5 yard-bay bays, the yellow racking and the 14 ft crowns, rubber scuff arcs, 6 oil spots (shiny), dirt-filled saw cuts every 6.5 m and down the middle, hairline cracks, dust along walls and rack fronts.
+- Better: close up it reads as concrete, not marble; joints are cuts, not a black ruler line; lanes show in the close and low views. Still weak: from the door it's pale and flat past ~6 m (lighting washes it), the main oil spot hides under the forklift, the door threshold is a hard edge.
+- Checker (Haiku): PASS. errors [] on phone and desktop, 0.12 MB; only the old phone zone-button overlap.
+- Score: Shape 7 · Detail 6 · Surface 7 · Light 7 · Truth 7 · Works 7 = 6.8 (BEFORE by the same eye: 7 · 6 · 6 · 7 · 7 · 7 = 6.7)
+

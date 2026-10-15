@@ -31,12 +31,82 @@ const doorTex = tex(512, 900, (x, w, h) => { x.fillStyle = '#c4873f'; x.fillRect
   x.strokeStyle = '#7a4a1e'; x.lineWidth = 26; x.strokeRect(13, 13, w - 26, h - 26); x.fillStyle = '#141414'; for (const yy of [130, h - 130]) { x.fillRect(30, yy - 8, 300, 16); x.beginPath(); x.moveTo(330, yy - 8); x.lineTo(380, yy); x.lineTo(330, yy + 8); x.fill(); } x.fillRect(w - 70, h / 2 - 40, 14, 80); });
 const DOORMAT = STD({ map: doorTex, roughness: .7 });
 
+
+// ---------------- the floor (15–16 Oct) ----------------
+// Colour and wear read off Josh's LiDAR scan (colours sampled only, no scan texture used): pale warm-grey power-floated
+// concrete, grey polished lanes where the forklift runs, warm dust along the walls and racking, a few dark oil spots.
+// No painted aisle lines: the scan shows none. Two layers: a fine tiled detail (2 mm/px, aggregate, pores, trowel marks)
+// and one wear layer stretched over the whole 20 × 39 m (≈1 cm/px) that tints colour and sets roughness, so nothing repeats.
+// Own RNG so the seeded layout of everything else doesn't shift.
+MX.floor.map.dispose();                                    // the old tiled floor (still drawn above to keep the layout seed in step)
+function wwFloor() {
+  let sd = 4242; const fr = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  const can = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
+  // --- detail tile: 2 m square
+  const [dc, d] = can(1024, 1024); d.fillStyle = '#a29e92'; d.fillRect(0, 0, 1024, 1024);
+  for (let i = 0; i < 14; i++) { const g = d.createRadialGradient(0, 0, 0, 0, 0, 1); d.save(); d.translate(fr() * 1024, fr() * 1024); d.rotate(fr() * 6); d.scale(160 + fr() * 260, 50 + fr() * 120);   // soft trowel clouds
+    const c = fr() < .5 ? '255,252,240' : '120,116,104'; g.addColorStop(0, `rgba(${c},${.05 + fr() * .05})`); g.addColorStop(1, `rgba(${c},0)`); d.fillStyle = g; d.beginPath(); d.arc(0, 0, 1, 0, 7); d.fill(); d.restore(); }
+  for (let i = 0; i < 26; i++) { d.strokeStyle = `rgba(255,253,245,${.025 + fr() * .03})`; d.lineWidth = 18 + fr() * 30; d.beginPath(); const cx = fr() * 1024, cy = fr() * 1024, r = 120 + fr() * 220, a = fr() * 6; d.arc(cx, cy, r, a, a + .6 + fr() * .8); d.stroke(); }   // power-float swirls
+  for (let i = 0; i < 18000; i++) { const t = fr(), sz = t < .9 ? .8 + fr() * 1.6 : 2 + fr() * 3.5; const k = fr();                   // aggregate: grey, cream and the odd brown fleck
+    d.fillStyle = k < .45 ? `rgba(90,88,82,${.08 + fr() * .14})` : k < .85 ? `rgba(240,236,224,${.1 + fr() * .16})` : `rgba(130,100,70,${.1 + fr() * .14})`; d.beginPath(); d.ellipse(fr() * 1024, fr() * 1024, sz, sz * (.5 + fr() * .5), fr() * 3, 0, 7); d.fill(); }
+  const [bc, b] = can(512, 512); b.fillStyle = '#808080'; b.fillRect(0, 0, 512, 512);                          // bump: pin-hole pores and tiny pits
+  for (let i = 0; i < 2600; i++) { const r = .6 + fr() * 1.4, x = fr() * 512, y = fr() * 512; b.fillStyle = `rgba(20,20,20,${.5 + fr() * .5})`; b.beginPath(); b.arc(x, y, r, 0, 7); b.fill(); d.fillStyle = 'rgba(70,66,58,.35)'; d.beginPath(); d.arc(x * 2, y * 2, r * 1.6, 0, 7); d.fill(); }
+  for (let i = 0; i < 9000; i++) { b.fillStyle = `rgba(${fr() < .5 ? '255,255,255' : '0,0,0'},.12)`; b.fillRect(fr() * 512, fr() * 512, 1 + fr() * 2, 1 + fr() * 2); }
+  const rep = t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(HW / 2, HL / 2); t.anisotropy = 8; return t; };
+  const map = rep(new THREE.CanvasTexture(dc)); map.colorSpace = THREE.SRGBColorSpace; const bump = rep(new THREE.CanvasTexture(bc));
+  // --- wear layer over the whole floor: rgb = colour multiplier (128 = no change), separate roughness canvas (255 = .92)
+  const W = 2048, H = 4096, sx = W / HW, sz = H / HL, P = (x, z) => [x * sx, (HL + z) * sz];
+  const [wc, w] = can(W, H), [rc, r] = can(W, H); w.fillStyle = 'rgb(128,128,128)'; w.fillRect(0, 0, W, H); r.fillStyle = '#fff'; r.fillRect(0, 0, W, H);
+  const blob = (ctx, x, z, rx, rz, col, a, rot = 0) => { const [px, py] = P(x, z); const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, `rgba(${col},${a})`); g.addColorStop(.6, `rgba(${col},${a * .55})`); g.addColorStop(1, `rgba(${col},0)`);
+    ctx.save(); ctx.translate(px, py); ctx.rotate(rot); ctx.scale(rx * sx, rz * sz); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 1, 0, 7); ctx.fill(); ctx.restore(); };
+  for (let i = 0; i < 420; i++) { const lighter = fr() < .5; blob(w, fr() * HW, -fr() * HL, .6 + fr() * 2.4, .6 + fr() * 2.4, lighter ? '146,145,141' : '110,109,106', .35 + fr() * .45, fr() * 3); }   // large-scale mottling (±8%), like the scan
+  // dust and dirt along the walls and under the racking (warm, rough)
+  for (const [x0, z0, x1, z1] of [[0, 0, .6, -39], [19.4, 0, 20, -39], [0, -38.5, 20, -39], [18.3, -.3, 20, -14.3], [13.5, -14.6, 18.6, -15.4], [15.1, -1.4, 18.2, -2.2], [6.9, -5.1, 7.6, -11]])
+    for (let i = 0; i < 40; i++) blob(w, x0 + fr() * (x1 - x0), z0 + fr() * (z1 - z0), .25 + fr() * .5, .25 + fr() * .5, '108,100,86', .25 + fr() * .25, fr() * 3);
+  // forklift lanes: many faint tyre passes; the busiest lane runs in from the door, branches swing into the yard bay
+  // racking and the yellow racking. Passes fade with distance from the door. Darker, cooler and polished (lower roughness).
+  const lane = (pts, n, spread, a0) => { for (let k = 0; k < n; k++) { const off = (fr() - .5) * spread, fade = .6 + fr() * .4;
+    for (const tyre of [-.45, .45]) {                          // G15S front track ≈ 0.9 m, ~20 cm tyres
+      w.strokeStyle = `rgba(78,80,85,${a0 * fade})`; r.strokeStyle = `rgba(150,150,150,${a0 * fade * 1.2})`;
+      for (const ctx of [w, r]) { ctx.lineWidth = .17 * sx; ctx.lineCap = 'round'; ctx.beginPath();
+        pts.forEach(([x, z], i) => { const nx = (pts[Math.min(i + 1, pts.length - 1)][1] - pts[Math.max(i - 1, 0)][1]), nz = -(pts[Math.min(i + 1, pts.length - 1)][0] - pts[Math.max(i - 1, 0)][0]), L = Math.hypot(nx, nz) || 1;
+          const [px, py] = P(x + (nx / L) * (tyre + off), z + (nz / L) * (tyre + off)); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }); ctx.stroke(); } } } };
+  const curve = (x0, z0, x1, z1, bend) => { const out = []; for (let t = 0; t <= 1.0001; t += .05) { const mx = (x0 + x1) / 2 + bend[0], mz = (z0 + z1) / 2 + bend[1]; out.push([(1 - t) ** 2 * x0 + 2 * (1 - t) * t * mx + t * t * x1, (1 - t) ** 2 * z0 + 2 * (1 - t) * t * mz + t * t * z1]); } return out; };
+  lane(curve(10.6, 1, 11.0, -20, [.4, 0]), 34, 1.0, .11);                       // door → mid-hall, the busiest run
+  lane(curve(11.0, -20, 11.6, -33, [-.3, 0]), 16, .9, .08);                     // on to the far end
+  for (const zb of [-1.8, -4.5, -7.3, -10.1, -12.8]) lane(curve(10.8, zb + 2.6, 16.9, zb, [.8, .9]), 7, .6, .1);   // into each yard-bay bay
+  lane(curve(10.6, -4.5, 8.4, -8.2, [-.2, .6]), 6, .5, .09);                     // to the yellow racking
+  lane(curve(11.2, -22, 8.6, -26.6, [-.6, .4]), 6, .6, .08);                    // to the 14 ft crowns
+  // tyre scuffs: short black rubber arcs where the forklift turns on the spot
+  for (const [x, z] of [[11.0, -3.2], [11.2, -6.0], [11.4, -8.9], [11.0, -11.7], [9.4, -6.2], [10.8, -23.5]]) for (let i = 0; i < 3; i++) {
+    const [px, py] = P(x + (fr() - .5) * 1.2, z + (fr() - .5) * 1.2); w.strokeStyle = `rgba(40,40,42,${.18 + fr() * .2})`; w.lineWidth = .05 * sx + fr() * 4; w.beginPath(); const rr2 = (.5 + fr() * 1.2) * sx, a = fr() * 6; w.arc(px, py, rr2, a, a + .25 + fr() * .5); w.stroke(); }
+  // oil and hydraulic spots: dark, shiny, soft-edged, with a few drips (where the forklift parks, by the IBC tanks, at the door)
+  const oil = (x, z, s) => { for (let i = 0; i < 5; i++) blob(w, x + (fr() - .5) * s, z + (fr() - .5) * s, s * (.25 + fr() * .4), s * (.2 + fr() * .35), '62,58,54', .35 + fr() * .3, fr() * 3);
+    blob(w, x, z, s * .25, s * .2, '45,42,40', .5, fr() * 3); for (let i = 0; i < 4; i++) blob(r, x + (fr() - .5) * s, z + (fr() - .5) * s, s * .45, s * .4, '90,90,90', .6, 0);
+    for (let i = 0; i < 6; i++) blob(w, x + (fr() - .5) * s * 3, z + (fr() - .5) * s * 3, .03 + fr() * .05, .03 + fr() * .05, '55,52,50', .6); };
+  oil(9.7, -7.2, .7); oil(9.4, -6.0, .35); oil(7.4, -14.0, .5); oil(11.3, -1.0, .45); oil(10.9, -17.5, .3); oil(12.1, -26.0, .4);
+  // saw-cut slab joints every portal bay (6.5 m) and down the middle, dirt in the cut, chipped arrises here and there
+  const joint = (x0, z0, x1, z1) => { const [a, bq] = P(x0, z0), [c2, e] = P(x1, z1); w.strokeStyle = 'rgba(58,55,50,.85)'; w.lineWidth = 2.4; w.beginPath(); w.moveTo(a, bq); w.lineTo(c2, e); w.stroke();
+    w.strokeStyle = 'rgba(90,86,78,.3)'; w.lineWidth = 7; w.stroke(); const n = Math.hypot(c2 - a, e - bq) / 40;
+    for (let i = 0; i < n; i++) if (fr() < .3) { const t = fr(); blob(w, x0 + (x1 - x0) * t, z0 + (z1 - z0) * t, .02 + fr() * .05, .02 + fr() * .04, '84,80,74', .55, fr() * 3); } };
+  for (let z = -BAY; z > -HL; z -= BAY) joint(0, z, HW, z); joint(HW / 2, 0, HW / 2, -HL);
+  // hairline shrinkage cracks
+  for (let i = 0; i < 16; i++) { let [px, py] = P(fr() * HW, -fr() * HL); w.strokeStyle = `rgba(70,68,64,${.35 + fr() * .3})`; w.lineWidth = 1; w.beginPath(); w.moveTo(px, py); let ang = fr() * 6; for (let k = 0; k < 14; k++) { ang += (fr() - .5) * .9; w.lineTo(px += Math.cos(ang) * 9, py += Math.sin(ang) * 9); } w.stroke(); }
+  const wear = new THREE.CanvasTexture(wc); wear.colorSpace = THREE.NoColorSpace; wear.anisotropy = 8;
+  const rough = new THREE.CanvasTexture(rc); rough.colorSpace = THREE.NoColorSpace; rough.anisotropy = 8;
+  const m = new THREE.MeshStandardMaterial({ map, bumpMap: bump, bumpScale: .6, roughnessMap: rough, roughness: .92, metalness: 0 });
+  m.onBeforeCompile = sh => { sh.uniforms.wearMap = { value: wear };
+    sh.vertexShader = 'varying vec2 vWear;\n' + sh.vertexShader.replace('#include <uv_vertex>', '#include <uv_vertex>\nvWear = uv;');
+    sh.fragmentShader = 'uniform sampler2D wearMap;\nvarying vec2 vWear;\n' + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.rgb *= texture2D(wearMap, vWear).rgb * 2.0;'); };
+  m.customProgramCacheKey = () => 'wwFloor';
+  return m; }
+MX.floor = wwFloor();
+
 // ---------------- the shed ----------------
 function shed() {
   const g = grp(scene); g.name = 'Shed'; const roofG = grp(g); roofG.name = 'Roof';
   const fl = new THREE.Mesh(new THREE.PlaneGeometry(HW, HL), MX.floor); fl.rotation.x = -Math.PI / 2; fl.position.set(HW / 2, 0, -HL / 2); fl.receiveShadow = true; g.add(fl);
-  for (let z = -BAY; z > -HL; z -= BAY) { const j = new THREE.Mesh(new THREE.PlaneGeometry(HW, .012), MX.joint); j.rotation.x = -Math.PI / 2; j.position.set(HW / 2, .002, z); g.add(j); }
-  const j2 = new THREE.Mesh(new THREE.PlaneGeometry(.012, HL), MX.joint); j2.rotation.x = -Math.PI / 2; j2.position.set(HW / 2, .002, -HL / 2); g.add(j2);
+  // slab joints are drawn into the floor's wear layer (wwFloor)
   const ang = Math.atan2(RIDGE - EAVE, HW / 2), slope = Math.hypot(HW / 2, RIDGE - EAVE);
   for (let z = 0; z >= -HL - .01; z -= BAY) {   // portal frames: columns, haunched rafters, knee and apex braces
     for (const x of [.15, HW - .15]) { box(g, .3, EAVE, .2, MX.steel, x, 0, z); box(g, .5, .02, .4, MX.steel, x, 0, z); }

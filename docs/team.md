@@ -12,7 +12,7 @@ How the overnight runs are staffed. Josh set the hierarchy on 15 Oct 2026 and to
 
 ## Who builds what (Josh, 15 Oct late)
 - **Opus 5.5 (bulk worker): detail and placement.** Section by section, get every item in its right spot and built in detail from the scan and photos: rack contents bay by bay, stacks, labels, what's really on each shelf.
-- **Hand the easy, self-contained jobs down** so Opus stays on detail: floor (concrete texture, joints, stains, aisle lines) and ceiling/roof (purlins, roof lights, high-bays, cladding seams) go to **Sonnet** as a build job (one file area, clear brief, before/after shots); the very simple ones (colour/texture tweaks, a single material) can go to **Haiku**. Opus checks their before/after and ships.
+- **Floor and ceiling jobs** (Josh's note, 15 Oct late, wanted them handed to Sonnet and the simplest tweaks to Haiku): the overnight brief (Josh, 15 Oct evening) says no builder agents and Sonnet changes no files, and it overrides this file where they differ. So on overnight runs Opus builds floor and ceiling items too, as its own run, one item per run; Haiku still checks them. If Josh wants Sonnet building them, the overnight brief needs changing first.
 - **Locked, leave alone:** things that are already good and in the right place. Don't rebuild them, only nudge position if the scan says so. Locked now: the forklift, cardboard boxes / ply crates / totes / jerry cans (yard builders), crown crates and their covers, the trellis, pallets.
 
 ## Order
@@ -34,3 +34,4 @@ On the first run of each night (23:xx), before any work, the boss weighs in one 
 - 15 Oct evening (Josh, to save usage): Fable steps out of the overnight runs. Opus 5.5 is boss and builder in one; Sonnet only for research the skill doesn't hold; Haiku checks every build; a fresh Opus reviewer only every 5th run and on anything shown to Josh. Non-review runs ship on checker PASS plus the boss's honest look, marked "self-scored, review due".
 - 15 Oct, 23:0x huddle (night of 15–16 Oct): no further change. Parked idea: a fixed set of camera poses per page saved in the repo, so self-scores and the 5th-run review compare the exact same shots.
 - 15 Oct late (Josh): Opus is the bulk worker on detail and placement, section by section; floor and ceiling jobs go to Sonnet (simplest tweaks to Haiku); things already good and in place (forklift, boxes, crates, trellis, pallets) are locked.
+- 16 Oct, 00:0x (run 2): brought "Who builds what" back in line with the overnight brief: floor/ceiling items are built by Opus on overnight runs, not handed to Sonnet (the brief says no builder agents, Sonnet changes no files). Josh to say if he wants that changed.
