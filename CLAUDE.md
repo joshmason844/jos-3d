@@ -38,3 +38,4 @@ Every chat and run works as the team in `docs/team.md`: Fable as CEO, Opus 5.5 b
 - Crates 1.2 × 1.0 m, 1.24 m a level. Crowns: 12 ft ×4, 14 ft ×7, 16 ft ×7 crates. 16 ft canvas in the far corner and along the right wall.
 - The "Main hall" is the workshop warehouse, called **WW** for short: use "WW" in messages and "Workshop warehouse (WW)" in page titles.
 - Mezzanine on the left as you walk in, about 8 × 4 m, sewing room on top.
+- The yard bay (orange racking, planters, workbench) is part of the WW, along its right side. LiDAR scan (15 Oct) is private: off-season-reset `scans/`. Never put scans in this public repo.
