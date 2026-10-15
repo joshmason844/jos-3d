@@ -14,6 +14,7 @@ ap.add_argument('src', nargs='?', default=str(ROOT / 'work/yard-test/dense.ply')
 ap.add_argument('out', nargs='?', default=str(ROOT / 'work/yard-test/multiphoto.html'))
 ap.add_argument('--title', default='Yard · multi-photo test'); ap.add_argument('--sub', default='24 photos')
 ap.add_argument('--min-clump', type=float, default=0.015, help='smallest clump kept, as a share of the cloud')
+ap.add_argument('--prior-strays', type=int, default=0, help='strays already removed before (when rebuilding from a cloud pulled out of the published page: 14287)')
 ap.add_argument('--keep-strays', action='store_true', help='skip the clean-up (to compare)')
 a = ap.parse_args()
 
@@ -47,17 +48,27 @@ def clean(raw):
         print(f'clean: {len(pts) - len(idx):,} lone/under-floor, {(~big).sum():,} in {int((size < a.min_clump * len(Q)).sum()):,} floating clumps, '
               f'{(big & ~inbox).sum():,} outside the box')
     out = pts[keep]
+    # per-point disc size: distance to each point's 4th nearest neighbour, as a multiple of the median (0.6–2×),
+    # so thin patches (canvas) get bigger discs that close up and dense patches stay sharp. The 4th neighbour (not the
+    # mean of 8) keeps points on an edge from ballooning, since half their neighbourhood is empty air
+    dk, _ = cKDTree(P[keep]).query(P[keep], k=5, workers=-1)
+    local = np.clip(dk[:, 4] / med, 0.6, 2.0)
+    gaps = np.round(local * 64).astype(np.uint8).tobytes()
+    # calm the colour speckle (each point's colour comes from one photo pair, so neighbours disagree): half its own colour,
+    # half the median of its 4 nearest neighbours. Median, not mean, so beam and canvas edges stay crisp
+    out = out.copy(); nb = out['c'][_[:, 1:5]].astype(np.float32)
+    out['c'] = np.clip(0.5 * out['c'] + 0.5 * np.median(nb, 1), 0, 255).round().astype(np.uint8)
     head = raw[:h].decode().replace(f'element vertex {len(pts)}', f'element vertex {len(out)}')
-    return head.encode() + out.tobytes(), med, int((~keep).sum())
+    return head.encode() + out.tobytes(), med, int((~keep).sum()), gaps
 
 
 data = open(a.src, 'rb').read()
 if b'red' not in data[:600]: sys.exit('expected a plain xyz + rgb point cloud PLY (sfm.py dense.ply)')
-data, spacing, strays = clean(data)
+data, spacing, strays, gaps = clean(data)
 safe = lambda s: html.escape(s).replace("'", '&#39;').replace('`', '')
 t = (HERE / 'page.html').read_text()
 for k, v in {'__TITLE__': safe(a.title), '__SUB__': safe(a.sub), '__FILENAME__': os.path.basename(a.src),
-             '__KIND__': 'points', '__FLIP__': 'false', '__SPACING__': f'{spacing:.4f}', '__STRAYS__': f'{strays:,}', '__B64__': base64.b64encode(data).decode()}.items():
+             '__KIND__': 'points', '__FLIP__': 'false', '__SPACING__': f'{spacing:.4f}', '__STRAYS__': f'{strays + a.prior_strays:,}', '__B64__': base64.b64encode(data).decode(), '__GAPS__': base64.b64encode(gaps).decode()}.items():
     t = t.replace(k, v)
 Path(a.out).parent.mkdir(parents=True, exist_ok=True); Path(a.out).write_text(t)
 print(f'{a.out}: {len(data) / 1e6:.1f} MB cloud, page {os.path.getsize(a.out) / 1e6:.1f} MB')

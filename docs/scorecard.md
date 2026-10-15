@@ -54,3 +54,11 @@ One row per build, so each run gets measurably better.
 - Still weak: photo view smears when orbited (forklift billboard, floor streaks); trellis bundles and crates are plain blocks up close; flat grey shadow decal on the model floor; no "not sure" tags visible.
 - Reviewer (fresh eyes, same cameras): BEFORE 5.0 → AFTER 5.3. The 6.0 start was a self-score.
 - Score: Shape 5 · Detail 4 · Surface 5 · Light 5 · Truth 6 · Works 7 = 5.3
+
+## 2026-10-15 · Multi-photo test: surfaces close up
+- The black gaps up close came from a 10 px cap on disc size, not thin data. Now discs are true world size (cap 40 px × dpr), each sized by its own 4th-neighbour gap (build.py, embedded as one byte a point).
+- Two-pass surface splatting: a depth pass draws each disc as a little dome, then a colour pass blends every disc within one radius of that surface with a gaussian weight, so overlaps merge instead of stacking like coins. Colour speckle halved with a 4-neighbour median. Eye-dome outline made thinner and lighter (halos round splats).
+- `--prior-strays` keeps the strays count honest when rebuilding from the published page.
+- Better: orange canvas solid, bay backs closed, no pinholes. Still weak: beam and upright edges read as beads, no detail gained (clips, joints), bays near-black on a phone, warped left end and strays unchanged.
+- Reviewer (fresh eyes, 3 rounds, all "better, only just"): BEFORE 4.8 → AFTER 5.0.
+- Score: Shape 5 · Detail 3 · Surface 5 · Light 4 · Truth 6 · Works 7 = 5.0

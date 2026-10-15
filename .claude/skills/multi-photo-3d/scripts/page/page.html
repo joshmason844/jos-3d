@@ -31,6 +31,7 @@ html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 
 <div id="readout"></div>
 <div class="bar"><button id="spin" class="on">spin</button><button id="flip">flip</button><button id="meas">measure</button><button id="home">reset view</button></div>
 <script id="model" type="application/octet-stream" data-name="__FILENAME__" data-kind="__KIND__" data-spacing="__SPACING__" data-strays="__STRAYS__">__B64__</script>
+<script id="gaps" type="application/octet-stream">__GAPS__</script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -55,35 +56,54 @@ camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
 const g = new PLYLoader().parse(bytes.buffer); g.computeBoundingBox(); const ext = g.boundingBox.getSize(new THREE.Vector3()).length();
 const SPACING = +el.dataset.spacing || ext / 900; // median gap between neighbouring points, worked out at build time
 const pointMat = new THREE.ShaderMaterial({
-  uniforms: { size: { value: SPACING * 2.2 }, scale: { value: 1 } },
-  vertexShader: `uniform float size, scale; attribute vec3 color; varying vec3 vC;
+  uniforms: { size: { value: SPACING * 1.35 }, scale: { value: 1 }, cap: { value: 40 } },
+  // true world size, so neighbouring discs always overlap and close the surface; the cap is only there for a camera right inside the cloud
+  // surface splatting in two passes over the same discs:
+  // 1) depth only: each disc is a little dome facing the camera, so the nearest surface wins
+  // 2) colour: every disc within one disc-radius of that surface adds its colour with a soft gaussian weight; the screen pass
+  //    divides by the summed weight, so overlapping discs blend into one smooth surface instead of stacking like coins
+  vertexShader: `uniform float size, scale, cap; attribute vec3 color; attribute float gap; varying vec3 vC; varying float vZ, vR;
     void main(){ vC = color; vec4 mv = modelViewMatrix * vec4(position, 1.); gl_Position = projectionMatrix * mv;
-      gl_PointSize = clamp(size * scale / -mv.z, 1.5, 10.); }`,
-  fragmentShader: `varying vec3 vC; void main(){ vec2 d = gl_PointCoord * 2. - 1.; float r = dot(d, d); if (r > 1.) discard;
-      gl_FragColor = vec4(min(pow(vC, vec3(.6)) * 1.15 + .02, 1.), 1.); }` // lifted: the photos are dark inside the racking
+      float px = clamp(size * gap * scale / -mv.z, 1.5, cap); gl_PointSize = px; vZ = mv.z; vR = .5 * px * -mv.z / scale; }`,
+  fragmentShader: `uniform mat4 projectionMatrix; uniform float pass; varying vec3 vC; varying float vZ, vR;
+    void main(){ vec2 d = gl_PointCoord * 2. - 1.; float r = dot(d, d); if (r > 1.) discard;
+      float z = vZ + vR * sqrt(1. - r) + pass * vR; vec4 c = projectionMatrix * vec4(0., 0., z, 1.); gl_FragDepth = .5 * c.z / c.w + .5;
+      float w = exp(-3. * r); // soft centre-weighted splat
+      gl_FragColor = vec4(min(pow(vC, vec3(.6)) * 1.15 + .02, 1.) * w, w); }`, // lifted: the photos are dark inside the racking
 });
+pointMat.uniforms.pass = { value: 0 };
+const depthMat = pointMat.clone(); depthMat.colorWrite = false; depthMat.uniforms.pass.value = 0;
+const accMat = pointMat.clone(); accMat.uniforms.pass.value = 1; accMat.depthWrite = false; accMat.depthFunc = THREE.LessEqualDepth;
+accMat.transparent = true; accMat.blending = THREE.CustomBlending; accMat.blendEquation = THREE.AddEquation;
+accMat.blendSrc = accMat.blendDst = accMat.blendSrcAlpha = accMat.blendDstAlpha = THREE.OneFactor;
+for (const m of [depthMat, accMat]) { m.uniforms.size = pointMat.uniforms.size; m.uniforms.scale = pointMat.uniforms.scale; m.uniforms.cap = pointMat.uniforms.cap; }
+// each point's own neighbour gap (×64, from build.py): thin patches get bigger discs so they close up instead of showing black holes
+const gEl = $('gaps'), gB = gEl && gEl.textContent.trim() ? Uint8Array.from(atob(gEl.textContent.trim()), c => c.charCodeAt(0)) : null; if (gEl) gEl.textContent = '';
+if (gB && gB.length === g.attributes.position.count) g.setAttribute('gap', new THREE.BufferAttribute(Float32Array.from(gB, v => v / 64), 1));
+else g.setAttribute('gap', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count).fill(1), 1));
 model = new THREE.Points(g, pointMat); ray.params.Points.threshold = SPACING * 1.5; holder.add(model);
 
 // eye-dome lighting: darken each pixel by how much nearer it is than its neighbours → edges, depth and contact read without normals
-const rt = new THREE.WebGLRenderTarget(1, 1, { depthTexture: new THREE.DepthTexture(1, 1, THREE.UnsignedIntType) });
+const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthTexture: new THREE.DepthTexture(1, 1, THREE.UnsignedIntType) });
 const edl = new THREE.ShaderMaterial({
-  uniforms: { tC: { value: rt.texture }, tD: { value: rt.depthTexture }, px: { value: new THREE.Vector2() }, near: { value: .02 }, far: { value: 400 }, bg: { value: BG }, k: { value: 1.2 } },
+  uniforms: { tC: { value: rt.texture }, tD: { value: rt.depthTexture }, px: { value: new THREE.Vector2() }, near: { value: .02 }, far: { value: 400 }, bg: { value: BG }, k: { value: .8 } },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }`,
   fragmentShader: `uniform sampler2D tC, tD; uniform vec2 px; uniform float near, far, k; uniform vec3 bg; varying vec2 vUv;
+    vec3 col(vec2 uv){ vec4 a = texture2D(tC, uv); return a.rgb / max(a.a, 1e-4); } // splat colours were summed with weights
     float lz(vec2 uv){ float d = texture2D(tD, uv).x; if (d >= 1.) return log2(far); return log2(near * far / (far - d * (far - near))); }
     void main(){
       float d0 = texture2D(tD, vUv).x;
       if (d0 >= 1.) { // a gap: if the cloud surrounds it, fill it from its neighbours; otherwise page colour with a soft dark rim
         vec3 c = vec3(0.); float n = 0., dd = 0.;
         for (int i = 0; i < 8; i++) { float a = float(i) * .7854; vec2 q = vUv + vec2(cos(a), sin(a)) * px * 1.5; float d = texture2D(tD, q).x;
-          if (d < 1.) { c += texture2D(tC, q).rgb; dd += d; n += 1.; } }
+          if (d < 1.) { c += col(q); dd += d; n += 1.; } }
         if (n >= 5.) { gl_FragColor = vec4(c / n * .9, 1.); gl_FragDepth = dd / n; return; }
         gl_FragColor = vec4(bg * (1. - .06 * n), 1.); gl_FragDepth = 1.; return; }
       float z = lz(vUv), s = 0.;
       for (int i = 0; i < 8; i++) { float a = float(i) * .7854; vec2 o = vec2(cos(a), sin(a)) * px;
-        s += max(0., z - lz(vUv + o * 1.5) - .07) + .5 * max(0., z - lz(vUv + o * 3.) - .07); }
-      float shade = mix(.45, 1., exp(-s * 8. * k)); // never fully black
-      gl_FragColor = vec4(texture2D(tC, vUv).rgb * shade, 1.); gl_FragDepth = d0; }`,
+        s += max(0., z - lz(vUv + o * 1.5) - .07) + .25 * max(0., z - lz(vUv + o * 3.) - .07); }
+      float shade = mix(.6, 1., exp(-s * 8. * k)); // never fully black; thin and light, or splat edges grow dark halos
+      gl_FragColor = vec4(col(vUv) * shade, 1.); gl_FragDepth = d0; }`,
   depthWrite: true, depthTest: true, depthFunc: THREE.AlwaysDepth
 });
 const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), edl), quadScene = new THREE.Scene(), quadCam = new THREE.OrthographicCamera(); quad.frustumCulled = false; quadScene.add(quad);
@@ -129,11 +149,12 @@ $('flip').onclick = flip;
 $('home').onclick = () => { camera.position.copy(homeView.p); controls.target.copy(homeView.t); };
 function size() { const w = innerWidth, h = innerHeight, dpr = renderer.getPixelRatio(); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
   rt.setSize(Math.round(w * dpr), Math.round(h * dpr)); edl.uniforms.px.value.set(1 / (w * dpr), 1 / (h * dpr));
-  pointMat.uniforms.scale.value = h * dpr / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))); }
+  pointMat.uniforms.scale.value = h * dpr / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))); pointMat.uniforms.cap.value = 40 * dpr; }
 addEventListener('resize', size); size();
 renderer.setAnimationLoop(() => {
   controls.update();
-  renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 1); renderer.clear(); renderer.render(cloud, camera);
+  renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.clear();
+  model.material = depthMat; renderer.render(cloud, camera); model.material = accMat; renderer.render(cloud, camera);
   renderer.setRenderTarget(null); renderer.setClearColor(BG, 1); renderer.clear(); renderer.render(quadScene, quadCam);
   renderer.render(scene, camera); // grid + measure marks, depth-tested against the cloud
 });
