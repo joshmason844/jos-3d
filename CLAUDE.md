@@ -3,6 +3,7 @@
 Josh's 3D toolkit for Green Yurts kit and spaces. Open this folder in Claude Code and the tools are skills (`.claude/skills/`) and slash commands (`.claude/commands/`).
 
 ## Rules
+- **No paid credits, no free trials, no ArtCraft (Josh, 15 Oct 2026).** Only our own code, free open-source libraries and free public data. Never sign up for, spend on or call a paid or free-trial service, and never use ArtCraft's apps, API or models.
 - **Public repo.** Never commit keys, tokens, passwords, crew names or photos of people. People are labelled by clothes only.
 - People never go into the main Yard in 3D page.
 - Don't post or send anything without Josh's yes.
