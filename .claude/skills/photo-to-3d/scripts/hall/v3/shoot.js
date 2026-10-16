@@ -13,6 +13,9 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   up: [[10, 2.6, -6], [10, 2.5, -30], true],                 // mid-aisle, eye a bit high, looking down the hall: roof fills the top half
   roofclose: [[11, 5.4, -14], [17, 5.3, -21], true],         // up close under the right-hand slope: sheets, purlins, a roof light, a high-bay
   floorclose: [[11, 1.4, -6], [13, 0, -10], true],
+  wallleft: [[8, 3.4, -17], [0.5, 3.2, -25], true],          // left wall past the workshop, above the stillages: cladding, girts, posts
+  wallfar: [[12, 3.6, -26], [9, 3.4, -39], true],            // the far gable end
+  wallclose: [[4.2, 4.6, -27], [0, 4.4, -30.5], true],       // close on the left wall's upper cladding: profile, laps, fixings
 };
 const want = only ? only.split(',') : ['door', 'up', 'roofclose', 'far'];
 (async () => {

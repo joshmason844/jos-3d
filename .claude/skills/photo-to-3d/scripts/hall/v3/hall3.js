@@ -115,14 +115,15 @@ function shed() {
       const br = box(roofG, 3.2, .1, .1, MX.steel, 0, 0, z); br.position.set(HW / 2 + s * 2.3, RIDGE - 1.5, z); br.rotation.z = s * .72; } }
   wwRoof(roofG, ang, slope);   // sheets, roof lights, purlins, cleats, eaves beams, trunking and high-bays
   // side walls: cladding with timber posts and four girts (as in the photos)
-  for (const [x, ry] of [[0, Math.PI / 2], [HW, -Math.PI / 2]]) { const w = new THREE.Mesh(new THREE.PlaneGeometry(HL, EAVE), MX.clad); w.position.set(x, EAVE / 2, -HL / 2); w.rotation.y = ry; w.receiveShadow = true; g.add(w);
+  // (the sheets themselves are wwWalls(): profiled, lapped, screwed and weathered; behind the workshop the old plain cladding stays for now)
+  { const KEEP = 13.2, w = new THREE.Mesh(new THREE.PlaneGeometry(KEEP, EAVE), MX.clad); w.position.set(0, EAVE / 2, -KEEP / 2); w.rotation.y = Math.PI / 2; w.receiveShadow = true; g.add(w); }
+  wwWalls(g);
+  for (const x of [0, HW]) {
     for (let yy = 1.15; yy < EAVE; yy += 1.2) box(g, .07, .14, HL, MX.timber, x + (x ? -.06 : .06), yy, -HL / 2);
     for (let z = -BAY / 2; z > -HL; z -= BAY) box(g, .12, EAVE, .07, MX.timber, x + (x ? -.08 : .08), 0, z); }
   const gable = pts => new THREE.Shape(pts.map(p => new THREE.Vector2(...p)));
-  const farW = new THREE.Mesh(new THREE.ShapeGeometry(gable([[0, 0], [HW, 0], [HW, EAVE], [HW / 2, RIDGE], [0, EAVE]])), MX.clad); farW.position.set(0, 0, -HL); g.add(farW);
   for (let xx = 1.7; xx < HW; xx += 3.3) box(g, .14, EAVE + (RIDGE - EAVE) * (1 - Math.abs(xx - HW / 2) / (HW / 2)) - .25, .07, MX.timber, xx, 0, -HL + .07);
   for (let yy = 1.15; yy < EAVE; yy += 1.2) box(g, HW, .14, .07, MX.timber, HW / 2, yy, -HL + .1);
-  const front = new THREE.Mesh(new THREE.ShapeGeometry(gable([[0, 0], [DOOR.x0, 0], [DOOR.x0, DOOR.h], [DOOR.x1, DOOR.h], [DOOR.x1, 0], [HW, 0], [HW, EAVE], [HW / 2, RIDGE], [0, EAVE]])), MX.clad); g.add(front);
   box(g, DOOR.x1 - DOOR.x0 + .5, .55, .55, MX.alu, (DOOR.x0 + DOOR.x1) / 2, DOOR.h, .1);   // rolled-up door drum
   for (const x of [DOOR.x0, DOOR.x1]) { box(g, .14, DOOR.h, .1, MX.alu, x, 0, .05); }
   // outside: the yard, the green shed opposite, a tree, a second forklift
@@ -206,6 +207,68 @@ function wwRoof(roofG, ang, slope) {
     for (let i = 0; i < n; i++) { const k = new THREE.Mesh(linkGeo, linkMat); k.position.y = .19 + i * .02; k.rotation.y = i % 2 ? Math.PI / 2 : 0; f.add(k); }
     const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(.04, .14, 0), new THREE.Vector3(.12, .3, .08), new THREE.Vector3(.1, chainTop * .7, .14), new THREE.Vector3(.04, chainTop + .02, .1)]);   // power lead looping up to the tray
     f.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 24, .005, 6), MX.black)); }
+}
+
+// ---------------- the walls (WW cladding, 16 Oct) ----------------
+// Josh's LiDAR scan only sees the walls in a few gaps (behind the racking, over the door): cool mid-grey sheets (≈ 105/115/120 in the
+// scan's light), warmer and dirtier low down (≈ 100/88/78 under 2 m). Colours read off the scan, nothing from it is used.
+// Inside you look at the back of trapezoidal sheets: the wide pans sit on the girts, the ribs (32 mm deep, every 333 mm) recede outwards.
+// Side laps every metre, a row of fixing screws in the pans at every girt, splash dirt and forklift scuffs low down, rust tears
+// under some screws, grime under the eaves. Own RNG, so nothing else in the layout moves.
+function wwWalls(g) {
+  let sd = 4721; const fr = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  const PITCH = 1 / 3, DEPTH = .032, GIRTS = []; for (let yy = 1.15; yy < EAVE; yy += 1.2) GIRTS.push(yy + .07);
+  const prof = t => { const f = ((t % PITCH) + PITCH) % PITCH / PITCH; return -DEPTH * (f < .07 ? f / .07 : f < .17 ? 1 : f < .24 ? 1 - (f - .17) / .07 : 0); };
+  const knots = [0, .07, .17, .24].map(f => f * PITCH);
+  // one profiled panel: local s along the wall (s0..s1), y up from y0(s) to top(s), z = depth (+ into the room). uv: u = s / L, v = y / Ht
+  function geo(s0, s1, y0, top, L, Ht) {
+    const ss = []; for (let b = Math.floor(s0 / PITCH) * PITCH; b < s1 + PITCH; b += PITCH) for (const k of knots) { const t = b + k; if (t > s0 && t < s1) ss.push(t); }
+    ss.unshift(s0); ss.push(s1); const pos = [], uv = [];
+    for (let i = 0; i < ss.length - 1; i++) { const a = ss[i], b = ss[i + 1], za = prof(a), zb = prof(b), ta = top(a), tb = top(b), ya = y0(a), yb = y0(b);
+      pos.push(a, ya, za, b, yb, zb, b, tb, zb, a, ya, za, b, tb, zb, a, ta, za);
+      uv.push(a / L, ya / Ht, b / L, yb / Ht, b / L, tb / Ht, a / L, ya / Ht, b / L, tb / Ht, a / L, ta / Ht); }
+    const G = new THREE.BufferGeometry(); G.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); G.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); G.computeVertexNormals(); return G; }
+  // the sheets' inside face, ≈ 100 px/m: u along the wall, v up
+  function skin(L, Ht, opts = {}) {
+    const PX = 100, W = Math.min(4096, Math.ceil(L * PX)), H = Math.ceil(Ht * PX), sx = W / L, sy = H / Ht;
+    const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+    const X = s => s * sx, Y = y => H - y * sy;   // canvas y runs down
+    x.fillStyle = '#8f989d'; x.fillRect(0, 0, W, H);
+    for (let s = 0; s < L; s += 1) { const k = fr(); x.fillStyle = `rgba(${k < .5 ? '255,255,255' : '20,24,28'},${.02 + fr() * .05})`; x.fillRect(X(s), 0, sx + 1, H); }   // sheet-to-sheet tone
+    for (let i = 0; i < L * 3; i++) { const gg = x.createRadialGradient(0, 0, 0, 0, 0, 1); x.save(); x.translate(fr() * W, fr() * H); x.scale(40 + fr() * 160, 40 + fr() * 140); const cc = fr() < .6 ? '70,66,60' : '210,214,216'; gg.addColorStop(0, `rgba(${cc},${.03 + fr() * .05})`); gg.addColorStop(1, `rgba(${cc},0)`); x.fillStyle = gg; x.beginPath(); x.arc(0, 0, 1, 0, 7); x.fill(); x.restore(); }   // mottling
+    for (let i = 0; i < L * 5; i++) { const sx0 = fr() * W, y0 = fr() * H * .5, len = 60 + fr() * 300; x.strokeStyle = `rgba(80,72,62,${.04 + fr() * .08})`; x.lineWidth = 1 + fr() * 3; x.beginPath(); x.moveTo(sx0, y0); x.lineTo(sx0 + (fr() - .5) * 4, y0 + len); x.stroke(); }   // run-down streaks
+    { const gg = x.createLinearGradient(0, 0, 0, sy * .9); gg.addColorStop(0, 'rgba(45,42,38,.45)'); gg.addColorStop(1, 'rgba(45,42,38,0)'); x.fillStyle = gg; x.fillRect(0, 0, W, sy * .9); }   // grime under the eaves
+    // splash and dust low down (the scan's warmer, darker band under ~2 m), uneven top edge
+    for (let s = 0; s < L; s += .25) { const h = .45 + fr() * .5 + (fr() < .15 ? fr() * .8 : 0), gg = x.createLinearGradient(0, Y(0), 0, Y(h)); gg.addColorStop(0, 'rgba(92,78,60,.62)'); gg.addColorStop(.35, 'rgba(110,94,74,.32)'); gg.addColorStop(1, 'rgba(110,94,74,0)'); x.fillStyle = gg; x.fillRect(X(s), Y(h), X(.25) + 1, Y(0) - Y(h)); }
+    x.fillStyle = 'rgba(55,48,40,.55)'; x.fillRect(0, Y(.06), W, Y(0) - Y(.06));   // wet line at the foot
+    // forklift and pallet scuffs: scrapes along the wall at fork height, a few dents
+    for (let i = 0; i < L / 3; i++) { const y = .15 + fr() * 1.3, s0 = fr() * L, len = .3 + fr() * 1.6; x.strokeStyle = `rgba(${fr() < .5 ? '40,40,42' : '190,196,198'},${.25 + fr() * .3})`; x.lineWidth = 1 + fr() * 2.5; x.beginPath(); x.moveTo(X(s0), Y(y)); x.lineTo(X(s0 + len), Y(y + (fr() - .5) * .08)); x.stroke(); }
+    for (let i = 0; i < L / 6; i++) { const gg = x.createRadialGradient(0, 0, 0, 0, 0, 1); x.save(); x.translate(fr() * W, Y(.3 + fr() * 1.1)); x.scale(18 + fr() * 30, 14 + fr() * 22); gg.addColorStop(0, 'rgba(30,30,32,.35)'); gg.addColorStop(.6, 'rgba(30,30,32,.12)'); gg.addColorStop(1, 'rgba(30,30,32,0)'); x.fillStyle = gg; x.beginPath(); x.arc(0, 0, 1, 0, 7); x.fill(); x.fillStyle = 'rgba(230,232,232,.18)'; x.beginPath(); x.arc(-.35, -.35, .4, 0, 7); x.fill(); x.restore(); }
+    // side laps every metre: a dark seam with a little dirt caught in it
+    for (let s = 1; s < L; s += 1) { x.fillStyle = 'rgba(40,42,44,.55)'; x.fillRect(X(s) - 1.5, 0, 3, H); x.fillStyle = 'rgba(95,84,68,.14)'; x.fillRect(X(s) - 7, 0, 14, H); }
+    // fixing screws in the pans at every girt, a rust tear under some (and a seam of stitching screws up each lap)
+    for (const gy of GIRTS) if (gy < Ht - .05) for (let s = PITCH * .6; s < L; s += PITCH) { const top = opts.top ? opts.top(s) : Ht; if (gy > top - .05) continue;
+      if (fr() < .12) { const gg = x.createLinearGradient(0, Y(gy), 0, Y(gy - .12 - fr() * .25)); gg.addColorStop(0, 'rgba(140,82,42,.5)'); gg.addColorStop(1, 'rgba(140,82,42,0)'); x.fillStyle = gg; x.fillRect(X(s) - 2, Y(gy), 4, X(.37)); }
+      x.fillStyle = 'rgba(25,26,28,.9)'; x.beginPath(); x.arc(X(s), Y(gy), 2.6, 0, 7); x.fill(); x.fillStyle = 'rgba(200,204,206,.6)'; x.beginPath(); x.arc(X(s) - .8, Y(gy) - .8, .9, 0, 7); x.fill(); }
+    for (let s = 1; s < L; s += 1) for (let y = .45; y < Ht; y += .45) { x.fillStyle = 'rgba(28,29,31,.75)'; x.beginPath(); x.arc(X(s), Y(y), 1.6, 0, 7); x.fill(); }
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; }
+  const mat = map => STD({ map, roughness: .6, metalness: .3, side: THREE.DoubleSide });
+  const panel = (parent, pieces, L, Ht, top, place) => { const m = mat(skin(L, Ht, { top })), h = grp(parent, ...place.p); h.rotation.y = place.ry;
+    for (const [s0, s1, y0, tp] of pieces) { const w = new THREE.Mesh(geo(s0, s1, y0, tp, L, Ht), m); w.receiveShadow = true; h.add(w); } return h; };
+  const flat = v => () => v, gab = s => EAVE + (RIDGE - EAVE) * (1 - Math.abs(s - HW / 2) / (HW / 2));
+  // left wall (s = distance from the door, z = −s), skipping the stretch behind the workshop (z 0 to −13.2)
+  panel(g, [[13.2, HL, flat(0), flat(EAVE)]], HL, EAVE, null, { p: [0, 0, 0], ry: Math.PI / 2 });
+  // right wall (s from the far end, z = −HL + s)
+  panel(g, [[0, HL, flat(0), flat(EAVE)]], HL, EAVE, null, { p: [HW, 0, -HL], ry: -Math.PI / 2 });
+  // far gable (s = x)
+  panel(g, [[0, HW, flat(0), gab]], HW, RIDGE, gab, { p: [0, 0, -HL], ry: 0 });
+  // door wall from inside (s = HW − x): round the roller door opening
+  const d0 = HW - DOOR.x1, d1 = HW - DOOR.x0;
+  panel(g, [[0, d0, flat(0), gab], [d0, d1, flat(DOOR.h), gab], [d1, HW, flat(0), gab]], HW, RIDGE, gab, { p: [HW, 0, 0], ry: Math.PI });
+  // galvanised base angle along the foot of the sheets
+  const galv = STD({ color: 0x8d9296, metalness: .55, roughness: .5 });
+  box(g, .05, .05, HL - 13.2, galv, .025, 0, -(13.2 + HL) / 2).castShadow = false; box(g, .05, .05, HL, galv, HW - .025, 0, -HL / 2).castShadow = false;
+  box(g, HW, .05, .05, galv, HW / 2, 0, -HL + .025).castShadow = false;
 }
 
 // ---------------- builders ----------------

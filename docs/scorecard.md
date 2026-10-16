@@ -147,3 +147,12 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS. errors [] on phone and desktop, 0.13 MB; only old overlaps (title card and zone list over the close views). Noted desktop load 64 s vs 36 s, but both AFTER sizes were shot at once so the CPU was shared.
 - Score: Shape 7 · Detail 7 · Surface 7 · Light 7 · Truth 7 · Works 7 = 6.9 (BEFORE by the same eye: 7 · 6 · 7 · 7 · 7 · 7 = 6.8)
 
+## 2026-10-16 02:xx · WW: the walls, profiled cladding from the scan (Josh's request: textures) · run 4 of the night
+- Meeting: top open Josh's request was "WW: textures next"; split it into steps (floor done, walls, racking paint, crate covers, planters, OSB later) and took the walls. Workshop/mezzanine and the workshop scan left alone (another session owns them tonight), so the left wall behind the workshop keeps its old cladding. Review is next run (run 5).
+- Team: Opus 5.5 (boss + builder) sampled the wall colours from the main LiDAR scan (colours only, nothing from the scan saved or published), wrote `wwWalls()`, added three wall views to shoot.js, shot BEFORE/AFTER (door, wallleft, wallfar, wallclose; phone + desktop). Haiku checker PASS. No researcher. Self-scored, review due (run 5).
+- Scan says: walls only show in gaps (behind racking, over the door): cool mid-grey sheets ≈ 105/115/120, warmer and darker low down ≈ 100/88/78 under 2 m. The x 13–15 gap in the door wall is daylight (an opening).
+- Changed (hall3.js): stripe-textured planes and a white untextured far gable out. In: trapezoidal sheets seen from inside (flat-shaded 32 mm ribs every 333 mm), side laps every metre with stitching screws, rust tears, run-down streaks, grime under the eaves, splash/dust band and forklift scrapes and dents low down, galvanised base angle; side walls, far gable and the door wall round the roller door.
+- Better: the far end reads as a clad steel wall instead of a blank white sheet; side walls read as real sheets with laps and weathering, not candy stripes. Still weak: left wall behind the workshop unchanged, rib shading a bit strong up close, the dirty wall foot hides behind kit in every standard view, side opening in the door wall not drawn.
+- Checker (Haiku): PASS. errors [] on phone and desktop, 0.14 MB; only old overlaps (title card, zone list, button bar on phone).
+- Score: Shape 7 · Detail 7 · Surface 8 · Light 7 · Truth 7 · Works 7 = 7.0 (BEFORE by the same eye: 7 · 7 · 7 · 7 · 7 · 7 = 6.9)
+
