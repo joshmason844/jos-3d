@@ -79,7 +79,7 @@ scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnviron
 scene.add(new THREE.HemisphereLight(0xe8eef5, 0x5d5a52, 1.15));
 const sun = new THREE.DirectionalLight(0xfff1de, 1.9); sun.position.set(26, 34, 18); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 110 }); sun.shadow.bias = -.0004; sun.shadow.normalBias = .02; sun.target.position.set(10, 0, -19); scene.add(sun, sun.target);
 const doorLight = new THREE.SpotLight(0xfff6e8, 120, 30, .7, .6, 1.4); doorLight.position.set(9.6, 4.5, 6); doorLight.target.position.set(9.6, 0, -10); scene.add(doorLight, doorLight.target);
-for (let z = -5; z > -39; z -= 8.5) { const l = new THREE.PointLight(0xfff3df, 22, 16, 1.6); l.position.set(10, 6.6, z); scene.add(l); }
+for (let z = -5; z > -39; z -= 8.5) { const l = new THREE.SpotLight(0xfff3df, 22, 16, 1.25, .15, 1.6); l.position.set(10, 6.6, z); l.target.position.set(10, 0, z); scene.add(l, l.target); }   // high-bays light downwards only (a point light here glared the cable tray and roof above it)
 __KIT__
 const noise = speckle;
 __HALL3__

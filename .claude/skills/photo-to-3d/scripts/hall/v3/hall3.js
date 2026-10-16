@@ -113,10 +113,7 @@ function shed() {
     for (const s of [-1, 1]) { const r = box(roofG, slope, .42, .2, MX.steel, 0, 0, z); r.position.set(HW / 2 + s * HW / 4, (EAVE + RIDGE) / 2 - .18, z); r.rotation.z = -s * ang;
       const hn = box(roofG, 1.6, .5, .2, MX.steel, 0, 0, z); hn.position.set(s < 0 ? .9 : HW - .9, EAVE - .35, z); hn.rotation.z = -s * ang;
       const br = box(roofG, 3.2, .1, .1, MX.steel, 0, 0, z); br.position.set(HW / 2 + s * 2.3, RIDGE - 1.5, z); br.rotation.z = s * .72; } }
-  for (const s of [-1, 1]) { const h = grp(roofG, HW / 2 + s * HW / 4, (EAVE + RIDGE) / 2 + .24, -HL / 2); h.rotation.z = -s * ang;
-    const r = new THREE.Mesh(new THREE.PlaneGeometry(slope, HL), MX.roof); r.rotation.x = Math.PI / 2; r.receiveShadow = true; h.add(r);
-    for (let k = 0; k < 7; k++) box(h, .07, .2, HL, MX.timber, -slope / 2 + (k + .5) / 7 * slope, -.22, 0);
-    for (let z = -4; z > -HL; z -= 8.5) { const rl = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 2.6), MX.rooflight); rl.rotation.x = Math.PI / 2; rl.position.set(s * -1.4, -.012, z + HL / 2); h.add(rl); } }
+  wwRoof(roofG, ang, slope);   // sheets, roof lights, purlins, cleats, eaves beams, trunking and high-bays
   // side walls: cladding with timber posts and four girts (as in the photos)
   for (const [x, ry] of [[0, Math.PI / 2], [HW, -Math.PI / 2]]) { const w = new THREE.Mesh(new THREE.PlaneGeometry(HL, EAVE), MX.clad); w.position.set(x, EAVE / 2, -HL / 2); w.rotation.y = ry; w.receiveShadow = true; g.add(w);
     for (let yy = 1.15; yy < EAVE; yy += 1.2) box(g, .07, .14, HL, MX.timber, x + (x ? -.06 : .06), yy, -HL / 2);
@@ -134,10 +131,81 @@ function shed() {
   box(g, 28, 1.7, .2, STD({ color: 0xece8e0 }), HW / 2 + 1, 0, 17.9);
   const tree = new THREE.Mesh(new THREE.IcosahedronGeometry(1.8, 1), STD({ color: 0x6f9a3a, flatShading: true })); tree.position.set(3.5, 3.4, 9); g.add(tree); cyl(g, .15, 2.6, STD({ color: 0x5a4632 }), 3.5, 1.3, 9);
   const sky = new THREE.Mesh(new THREE.PlaneGeometry(120, 50), new THREE.MeshBasicMaterial({ color: 0xeef3f6 })); sky.position.set(HW / 2, 10, 40); sky.rotation.y = Math.PI; g.add(sky);
-  // LED high-bay lights down the middle
-  for (let z = -5; z > -HL; z -= 8.5) { cyl(roofG, .28, .14, MX.black, HW / 2, RIDGE - .75, z, 'y', 20); const d = new THREE.Mesh(new THREE.CircleGeometry(.24, 24), new THREE.MeshBasicMaterial({ color: 0xffffff })); d.rotation.x = Math.PI / 2; d.position.set(HW / 2, RIDGE - .83, z); roofG.add(d); }
-  T(g, 'The hall', 'Steel portal-frame shed: dark green frames every 6.5 m with braced, haunched rafters, timber purlins and wall girts, grey cladding, roof lights and LED high-bays, one big roller door onto the yard.', `≈ ${HW} × ${HL} m · eaves ${EAVE} m · ridge ${RIDGE} m (estimate)`, 'fairly sure').userData.noPick = true;
+  T(g, 'The hall', 'Steel portal-frame shed: dark green frames every 6.5 m with braced, haunched rafters, timber purlins and wall girts, grey cladding, profiled roof sheets with GRP roof lights in every bay, LED high-bays hung off a cable tray along the ridge, one big roller door onto the yard.', `≈ ${HW} × ${HL} m · eaves ${EAVE} m · ridge ${RIDGE} m (estimate)`, 'fairly sure').userData.noPick = true;
   return { g, roofG };
+}
+
+// ---------------- the roof (WW ceiling) ----------------
+// What you see looking up: trapezoidal steel sheets (32 mm ribs at 333 mm, 1 m cover, side laps every metre, an end lap half way up)
+// laid on timber purlins with steel cleats at every rafter, two GRP roof-light sheets per bay per slope (translucent, a bit yellowed,
+// dirt along the laps), steel eaves beams, a galvanised cable tray under the ridge with the LED high-bays hung off it on chains.
+// The LiDAR scan didn't reach the roof, so layout is a typical portal-frame shed (6.5 m bays). Own RNG: the layout seed doesn't move.
+// Roof detail doesn't cast shadows, so the floor light stays as it was.
+function wwRoof(roofG, ang, slope) {
+  let sd = 9137; const fr = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  const can = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
+  const PITCH = 1 / 3, DEPTH = .032, NP = 7, PX = k => -slope / 2 + (k + .5) / NP * slope;   // rib pitch, rib depth, purlins across the slope
+  // profile across the hall (local z): trough sits on the purlins (y −.015), rib crest up at y −.015 + DEPTH
+  const prof = t => { const f = ((t % PITCH) + PITCH) % PITCH / PITCH; return -.015 + DEPTH * (f < .07 ? f / .07 : f < .17 ? 1 : f < .24 ? 1 - (f - .17) / .07 : 0); };
+  const knots = [0, .07, .17, .24].map(f => f * PITCH);
+  function sheetGeo(x0, x1, z0, z1, dy = 0) {   // flat-shaded profiled strip, local x across the slope, z along the hall
+    const zs = []; for (let b = Math.floor(z0 / PITCH) * PITCH; b < z1 + PITCH; b += PITCH) for (const k of knots) { const z = b + k; if (z > z0 && z < z1) zs.push(z); }
+    zs.unshift(z0); zs.push(z1); const pos = [], uv = [], U = x => (x + slope / 2) / slope, V = z => (z + HL / 2) / HL;
+    for (let i = 0; i < zs.length - 1; i++) { const za = zs[i], zb = zs[i + 1], ya = prof(za) + dy, yb = prof(zb) + dy;
+      pos.push(x0, ya, za, x1, ya, za, x1, yb, zb, x0, ya, za, x1, yb, zb, x0, yb, zb); uv.push(U(x0), V(za), U(x1), V(za), U(x1), V(zb), U(x0), V(za), U(x1), V(zb), U(x0), V(zb)); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.computeVertexNormals(); return g; }
+  // --- the sheets' underside: one canvas per slope, u across the slope, v along the hall (≈ 100 px/m)
+  const W = 1024, H = 4096, ux = x => (x + slope / 2) / slope * W, vz = z => (z + HL / 2) / HL * H;
+  const LIGHTS = []; for (let b = 0; b < 6; b++) for (const [dz, dx] of [[1, -.9], [4, 1.6]]) LIGHTS.push({ z: -HL / 2 + Math.floor(b * BAY) + dz, x: dx });  // 1 m wide (one sheet, on the laps), 3 m up the slope, clear of the rafters
+  function sheetTex(side) {
+    const [c, x] = can(W, H); x.fillStyle = '#7f8184'; x.fillRect(0, 0, W, H);
+    for (let z = -HL / 2; z < HL / 2; z += 1) { const k = fr(); x.fillStyle = `rgba(${k < .5 ? '255,255,255' : '0,0,0'},${.02 + fr() * .05})`; x.fillRect(0, vz(z), W, vz(z + 1) - vz(z)); }   // sheet-to-sheet tone
+    for (let i = 0; i < 160; i++) { const g = x.createRadialGradient(0, 0, 0, 0, 0, 1); x.save(); x.translate(fr() * W, fr() * H); x.scale(60 + fr() * 200, 40 + fr() * 160); const cc = fr() < .55 ? '60,58,54' : '200,200,196'; g.addColorStop(0, `rgba(${cc},${.04 + fr() * .06})`); g.addColorStop(1, `rgba(${cc},0)`); x.fillStyle = g; x.beginPath(); x.arc(0, 0, 1, 0, 7); x.fill(); x.restore(); }   // mottling
+    for (let i = 0; i < 260; i++) { const z = (fr() - .5) * HL, x0 = fr() * W, len = 40 + fr() * 260; x.strokeStyle = `rgba(70,62,52,${.05 + fr() * .1})`; x.lineWidth = 1 + fr() * 4; x.beginPath(); x.moveTo(x0, vz(z)); x.lineTo(x0 + len * (side < 0 ? 1 : -1), vz(z) + (fr() - .5) * 6); x.stroke(); }   // drip streaks down the slope
+    for (let z = -HL / 2 + 1; z < HL / 2; z += 1) { x.fillStyle = 'rgba(40,40,42,.4)'; x.fillRect(0, vz(z) - 1.5, W, 3); x.fillStyle = 'rgba(95,82,64,.12)'; x.fillRect(0, vz(z) - 6, W, 12); }   // side laps every metre, a bit of grime in each
+    const eL = ux(slope * .02); x.fillStyle = 'rgba(35,35,37,.6)'; x.fillRect(eL - 2, 0, 4, H); x.fillStyle = 'rgba(95,82,64,.2)'; x.fillRect(eL - 14, 0, 28, H);   // end lap half way up
+    for (let z = -HL / 2 + 1; z < HL / 2; z += 1) for (let u = 20; u < W; u += 46) { x.fillStyle = 'rgba(150,95,55,.3)'; x.beginPath(); x.arc(u, vz(z) + 4, 3.5, 0, 7); x.fill(); x.fillStyle = 'rgba(28,28,30,.85)'; x.beginPath(); x.arc(u, vz(z), 2.2, 0, 7); x.fill(); }   // stitching screws along each side lap, a rust tear under some
+    for (const s of [0, W - 1]) { const g = x.createLinearGradient(s, 0, s ? s - 120 : 120, 0); g.addColorStop(0, 'rgba(40,36,30,.45)'); g.addColorStop(1, 'rgba(40,36,30,0)'); x.fillStyle = g; x.fillRect(s ? W - 120 : 0, 0, 120, H); }   // dirtier at eaves and ridge
+    for (const L of LIGHTS) { const xa = ux(L.x - 1.5), xb = ux(L.x + 1.5), za = vz(L.z), zb = vz(L.z + 1); x.fillStyle = 'rgba(30,30,30,.5)'; x.fillRect(xa - 4, za - 4, xb - xa + 8, zb - za + 8); }   // lap shadow round each roof light
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; }
+  const [lc, l] = can(256, 512); l.fillStyle = '#f2ecd6'; l.fillRect(0, 0, 256, 512);   // GRP roof light: fibre mat, yellowed, dirt in the troughs and at the ends
+  for (let i = 0; i < 1400; i++) { l.strokeStyle = `rgba(${fr() < .5 ? '255,255,250' : '170,150,110'},${.08 + fr() * .12})`; l.lineWidth = .6 + fr(); l.beginPath(); const a = fr() * 6, px = fr() * 256, py = fr() * 512, r = 4 + fr() * 14; l.arc(px, py, r, a, a + 1 + fr() * 2); l.stroke(); }
+  for (let i = 0; i < 40; i++) { const g = l.createRadialGradient(0, 0, 0, 0, 0, 1); l.save(); l.translate(fr() * 256, fr() * 512); l.scale(20 + fr() * 70, 30 + fr() * 120); g.addColorStop(0, `rgba(120,100,70,${.08 + fr() * .14})`); g.addColorStop(1, 'rgba(120,100,70,0)'); l.fillStyle = g; l.beginPath(); l.arc(0, 0, 1, 0, 7); l.fill(); l.restore(); }
+  for (const s of [0, 1]) { const g = l.createLinearGradient(0, s * 512, 0, s ? 440 : 72); g.addColorStop(0, 'rgba(70,60,45,.55)'); g.addColorStop(1, 'rgba(70,60,45,0)'); l.fillStyle = g; l.fillRect(0, s ? 440 : 0, 256, 72); }
+  const lt = new THREE.CanvasTexture(lc); lt.colorSpace = THREE.SRGBColorSpace;
+  const lightMat = new THREE.MeshStandardMaterial({ color: 0xe9e4d2, map: lt, emissive: 0xfff6e2, emissiveMap: lt, emissiveIntensity: .75, roughness: .6, side: THREE.DoubleSide });
+  const purlinXs = []; for (let k = 0; k < NP; k++) purlinXs.push(PX(k));
+  const cleatGeo = new THREE.BoxGeometry(.008, .17, .11), cleats = new THREE.InstancedMesh(cleatGeo, MX.steel, 2 * NP * 7); let ci = 0; const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), vp = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
+  for (const s of [-1, 1]) { const h = grp(roofG, HW / 2 + s * HW / 4, (EAVE + RIDGE) / 2 + .24, -HL / 2); h.rotation.z = -s * ang; h.updateMatrixWorld();
+    const sheet = new THREE.Mesh(sheetGeo(-slope / 2, slope / 2, -HL / 2, HL / 2), STD({ map: sheetTex(s), roughness: .62, metalness: .35, side: THREE.DoubleSide })); sheet.receiveShadow = true; h.add(sheet);
+    // the roof lights: same profile, 1 cm under the sheet, 1 m wide × 3 m up the slope
+    for (const L of LIGHTS) { const m = new THREE.Mesh(sheetGeo(L.x - 1.5, L.x + 1.5, L.z, L.z + 1, -.01), lightMat); const a = m.geometry.attributes.uv.array; for (let i = 0; i < a.length; i += 2) { const su = (a[i] * slope - slope / 2 - (L.x - 1.5)) / 3, zv = a[i + 1] * HL - HL / 2 - L.z; a[i] = zv; a[i + 1] = su; } h.add(m); }
+    for (const px of purlinXs) box(h, .075, .2, HL, MX.timber, px, -.215, 0);   // timber purlins (still cast, so the floor light is unchanged)
+    for (let b = 0; b <= 6; b++) for (const px of purlinXs) { const z = -HL / 2 + Math.min(b * BAY, HL - .06) + (b ? 0 : .06);   // a steel cleat bolted to the rafter at every purlin
+      vp.set(px + .045, -.12, z); h.localToWorld(vp); roofG.worldToLocal(vp); e.set(0, 0, -s * ang); q.setFromEuler(e); m4.compose(vp, q, one); cleats.setMatrixAt(ci++, m4); }
+    // the eaves beam on top of each wall
+    const eb = box(roofG, .16, .22, HL, MX.steel, s < 0 ? .22 : HW - .22, EAVE - .02, -HL / 2); eb.castShadow = false; }
+  cleats.count = ci; cleats.instanceMatrix.needsUpdate = true; roofG.add(cleats);
+  // galvanised cable tray under the ridge, the high-bays hung off it on chains (same spots as the warm point lights)
+  const galv = STD({ color: 0x3c4044, metalness: .3, roughness: .75 }), trayY = RIDGE - .55;   // dull (the warm point lights sit just under it); tray below the rafters at the apex
+  const tray = new THREE.Group(); roofG.add(tray);
+  for (const dx of [-.1, .1]) { const r = box(tray, .012, .05, HL, galv, HW / 2 + dx, trayY, -HL / 2); r.castShadow = false; }
+  { const b = box(tray, .2, .008, HL, STD({ map: tex(16, 512, (x, w, h) => { x.fillStyle = '#3c4044'; x.fillRect(0, 0, w, h); x.fillStyle = '#17181a'; for (let i = 6; i < h; i += 16) x.fillRect(4, i, 8, 6); }, [1, 60]), metalness: .3, roughness: .75 }), HW / 2, trayY, -HL / 2); b.castShadow = false; }   // slotted base
+  for (let z = -1.5; z > -HL; z -= 3) { for (const dx of [-.1, .1]) cyl(tray, .006, RIDGE + .05 - trayY, galv, HW / 2 + dx, (RIDGE + .05 + trayY) / 2, z).castShadow = false; }   // drop rods to the ridge purlins
+  for (const dx of [-.06, .04]) { const c = cyl(tray, .011, HL, MX.black, HW / 2 + dx, trayY + .02, -HL / 2, 'z', 8); c.castShadow = false; }   // cables in the tray
+  const finsGeo = new THREE.BoxGeometry(.006, .075, .085), bodyMat = STD({ color: 0x2b2e31, metalness: .6, roughness: .4 });
+  const linkMat = STD({ color: 0x9a9fa3, metalness: .8, roughness: .35 }), linkGeo = new THREE.TorusGeometry(.012, .003, 4, 8);
+  for (let z = -5; z > -HL; z -= 8.5) { const f = grp(roofG, HW / 2, RIDGE - .95, z);
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(.22, .235, .07, 32), bodyMat); f.add(body);
+    const fins = new THREE.InstancedMesh(finsGeo, bodyMat, 24); for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; e.set(0, -a, 0); q.setFromEuler(e); vp.set(Math.cos(a) * .16, .07, Math.sin(a) * .16); m4.compose(vp, q, one); fins.setMatrixAt(i, m4); } f.add(fins);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(.05, .06, .05, 16), bodyMat); hub.position.y = .12; f.add(hub);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(.03, .006, 6, 16), linkMat); ring.position.y = .17; f.add(ring);
+    const lens = new THREE.Mesh(new THREE.CircleGeometry(.205, 32), new THREE.MeshBasicMaterial({ color: 0xfffaf0 })); lens.rotation.x = Math.PI / 2; lens.position.y = -.036; f.add(lens);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(.21, .012, 6, 32), linkMat); rim.rotation.x = Math.PI / 2; rim.position.y = -.035; f.add(rim);
+    const chainTop = trayY - .01 - (RIDGE - .95), n = Math.floor((chainTop - .18) / .02);   // chain from the hook up to the tray
+    for (let i = 0; i < n; i++) { const k = new THREE.Mesh(linkGeo, linkMat); k.position.y = .19 + i * .02; k.rotation.y = i % 2 ? Math.PI / 2 : 0; f.add(k); }
+    const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(.04, .14, 0), new THREE.Vector3(.12, .3, .08), new THREE.Vector3(.1, chainTop * .7, .14), new THREE.Vector3(.04, chainTop + .02, .1)]);   // power lead looping up to the tray
+    f.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 24, .005, 6), MX.black)); }
 }
 
 // ---------------- builders ----------------
