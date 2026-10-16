@@ -422,6 +422,67 @@ function rackFill(g, cx, y) { for (let k = 0; k < 3; k++) { const x = cx - .85 +
   else if (kind < .85) { box(g, .78, .55, .6, MX.ply, x, y, 0); for (const s of [-1, 1]) box(g, .1, .04, .02, MX.alu, x + s * .2, y + .4, .31); }
   else box(g, .75, .5, .75, STD({ color: 0x2c5fa0, roughness: .5 }), x, y, 0); } }
 
+// ---- black ribbed planters (Josh: "black ribbed boxes strapped in pairs on the racking = planters") ----
+// One ribbed, tapered body (extruded plan outline: a 40 mm rib every 100 mm, 18 mm proud), an open top with a thick lip and a silver
+// trim band, black HDPE with fine texture, scuffs low down and on the ribs, dust on the lip. Pairs sit on two euro pallets with a blue
+// ratchet strap round their middle (ratchet + label on the front, tail hanging). Own RNG so nothing else in the layout moves.
+const PLANTER = (() => {
+  let sd = 5813; const fr = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  const can = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
+  const toTex = (c, srgb = true) => { const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; };
+  const W = 1.18, D = .92, H = .98, LIP = .07, RIB = .1, RW = .04, RP = .018, TAPER = .9;
+  // plan outline, anticlockwise, ribs on every side (corners plain)
+  const pts = []; const side = (ax, ay, bx, by, nx, ny) => { const L = Math.hypot(bx - ax, by - ay), ux = (bx - ax) / L, uy = (by - ay) / L, n = Math.floor((L - .12) / RIB);
+    const s0 = (L - (n - 1) * RIB) / 2; pts.push([ax, ay]);
+    for (let i = 0; i < n; i++) { const s = s0 + i * RIB; for (const [t, o] of [[-RW / 2 - .006, 0], [-RW / 2, RP], [RW / 2, RP], [RW / 2 + .006, 0]]) pts.push([ax + ux * (s + t) + nx * o, ay + uy * (s + t) + ny * o]); } };
+  const c = .03, w2 = W / 2, d2 = D / 2;   // 30 mm chamfered corners
+  side(-w2 + c, -d2, w2 - c, -d2, 0, -1); side(w2, -d2 + c, w2, d2 - c, 1, 0); side(w2 - c, d2, -w2 + c, d2, 0, 1); side(-w2, d2 - c, -w2, -d2 + c, -1, 0);
+  const shape = new THREE.Shape(pts.map(p => new THREE.Vector2(p[0], p[1])));
+  const body = new THREE.ExtrudeGeometry(shape, { depth: H, bevelEnabled: false, curveSegments: 1 }); body.rotateX(-Math.PI / 2);   // shape y → −z, extrusion → +y
+  { const P = body.attributes.position, uv = body.attributes.uv; for (let i = 0; i < P.count; i++) { const y = P.getY(i), k = TAPER + (1 - TAPER) * y / H; P.setX(i, P.getX(i) * k); P.setZ(i, P.getZ(i) * k);
+      uv.setXY(i, (P.getX(i) + P.getZ(i)) * .5 + .5, y / H); } body.computeVertexNormals(); }
+  // lip: a ring (outer a touch wider than the top of the body, hole = the body's inside), and the trim band round it
+  const rect = (w, d) => { const s = new THREE.Shape(); s.moveTo(-w / 2, -d / 2); s.lineTo(w / 2, -d / 2); s.lineTo(w / 2, d / 2); s.lineTo(-w / 2, d / 2); s.closePath(); return s; };
+  const ring = (wo, dO, wi, di, h) => { const s = rect(wo, dO); const hole = new THREE.Path(); hole.moveTo(-wi / 2, -di / 2); hole.lineTo(-wi / 2, di / 2); hole.lineTo(wi / 2, di / 2); hole.lineTo(wi / 2, -di / 2); hole.closePath(); s.holes.push(hole);
+    const g = new THREE.ExtrudeGeometry(s, { depth: h, bevelEnabled: false }); g.rotateX(-Math.PI / 2); return g; };
+  const lip = ring(W + .06, D + .06, W - .05, D - .05, LIP), trim = ring(W + .075, D + .075, W + .04, D + .04, .026), foot = ring(W * TAPER + .03, D * TAPER + .03, W * TAPER - .06, D * TAPER - .06, .035);
+  // textures: body (1 tile across 2 m of perimeter in u, full height in v)
+  const bodyTex = (() => { const [cv, x] = can(1024, 512); x.fillStyle = '#2a2c30'; x.fillRect(0, 0, 1024, 512);
+    for (let i = 0; i < 9000; i++) { const v = fr(); x.fillStyle = `rgba(${v > .5 ? '255,255,255' : '0,0,0'},${.025 + fr() * .04})`; x.fillRect(fr() * 1024, fr() * 512, 1 + fr() * 2, 1 + fr() * 2); }   // HDPE grain
+    for (let i = 0; i < 14; i++) { const y = fr() * 512; x.fillStyle = `rgba(255,255,255,${.015 + fr() * .02})`; x.fillRect(0, y, 1024, 1 + fr() * 3); }   // faint mould lines
+    const g = x.createLinearGradient(0, 0, 0, 512); g.addColorStop(0, 'rgba(170,160,145,.22)'); g.addColorStop(.12, 'rgba(170,160,145,.05)'); g.addColorStop(.8, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(120,105,85,.25)'); x.fillStyle = g; x.fillRect(0, 0, 1024, 512);   // dust under the lip, grime at the foot
+    for (let i = 0; i < 70; i++) { const low = fr() < .7, cx = fr() * 1024, cy = low ? 330 + fr() * 180 : fr() * 512, L = 8 + fr() * 50, a = (fr() - .5) * .7;   // scuffs and pale scratches, mostly low
+      x.strokeStyle = `rgba(190,185,175,${.08 + fr() * .2})`; x.lineWidth = .6 + fr() * 1.6; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + Math.cos(a) * L, cy + Math.sin(a) * L); x.stroke(); }
+    for (let i = 0; i < 6; i++) { x.fillStyle = `rgba(150,140,125,${.06 + fr() * .08})`; x.beginPath(); x.ellipse(fr() * 1024, 400 + fr() * 100, 20 + fr() * 50, 6 + fr() * 10, 0, 0, 7); x.fill(); }   // dried splash marks
+    return toTex(cv); })();
+  const bump = (() => { const [cv, x] = can(256, 256); x.fillStyle = '#808080'; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 5000; i++) { x.fillStyle = `rgba(${fr() > .5 ? '255,255,255' : '0,0,0'},.18)`; x.fillRect(fr() * 256, fr() * 256, 1, 1); } const t = toTex(cv, false); t.repeat.set(6, 6); return t; })();
+  const mBody = STD({ map: bodyTex, bumpMap: bump, bumpScale: .4, roughness: .45, metalness: 0, flatShading: true });
+  const mIn = STD({ color: 0x141517, roughness: .9 });
+  const mLip = STD({ map: (() => { const [cv, x] = can(512, 64); x.fillStyle = '#26272a'; x.fillRect(0, 0, 512, 64); for (let i = 0; i < 1600; i++) { x.fillStyle = `rgba(185,175,160,${fr() * .25})`; x.fillRect(fr() * 512, fr() * 64, 1 + fr() * 2, 1); } return toTex(cv); })(), roughness: .55 });
+  const mTrim = STD({ map: (() => { const [cv, x] = can(512, 32); x.fillStyle = '#b9bec2'; x.fillRect(0, 0, 512, 32); for (let i = 0; i < 160; i++) { x.fillStyle = `rgba(${fr() > .5 ? '255,255,255' : '60,60,60'},${fr() * .25})`; x.fillRect(0, fr() * 32, 512, 1); } for (let i = 0; i < 30; i++) { x.fillStyle = 'rgba(40,40,40,.35)'; x.fillRect(fr() * 512, fr() * 32, 2 + fr() * 6, 1 + fr() * 2); } return toTex(cv); })(), roughness: .3, metalness: .85 });
+  // blue ratchet strap: woven webbing with an edge stripe, and a white rating label
+  const mStrap = STD({ map: (() => { const [cv, x] = can(256, 32); x.fillStyle = '#2154b4'; x.fillRect(0, 0, 256, 32); for (let i = 0; i < 256; i += 2) { x.fillStyle = 'rgba(0,0,0,.18)'; x.fillRect(i, 0, 1, 32); } x.fillStyle = 'rgba(255,255,255,.35)'; x.fillRect(0, 3, 256, 1.5); x.fillRect(0, 27.5, 256, 1.5); return toTex(cv); })(), roughness: .7 });
+  const mLabel = STD({ map: (() => { const [cv, x] = can(128, 48); x.fillStyle = '#eceae2'; x.fillRect(0, 0, 128, 48); x.fillStyle = '#1b1b1b'; x.font = 'bold 15px sans-serif'; x.fillText('LC 2500 daN', 8, 20); x.font = '11px sans-serif'; x.fillText('EN 12195-2', 8, 38); return toTex(cv); })(), roughness: .6 });
+  const mSteel = STD({ color: 0xa7acb0, roughness: .35, metalness: .85 }), mHandle = STD({ color: 0x1c1c1c, roughness: .5 });
+  function one(p, x, y, z, ry) { const g = grp(p, x, y, z, ry);
+    const b = new THREE.Mesh(body, [mIn, mBody]); b.castShadow = b.receiveShadow = true; g.add(b);
+    for (const [geo, m, yy] of [[lip, mLip, H - .002], [trim, mTrim, H + .02], [foot, mLip, .01]]) { const r = new THREE.Mesh(geo, m); r.position.y = yy; r.castShadow = r.receiveShadow = true; g.add(r); }
+    return g; }
+  // a strapped pair on two pallets, centred on (cx, y) in the rack's frame (x along the bay, +z = the aisle side)
+  function pair(p, cx, y) { const g = grp(p, cx, y, 0);
+    for (const s of [-1, 1]) { const pg = grp(g, s * .64, 0, 0); pallet(pg, 1.2, 1.0, 0, .5); one(g, s * .645 + (fr() - .5) * .02, .144, 0, (fr() - .5) * .008); }
+    // strap at 55% height, hugging the tapered faces: front + back runs, the two ends, ratchet on the front
+    const yS = .144 + H * .55, k = TAPER + (1 - TAPER) * .55, fz = D / 2 * k + RP + .014, ex = .645 + W / 2 * k + RP + .014, sw = .05;
+    for (const zz of [-fz, fz]) box(g, ex * 2, sw, .004, mStrap, 0, yS, zz);
+    for (const xx of [-ex, ex]) box(g, .004, sw, fz * 2, mStrap, xx, yS, 0);
+    const r = grp(g, .25, yS + sw / 2, fz + .012);   // ratchet: frame plates, spindle, black handle, release tab
+    for (const sz of [-1, 1]) box(r, .16, .07, .004, mSteel, 0, -.035, sz * .018); cyl(r, .012, .05, mSteel, .02, 0, 0, 'z', 10); box(r, .13, .03, .03, mHandle, -.03, .02, 0); box(r, .05, .012, .03, mSteel, -.1, .01, 0);
+    const lab = new THREE.Mesh(new THREE.PlaneGeometry(.1, .036), mLabel); lab.position.set(-.35, yS + sw / 2, fz + .003); g.add(lab);
+    const tail = new THREE.Mesh(new THREE.BoxGeometry(sw, .32, .004), mStrap); tail.position.set(.36, yS - .14, fz + .006); tail.rotation.z = .12; tail.castShadow = true; g.add(tail);   // loose tail hanging off the ratchet
+    return g; }
+  return { pair, H: H + LIP };
+})();
+
 // ---------------- the layout ----------------
 function layout() {
   const P = scene;
@@ -452,7 +513,10 @@ function layout() {
     T(g, 'IBC water tanks', 'Caged 1,000 litre IBC tanks, three high, just past the yellow racking.', '1.2 × 1.0 × 1.15 m each'); }
   // ===== door end, right: orange racking, black crate tower, trellis leaning, low floor-panel stack =====
   zone('Door end · right');
-  { const r = racking(P, 18.95, -14.2, RIGHT, 5, [.15, 1.55, 3.03], 2.77, 1.1, MX.orange, rackFill);   // LiDAR: uprights at z -14.2, -11.43, -8.63, -5.9, -3.13, -0.35
+  { const spare = new THREE.Group(), planted = [];   // bays 3–4 from the far end, levels 1–2: planter pairs (the scan's darkest bays; contents top out at 1.47 / 2.92 m, as the pairs do)
+    const yardFill = (g, cx, y, b, yy) => { if ((b === 2 || b === 3) && yy < 2) { rackFill(spare, cx, y); const s0 = _seed; planted.push(PLANTER.pair(g, cx, y)); _seed = s0; } else rackFill(g, cx, y); };   // spare + seed restore (pallet() uses rnd): same random draws, so nothing else moves
+    const r = racking(P, 18.95, -14.2, RIGHT, 5, [.15, 1.55, 3.03], 2.77, 1.1, MX.orange, yardFill);   // LiDAR: uprights at z -14.2, -11.43, -8.63, -5.9, -3.13, -0.35
+    for (const [i, g] of planted.entries()) T(g, 'Black planters (pair)', 'Two black ribbed planters with a silver trim band round the lip, strapped together with a blue ratchet strap, each on a euro pallet. Josh: "black ribbed boxes strapped in pairs on the racking = planters". Which bays they sit in is read off the LiDAR scan (darkest bays, matching heights), not confirmed.', '≈ 1.24 × 0.98 × 1.05 m each · pair ≈ 2.5 m', 'not sure');
     T(r, 'Orange racking (yard bay)', 'Pallet racking with orange beams down the right wall from the door: the yard bay. Bays and beam heights measured from Josh\'s LiDAR scan (15 Oct).', '5 bays × 2.77 m · beams 1.55 / 3.03 m · front 1.55 m off the wall'); }
   { const r = racking(P, 18.1, -1.2, Math.PI, 1, [.15, 2.15, 3.05], 2.9, 1.1, MX.orange, rackFill);   // LiDAR: one bay along the door wall, x 15.2–18.1
     T(r, 'Orange racking (door wall)', 'One bay of orange racking along the door wall, in the corner with the right-wall run (from the LiDAR scan).', '1 bay × 2.9 m · beams 2.15 / 3.05 m', 'fairly sure'); }

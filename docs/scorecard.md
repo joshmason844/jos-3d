@@ -174,3 +174,12 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS. errors [] on all four loads, 0.16 MB; only old overlaps (title, zone list, button bar) and the old ERR_FAILED font fetch.
 - Score (self, on the reviewer's scale): crate close-ups Shape 6 · Detail 6 · Surface 6 · Light 6 · Truth 5 · Works 6 = 5.8 (BEFORE same eye: 6 · 5 · 5 · 6 · 5 · 6 = 5.5); whole hall ≈ 5.9 (from 5.8)
 
+
+## 2026-10-16 05:xx · WW: black planters, ribbed and strapped (Josh's request: textures) · run 7 of the night
+- Meeting: top open Josh's request still "WW: textures next"; next step planters. There were no planters in the WW at all, so the job became build + place, which also ticks off part of "Step 2: fill the yard bay bay by bay". Workshop/mezzanine and the workshop scan left alone. Not a review run (run 7; review on the 07:xx run).
+- Team: Opus 5.5 (boss + builder) read the main scan for which bays (darkness and top-of-contents per bay and level, numbers only, nothing saved), wrote `PLANTER`, added two views to shoot.js (planters, planterclose), shot BEFORE/AFTER (planters, planterclose, rackrun, door; phone + desktop), one fix round (ribs poked through the strap: jitter out, strap 14 mm off the ribs; body a shade lighter and glossier so ribs catch light). Haiku checker PASS. No researcher. Self-scored, review due.
+- Scan says: no bay reads truly black (LiDAR loses black plastic); darkest are bays 3–4 from the far end at levels 1–2 (median ≈ 87/73/62 and 94/85/70 vs ≈ 120/105/99 elsewhere), contents topping out at 1.47 and 2.92 m.
+- Changed (hall3.js): random tubs and boxes in those 4 bay-levels out (their random draws still taken, and pallet()'s rnd() restored, so nothing else in the layout moved). In: 4 strapped pairs of black ribbed planters, tapered, open-topped with lip and silver trim, on euro pallets, blue ratchet strap with ratchet, label and tail. Tagged NOT SURE.
+- Better: the yard bay now shows the planters Josh named instead of generic stock; up close they read as moulded ribbed planters with a real strap. Still weak: bay choice is a guess, ribs faint from the aisle, one texture for all, wooden pallets where the photo shows blue plastic.
+- Checker (Haiku): PASS. errors [] on phone and desktop, 0.17 MB; only old issues (title card over the view, ERR_FAILED font fetch).
+- Score (self, on the reviewer's scale): yard-bay close-ups Shape 6 · Detail 7 · Surface 6 · Light 6 · Truth 5 · Works 6 = 6.0 (BEFORE same eye: 6 · 5 · 5 · 6 · 5 · 6 = 5.5); whole hall ≈ 6.0 (from 5.9)

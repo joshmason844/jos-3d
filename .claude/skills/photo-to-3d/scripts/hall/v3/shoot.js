@@ -23,6 +23,8 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   cratefront: [[8.6, 1.9, -24.6], [7.6, 1.2, -28.0], true],   // the 14 ft crown crate fronts, mid-hall: labels, badge, check-sheet window
   crateclose: [[7.6, 0.95, -26.6], [7.1, 0.55, -27.9], true],  // close on one cover's lower front + side: weave, seams, hem, straps
   cratetop: [[9.2, 3.9, -25.6], [8.1, 2.9, -28.2], true],      // looking down on the stack tops: seams, sag, dust
+  planters: [[14.6, 2.0, -5.9], [18.4, 1.45, -5.9], true],      // the yard-bay racking bays 2–3 from the aisle: planter pairs on levels 1–2
+  planterclose: [[16.9, 1.25, -4.4], [18.4, .8, -5.6], true],   // close on one planter pair: ribs, trim, strap, ratchet, pallet
   canvasclose: [[3.4, 1.5, -20.0], [1.0, 1.0, -21.6], true],   // the red 14 ft canvas covers on the left wall
 };
 const want = only ? only.split(',') : ['door', 'up', 'roofclose', 'far'];
