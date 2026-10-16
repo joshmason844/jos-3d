@@ -422,6 +422,102 @@ function rackFill(g, cx, y) { for (let k = 0; k < 3; k++) { const x = cx - .85 +
   else if (kind < .85) { box(g, .78, .55, .6, MX.ply, x, y, 0); for (const s of [-1, 1]) box(g, .1, .04, .02, MX.alu, x + s * .2, y + .4, .31); }
   else box(g, .75, .5, .75, STD({ color: 0x2c5fa0, roughness: .5 }), x, y, 0); } }
 
+// ---- yard-bay stock, bay by bay from the LiDAR elevations (16 Oct 06:xx) ----
+// What the scan's front elevations of the orange run show, read per bay and level (numbers and shapes only; no scan texture used):
+// far bays: stacks of folded grey/white sheeting low down, folded striped rugs (brown, maroon, cream) above, pale beige and grey bags
+// on top (grey and beige bags = bells); by the door: mixed small stock (boxes, totes, jerry cans, an orange-and-yellow tangle = cable).
+// Builders with real cues instead of plain blocks: folded stacks show their folds and layer edges, rugs show kilim stripes on the
+// folded edge, bags slump, boxes have tape and a label, totes have rims and hand slots, cable reels have flanges and coils.
+// Own RNG so nothing else in the seeded layout moves.
+const STOCK = (() => {
+  let sd = 9127; const fr = () => (sd = (sd * 16807) % 2147483647) / 2147483647, fx = (a, b) => a + (b - a) * fr();
+  const can = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
+  const toTex = c => { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
+  const hex = h => `${(h >> 16) & 255},${(h >> 8) & 255},${h & 255}`;
+  const noise = (x, w, h, n, a) => { for (let i = 0; i < n; i++) { x.fillStyle = `rgba(${fr() > .5 ? '255,255,255' : '0,0,0'},${a * fr()})`; x.fillRect(fr() * w, fr() * h, 1 + fr() * 2, 1 + fr() * 2); } };
+  // a folded layer: soft slab whose front edge bulges and rolls (the fold), top a touch domed; jittered so no two match
+  const slabGeo = () => { const g = new THREE.BoxGeometry(1, 1, 1, 10, 3, 6), P = g.attributes.position, ph = fx(0, 6), ph2 = fx(0, 6);
+    for (let i = 0; i < P.count; i++) { let x = P.getX(i), y = P.getY(i), z = P.getZ(i);
+      const r = Math.max(Math.abs(y) * 2, 0); const roll = z > 0 ? (1 - r * r) * .06 : 0;          // the fold bulges forward at mid-height
+      x += Math.sin(z * 4 + ph) * .012; z += roll + Math.sin(x * 5 + ph2) * .02;
+      y += (y > 0 ? .08 * (1 - x * x * 4) * (1 - z * z * 4) : 0) + Math.sin(x * 7 + ph) * .04;        // domed top, wavy layer line
+      P.setXYZ(i, x, y, z); }
+    g.computeVertexNormals(); return g; };
+  const SLABS = [0, 1, 2, 3, 4, 5].map(slabGeo);
+  // fabric textures: plain sheeting (grey/white, PVC sheen), striped rug (kilim bands); u along the width, v up the folded edge
+  const sheetMat = col => { const [c, x] = can(256, 128); x.fillStyle = `rgb(${hex(col)})`; x.fillRect(0, 0, 256, 128); noise(x, 256, 128, 2500, .08);
+    for (let i = 0; i < 6; i++) { const y = fx(10, 118); x.strokeStyle = `rgba(0,0,0,${fx(.05, .14)})`; x.lineWidth = fx(1, 3); x.beginPath(); x.moveTo(0, y); x.bezierCurveTo(80, y + fx(-8, 8), 170, y + fx(-8, 8), 256, y + fx(-5, 5)); x.stroke(); }   // creases
+    const g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, 'rgba(255,255,255,.12)'); g.addColorStop(.5, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.25)'); x.fillStyle = g; x.fillRect(0, 0, 256, 128);   // fold shading
+    for (let i = 0; i < 5; i++) { x.fillStyle = `rgba(110,95,75,${fx(.05, .12)})`; x.beginPath(); x.ellipse(fx(0, 256), fx(60, 128), fx(10, 40), fx(4, 10), 0, 0, 7); x.fill(); }   // grubby patches
+    return STD({ map: toTex(c), roughness: .55 }); };
+  const RUGS = [[0x6e2a24, 0xd8c7a4, 0x2e2a36, 0xb0652e], [0x8a5a33, 0xe2d6bc, 0x3d2b22, 0x7a2f2a], [0x4a3426, 0xcdb48a, 0x8e3b2c, 0x2c3a44], [0x9a7a52, 0x5b2b2a, 0xe7dcc5, 0x3a3a3a]];
+  const rugMat = pal => { const [c, x] = can(512, 128); x.fillStyle = `rgb(${hex(pal[0])})`; x.fillRect(0, 0, 512, 128);
+    let u = 0; while (u < 512) { const bw = fx(6, 40), col = pal[Math.floor(fr() * pal.length)]; x.fillStyle = `rgb(${hex(col)})`; x.fillRect(u, 0, bw, 128);
+      if (fr() < .5) { x.fillStyle = `rgb(${hex(pal[Math.floor(fr() * pal.length)])})`; for (let y = 0; y < 128; y += 16) { x.beginPath(); x.moveTo(u + bw / 2, y); x.lineTo(u + bw, y + 8); x.lineTo(u + bw / 2, y + 16); x.lineTo(u, y + 8); x.fill(); } }   // kilim diamonds
+      u += bw; }
+    for (let i = 0; i < 9000; i++) { x.fillStyle = `rgba(${fr() > .5 ? '255,240,210' : '0,0,0'},${fx(.03, .1)})`; x.fillRect(fr() * 512, fr() * 128, 1, 2); }   // wool pile
+    const g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, 'rgba(255,255,255,.1)'); g.addColorStop(.5, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.3)'); x.fillStyle = g; x.fillRect(0, 0, 512, 128);
+    return STD({ map: toTex(c), roughness: .97 }); };
+  const SHEETS = [0xc9ccca, 0xe6e6e1, 0x9ea4a6, 0xb7bcb8, 0xd9dbd4].map(sheetMat), RUGM = RUGS.map(rugMat);
+  function foldStack(p, cx, y, z, w, d, n, mats, lh = [.07, .12]) { const g = grp(p, cx, y, z); let yy = 0;
+    for (let i = 0; i < n; i++) { const h = fx(lh[0], lh[1]), m = new THREE.Mesh(SLABS[Math.floor(fr() * SLABS.length)], mats[Math.floor(fr() * mats.length)]);
+      m.scale.set(w * fx(.93, 1.03), h, d * fx(.92, 1.02)); m.position.set(fx(-.04, .04), yy + h / 2, fx(-.03, .04)); m.rotation.y = fx(-.05, .05); m.castShadow = m.receiveShadow = true; g.add(m); yy += h * .92; }
+    return g; }
+  // bags: slumped bodies in canvas duffle colours (grey/beige = bells), webbing handles, a kit tag
+  const bagM = {}; const bagMt = col => bagM[col] || (bagM[col] = (() => { const [c, x] = can(256, 256); x.fillStyle = `rgb(${hex(col)})`; x.fillRect(0, 0, 256, 256); noise(x, 256, 256, 4000, .1);
+    for (let i = 0; i < 12; i++) { x.strokeStyle = `rgba(0,0,0,${fx(.06, .16)})`; x.lineWidth = fx(2, 5); x.beginPath(); const y0 = fx(0, 256); x.moveTo(0, y0); x.bezierCurveTo(80, y0 + fx(-50, 50), 180, y0 + fx(-50, 50), 256, y0 + fx(-30, 30)); x.stroke(); }
+    x.fillStyle = 'rgba(40,36,30,.5)'; x.fillRect(0, 124, 256, 8);   // the zip seam
+    return STD({ map: toTex(c), roughness: .93 }); })());
+  const web = STD({ color: 0x24262a, roughness: .8 });
+  function duffle(p, x, y, z, w, h, d, col, tagCol) { const g = grp(p, x, y, z, fx(-.15, .15)); const b = new THREE.Mesh(bagGeos[Math.floor(fr() * 4)], bagMt(col)); b.scale.set(w, h, d); b.position.y = h * .48; b.castShadow = b.receiveShadow = true; g.add(b);
+    for (const s of [-1, 1]) { const t = new THREE.Mesh(new THREE.TorusGeometry(.09, .012, 5, 12, Math.PI), web); t.position.set(s * w * .18, h * .93, 0); t.rotation.y = Math.PI / 2; g.add(t); }
+    if (tagCol) box(g, .07, .1, .006, STD({ color: tagCol, roughness: .5 }), w * .3, h * .5, d * .48);
+    return g; }
+  // cardboard box with tape, flap line and a shipping label
+  const card = (() => { const [c, x] = can(256, 256); x.fillStyle = '#b88d5c'; x.fillRect(0, 0, 256, 256); noise(x, 256, 256, 3000, .07); for (let i = 0; i < 256; i += 6) { x.fillStyle = 'rgba(95,62,30,.05)'; x.fillRect(0, i, 256, 2); }
+    x.fillStyle = 'rgba(80,50,20,.18)'; x.fillRect(0, 0, 256, 10); return STD({ map: toTex(c), roughness: .92 }); })();
+  const tape = STD({ color: 0xc59c5f, roughness: .3 }), lab = (() => { const [c, x] = can(128, 96); x.fillStyle = '#f2f0ea'; x.fillRect(0, 0, 128, 96); x.fillStyle = '#222'; for (let i = 0; i < 6; i++) x.fillRect(10, 14 + i * 12, 40 + fr() * 60, 4); for (let i = 0; i < 30; i++) x.fillRect(70 + i * 1.6, 70, fr() < .5 ? 1 : 2, 18); return STD({ map: toTex(c), roughness: .6 }); })();
+  function cardBox(p, x, y, z, w, h, d) { const g = grp(p, x, y, z, fx(-.06, .06)); box(g, w, h, d, card, 0, 0, 0);
+    box(g, .05, .003, d + .006, tape, 0, h, 0); box(g, .05, .09, .003, tape, 0, h - .09, d / 2 + .0015); box(g, w - .01, .002, .003, STD({ color: 0x3b2a18 }), 0, h - .004, d / 2 + .0016);
+    const l = new THREE.Mesh(new THREE.PlaneGeometry(Math.min(.12, w * .3), Math.min(.09, h * .35)), lab); l.position.set(w * .22, h * .45, d / 2 + .003); g.add(l); return g; }
+  // stacking tote: tapered body, rim, ribs, hand slots
+  function tote(p, x, y, z, w, h, d, col) { const g = grp(p, x, y, z), m = STD({ color: col, roughness: .45 }), dk = STD({ color: 0x07090b, roughness: .9 });
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(.5, .45, 1, 4, 1), m); body.rotation.y = Math.PI / 4; body.scale.set(w * 1.38, h - .03, d * 1.38); body.position.y = (h - .03) / 2; body.castShadow = body.receiveShadow = true; g.add(body);
+    box(g, w, .03, d, m, 0, h - .03, 0); for (const sx of [-1, 1]) box(g, .004, .035, .13, dk, sx * (w * .47 + .003), h - .085, 0);
+    for (let i = 1; i < 4; i++) box(g, .012, h * .6, .006, m, -w / 2 + i * w / 4, h * .15, d * .48); return g; }
+  // pressed-steel jerry can (green), X pressing, three-bar handle, spout cap
+  const jm = STD({ color: 0x4b6b34, roughness: .55, metalness: .2 }), jd = STD({ color: 0x3b5629, roughness: .6 }), cap = STD({ color: 0x22261f });
+  function jerry(p, x, y, z, ry = 0) { const g = grp(p, x, y, z, ry), W = .165, H = .40, D = .345; box(g, W, H, D, jm, 0, 0, 0); box(g, W + .008, .02, D + .008, jm, 0, H * .5 - .01, 0);
+    const a = Math.atan2(D - .06, H - .06), L = Math.hypot(D - .06, H - .06); for (const sx of [-1, 1]) for (const k of [1, -1]) { const s = new THREE.Mesh(new THREE.BoxGeometry(.006, L, .028), jd); s.position.set(sx * (W / 2 + .002), H / 2, 0); s.rotation.x = k * a; g.add(s); }
+    for (const dz of [-.085, 0, .085]) box(g, .028, .055, .022, jm, 0, H, dz - .03); box(g, .028, .024, .22, jm, 0, H + .055, -.03); cyl(g, .024, .05, cap, 0, H + .02, .13); return g; }
+  // cable reel: two ply flanges, a drum wound with orange or yellow flex, a loose tail
+  function reel(p, x, y, z, r, wd, col) { const g = grp(p, x, y + r, z), fl = STD({ map: card.map, color: 0xd9c09a, roughness: .8 }), cm = STD({ color: col, roughness: .5 });
+    for (const s of [-1, 1]) cyl(g, r, .018, fl, s * wd / 2, 0, 0, 'x', 24);
+    cyl(g, r * .82, wd - .03, cm, 0, 0, 0, 'x', 24);
+    for (let i = 0; i < 7; i++) { const t = new THREE.Mesh(new THREE.TorusGeometry(r * .82, .012, 6, 28), cm); t.rotation.y = Math.PI / 2; t.position.x = -wd / 2 + .03 + i * (wd - .06) / 6; g.add(t); }
+    const tail = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(0, -r * .5, r * .8), new THREE.Vector3(.1, -r * .9, r * 1.05), new THREE.Vector3(.25, -r, r * 1.0)]), 12, .012, 6), cm); g.add(tail);
+    return g; }
+  // ---- what goes on each bay/level of the orange run (b: 0 = far end … 4 = door; level 0/1/2 = bottom/middle/top beam) ----
+  // returns true if this bay-level was filled here (planters sit in b 2–3, levels 0–1, handled by PLANTER)
+  function fill(g, cx, y, b, lv) {
+    const S = SHEETS, items = [];
+    const at = (o, name, what, size) => { items.push([o, name, what, size]); return o; };
+    if (b === 0 && lv === 0) { at(foldStack(g, cx - .72, y, 0, 1.2, .95, 9, [S[0], S[2], S[3]]), 'Folded sheeting', 'Grey PVC sheeting folded and stacked (groundsheets or covers). The scan shows grey-white layers here.', '≈ 1.2 × 0.95 m · ~0.9 m tall');
+      tote(g, cx + .45, y, .05, .6, .42, .4, 0x2c5fa0); tote(g, cx + .45, y + .42, .05, .6, .42, .4, 0x2c5fa0); jerry(g, cx + 1.02, y, .2, .1); jerry(g, cx + 1.02, y, -.2, -.05); }
+    else if (b === 0 && lv === 1) { at(foldStack(g, cx - .7, y, 0, 1.25, .95, 7, RUGM, [.08, .13]), 'Folded rugs', 'Woven rugs folded and stacked. The scan shows striped layers here.', '≈ 1.25 × 0.95 m'); cardBox(g, cx + .55, y, 0, .62, .48, .55); cardBox(g, cx + .55, y + .48, .02, .5, .36, .45); }
+    else if (b === 0 && lv === 2) { for (const [dx, col] of [[-.85, 0xcbbd9c], [0, 0xd3c6a8], [.85, 0x9a9b97]]) at(duffle(g, cx + dx, y, 0, .85, .62, .9, col, 0x8ac43f), 'Bell tent bag', 'A packed bell tent in its bag on the top beam (grey and beige bags = bells). The scan shows pale bags here.', '≈ 0.85 × 0.9 m'); }
+    else if (b === 1 && lv === 0) { at(foldStack(g, cx - .4, y, 0, 1.6, .98, 10, [S[0], S[1], S[4], S[2]], [.06, .1]), 'Folded sheeting', 'A tall stack of folded grey and white sheeting. The scan shows grey-white striped layers here.', '≈ 1.6 × 1.0 m · ~0.8 m tall'); jerry(g, cx + .82, y, .15, .2); jerry(g, cx + 1.0, y, .15, -.1); jerry(g, cx + .9, y, -.25, 0); }
+    else if (b === 1 && lv === 1) { at(foldStack(g, cx - .6, y, 0, 1.4, .95, 8, RUGM, [.08, .13]), 'Folded rugs', 'Folded rugs in browns, maroons and cream. The scan shows brown and maroon stripes here.', '≈ 1.4 × 0.95 m'); cardBox(g, cx + .72, y, 0, .7, .5, .6); }
+    else if (b === 1 && lv === 2) { at(duffle(g, cx - .7, y, 0, .9, .66, .9, 0x9a9b97, 0xd23b2b), 'Bell tent bag', 'Grey bell bag with a red tag (red = bad: needs a look).', '≈ 0.9 × 0.9 m'); duffle(g, cx + .2, y, 0, .8, .55, .85, 0xc8bb98, 0x8ac43f); cardBox(g, cx + .9, y, 0, .55, .45, .5); }
+    else if (b === 4 && lv === 0) { at(reel(g, cx - .8, y, .05, .3, .38, 0xe8742a), 'Cable reel', 'Orange flex on a reel. The scan shows orange and yellow coils low in this bay.', '≈ 0.6 m reel'); reel(g, cx - .25, y, .05, .26, .34, 0xe3b11c);
+      tote(g, cx + .45, y, .05, .6, .42, .4, 0x2c5fa0); jerry(g, cx + 1.0, y, .2, 0); jerry(g, cx + 1.0, y, -.2, .1); cardBox(g, cx + .45, y + .42, .05, .5, .32, .4); }
+    else if (b === 4 && lv === 1) { cardBox(g, cx - .85, y, 0, .7, .55, .6); cardBox(g, cx - .85, y + .55, .02, .6, .4, .55); cardBox(g, cx - .12, y, 0, .6, .6, .6); at(foldStack(g, cx + .75, y, 0, .95, .9, 6, RUGM, [.08, .12]), 'Folded rugs', 'A short stack of folded rugs.', '≈ 0.95 × 0.9 m'); }
+    else if (b === 4 && lv === 2) { duffle(g, cx - .8, y, 0, .8, .55, .85, 0x9a9b97, 0x8ac43f); duffle(g, cx + .1, y, 0, .85, .6, .9, 0xcbbd9c, 0x8ac43f); }
+    else if ((b === 2 || b === 3) && lv === 2) { duffle(g, cx - .6, y, 0, .85, .5, .9, b === 2 ? 0x9a9b97 : 0xcbbd9c, 0x8ac43f); duffle(g, cx + .5, y, 0, .8, .45, .85, 0xb5ac93, 0x8ac43f); }
+    else return null;
+    return items; }
+  return { fill }; })();
+
 // ---- black ribbed planters (Josh: "black ribbed boxes strapped in pairs on the racking = planters") ----
 // One ribbed, tapered body (extruded plan outline: a 40 mm rib every 100 mm, 18 mm proud), an open top with a thick lip and a silver
 // trim band, black HDPE with fine texture, scuffs low down and on the ribs, dust on the lip. Pairs sit on two euro pallets with a blue
@@ -514,9 +610,10 @@ function layout() {
   // ===== door end, right: orange racking, black crate tower, trellis leaning, low floor-panel stack =====
   zone('Door end · right');
   { const spare = new THREE.Group(), planted = [];   // bays 3–4 from the far end, levels 1–2: planter pairs (the scan's darkest bays; contents top out at 1.47 / 2.92 m, as the pairs do)
-    const yardFill = (g, cx, y, b, yy) => { if ((b === 2 || b === 3) && yy < 2) { rackFill(spare, cx, y); const s0 = _seed; planted.push(PLANTER.pair(g, cx, y)); _seed = s0; } else rackFill(g, cx, y); };   // spare + seed restore (pallet() uses rnd): same random draws, so nothing else moves
+    const stock = [], yardFill = (g, cx, y, b, yy) => { const lv = yy < 1 ? 0 : yy < 2 ? 1 : 2; if ((b === 2 || b === 3) && lv < 2) { rackFill(spare, cx, y); const s0 = _seed; planted.push(PLANTER.pair(g, cx, y)); _seed = s0; } else { const it = STOCK.fill(g, cx, y, b, lv); if (it) { rackFill(spare, cx, y); stock.push(...it); } else rackFill(g, cx, y); } };   // every bay-level now built from the scan elevations (STOCK); the old random draws still taken into spare   // spare + seed restore (pallet() uses rnd): same random draws, so nothing else moves
     const r = racking(P, 18.95, -14.2, RIGHT, 5, [.15, 1.55, 3.03], 2.77, 1.1, MX.orange, yardFill);   // LiDAR: uprights at z -14.2, -11.43, -8.63, -5.9, -3.13, -0.35
     for (const [i, g] of planted.entries()) T(g, 'Black planters (pair)', 'Two black ribbed planters with a silver trim band round the lip, strapped together with a blue ratchet strap, each on a euro pallet. Josh: "black ribbed boxes strapped in pairs on the racking = planters". Which bays they sit in is read off the LiDAR scan (darkest bays, matching heights), not confirmed.', '≈ 1.24 × 0.98 × 1.05 m each · pair ≈ 2.5 m', 'not sure');
+    for (const [o, name, what, size] of stock) T(o, name, what + ' Read off the LiDAR scan\'s elevation of this bay, not confirmed.', size, 'not sure');
     T(r, 'Orange racking (yard bay)', 'Pallet racking with orange beams down the right wall from the door: the yard bay. Bays and beam heights measured from Josh\'s LiDAR scan (15 Oct).', '5 bays × 2.77 m · beams 1.55 / 3.03 m · front 1.55 m off the wall'); }
   { const r = racking(P, 18.1, -1.2, Math.PI, 1, [.15, 2.15, 3.05], 2.9, 1.1, MX.orange, rackFill);   // LiDAR: one bay along the door wall, x 15.2–18.1
     T(r, 'Orange racking (door wall)', 'One bay of orange racking along the door wall, in the corner with the right-wall run (from the LiDAR scan).', '1 bay × 2.9 m · beams 2.15 / 3.05 m', 'fairly sure'); }
