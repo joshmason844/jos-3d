@@ -351,9 +351,70 @@ function fill(s, kind, h, W, D) {
   else if (kind === 'cage') { lump(s, 0, .08, 0, W - .15, h * .6, D - .2, MX.white); }
   else if (kind === 'crates') { blackCrate(s, 0, .08, .4); blackCrate(s, 0, .08, -.5); lump(s, 0, .45, 0, W - .2, .25, 1.6, MX.jute); }
   else if (kind === 'timber') { for (let k = 0; k < 18; k++) box(s, .09, .05, D + .5, MX.timber, -W / 2 + .1 + (k % 6) * ((W - .2) / 5), .08 + Math.floor(k / 6) * .055, (rnd() - .5) * .2); } }
-function racking(p, x, z, ry, bays, beams, bw = 2.7, dep = 1.1, beamMat = MX.orange, fillFn) { const g = grp(p, x, 0, z, ry), H = beams[beams.length - 1] + 1.2;
-  for (let b = 0; b <= bays; b++) for (const zz of [-dep / 2, dep / 2]) { box(g, .08, H, .08, MX.upright, b * bw, 0, zz); for (let yy = .4; yy < H; yy += .9) { const br = box(g, .03, .03, dep, MX.upright, b * bw, yy, 0); } }
-  for (let b = 0; b < bays; b++) for (const yy of beams) { for (const zz of [-dep / 2, dep / 2]) box(g, bw, .12, .05, beamMat, b * bw + bw / 2, yy, zz); if (fillFn) fillFn(g, b * bw + bw / 2, yy + .12, b, yy); }
+// ---------------- pallet racking (16 Oct: racking paint, Josh's textures request) ----------------
+// Colours read off Josh's LiDAR scan (numbers only, bin/scan_colours.py): uprights are blue (scan ≈ 43/61/92, highlights 92/119/158),
+// the yard-bay beams a burnt orange (saturated texels ≈ 174/108/60 at their brightest: more amber than the old 0xe0601e), the yellow
+// beams golden (≈ 137/104/41). Uprights: 80 mm punched-slot section, slots every 50 mm, chips and forklift scuffs in the bottom
+// 600 mm. Beams: box-section step beams with welded end connectors and a red safety-lock pin, powder coat with orange peel, chips
+// to bare steel and dust on top. End frames: zig-zag bracing, base plates with two anchors, one SWL sign per run at the aisle end.
+// Own RNG, so nothing else in the layout moves.
+const RACK = (() => {
+  let sd = 9311; const fr = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  const can = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
+  const toTex = (c, srgb = true) => { const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
+  const rgb = (h, k = 1) => [(h >> 16) & 255, (h >> 8) & 255, h & 255].map(v => Math.round(Math.min(255, v * k)));   // sRGB bytes (THREE.Color.r is linear: canvases came out too dark and red)
+  const chip = (x, cx, cy, r, fill) => { x.fillStyle = fill; x.beginPath(); for (let i = 0; i < 9; i++) { const a = i / 9 * 6.283, rr = r * (.5 + fr() * .7); x.lineTo(cx + Math.cos(a) * rr * 1.6, cy + Math.sin(a) * rr); } x.fill(); };
+  // powder coat: base + orange-peel mottling, fine dust speckle
+  const coat = (x, w, h, col) => { const [r, g, b] = rgb(col); x.fillStyle = `rgb(${r},${g},${b})`; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < w * h / 18; i++) { const v = (fr() - .5) * 18; x.fillStyle = `rgba(${v > 0 ? 255 : 0},${v > 0 ? 255 : 0},${v > 0 ? 255 : 0},${Math.abs(v) / 255 * 2.2})`; x.fillRect(fr() * w, fr() * h, 1.5, 1.5); } };
+  // --- upright: one canvas per height and variant; u across the 80 mm face (32 px), v up (≈ 200 px/m)
+  const upMats = {};
+  function upright(H, k) { const key = H.toFixed(2) + ':' + k; if (upMats[key]) return upMats[key];
+    const PX = 200, h = Math.round(H * PX), [c, x] = can(32, h); coat(x, 32, h, 0x2f4a78);
+    for (let i = 0; i < 32; i++) { const e = Math.abs(i - 15.5) / 15.5; x.fillStyle = `rgba(0,0,0,${e > .8 ? (e - .8) * 1.6 : 0})`; x.fillRect(i, 0, 1, h); }   // rolled edges darker
+    for (let yy = 0; yy < h; yy += 10) for (const sx of [6, 22]) { x.fillStyle = '#0d1420'; x.fillRect(sx - 2, h - yy - 7, 4, 6); x.beginPath(); x.arc(sx, h - yy - 7, 2, 0, 7); x.fill(); x.fillStyle = 'rgba(160,185,220,.35)'; x.fillRect(sx - 2, h - yy - 1, 4, 1); }   // teardrop slots, lit lower lip
+    for (let i = 0; i < 26; i++) { const yy = h - fr() * .6 * PX; chip(x, fr() * 32, yy, 1 + fr() * 3, fr() < .6 ? 'rgba(150,152,150,.9)' : 'rgba(70,52,40,.8)'); }   // forklift chips low down: bare steel, a bit of rust
+    for (let i = 0; i < 5; i++) { x.strokeStyle = `rgba(200,205,205,${.25 + fr() * .3})`; x.lineWidth = 1; const y0 = h - (.08 + fr() * .5) * PX; x.beginPath(); x.moveTo(0, y0); x.lineTo(32, y0 + (fr() - .5) * 8); x.stroke(); }   // scrapes across
+    for (let i = 0; i < 4 + k; i++) chip(x, fr() * 32, fr() * h, 1 + fr() * 1.5, 'rgba(150,152,150,.8)');
+    const gr = x.createLinearGradient(0, h, 0, h - .35 * PX); gr.addColorStop(0, 'rgba(90,75,55,.45)'); gr.addColorStop(1, 'rgba(90,75,55,0)'); x.fillStyle = gr; x.fillRect(0, h - .35 * PX, 32, .35 * PX);   // floor splash
+    const side = STD({ map: toTex(c), roughness: .55, metalness: .35 }), plain = STD({ color: 0x24375a, roughness: .6, metalness: .35 });
+    return (upMats[key] = [side, side, plain, plain, side, side]); }
+  // --- beams: one canvas per colour and variant over the whole beam front (u along, v up 120 mm)
+  const bmMats = {};
+  function beam(col, L, k) { const key = col + ':' + k; if (bmMats[key]) return bmMats[key];
+    const [c, x] = can(1024, 48); coat(x, 1024, 48, col);
+    const gr = x.createLinearGradient(0, 0, 0, 48); gr.addColorStop(0, 'rgba(255,255,255,.10)'); gr.addColorStop(.12, 'rgba(255,255,255,0)'); gr.addColorStop(.85, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.25)'); x.fillStyle = gr; x.fillRect(0, 0, 1024, 48);   // rolled top and bottom edges
+    for (let i = 0; i < 10 + k * 4; i++) chip(x, fr() * 1024, fr() < .7 ? 44 + fr() * 4 : fr() * 48, 1 + fr() * 3, fr() < .7 ? 'rgba(120,118,112,.9)' : 'rgba(60,40,28,.85)');   // chips, mostly on the bottom edge where pallets drag
+    for (let i = 0; i < 3 + k; i++) { x.strokeStyle = `rgba(40,30,25,${.12 + fr() * .2})`; x.lineWidth = 1 + fr() * 2; const x0 = fr() * 1000, y0 = 4 + fr() * 40; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x0 + 30 + fr() * 120, y0 + (fr() - .5) * 6); x.stroke(); }   // black rubber / pallet scuffs
+    if (k === 1) { x.fillStyle = '#f2f0e8'; x.fillRect(470, 10, 84, 28); x.fillStyle = '#1b1b1b'; x.font = 'bold 11px sans-serif'; x.fillText('LOC  B-' + (2 + Math.floor(fr() * 7)), 476, 22); x.font = '9px sans-serif'; x.fillText('2000 kg UDL', 476, 34); }   // a beam location label
+    const front = STD({ map: toTex(c), roughness: .45, metalness: .25 });
+    const [tc, tx] = can(512, 16); coat(tx, 512, 16, col); for (let i = 0; i < 900; i++) { tx.fillStyle = `rgba(150,140,120,${.15 + fr() * .3})`; tx.fillRect(fr() * 512, fr() * 16, 2, 1.5); }   // dust on the top
+    const top = STD({ map: toTex(tc), roughness: .8, metalness: .15 });
+    return (bmMats[key] = [front, front, top, front, front, front]); }
+  const conMat = col => STD({ color: new THREE.Color(col).multiplyScalar(.92), roughness: .5, metalness: .3 });
+  const steel = STD({ color: 0x9a9fa2, roughness: .45, metalness: .7 }), pin = STD({ color: 0xc8261e, roughness: .45 }), brace = STD({ color: 0x2b4470, roughness: .55, metalness: .35 });
+  const sign = (() => { const [c, x] = can(256, 320); x.fillStyle = '#f7f6f1'; x.fillRect(0, 0, 256, 320); x.fillStyle = '#c8261e'; x.fillRect(0, 0, 256, 54); x.fillStyle = '#fff'; x.font = 'bold 30px sans-serif'; x.fillText('SAFE LOAD', 38, 38);
+    x.fillStyle = '#1b1b1b'; x.font = 'bold 20px sans-serif'; ['Max per beam level', '2000 kg', 'evenly spread', '', 'Max per bay', '6000 kg', '', 'Report all damage'].forEach((t, i) => { x.font = (i === 1 || i === 5 ? 'bold 34px' : '18px') + ' sans-serif'; x.fillText(t, 20, 86 + i * 30); });
+    x.strokeStyle = '#1b1b1b'; x.lineWidth = 4; x.strokeRect(2, 2, 252, 316); return STD({ map: toTex(c), roughness: .6 }); })();
+  return { upright, beam, conMat, steel, pin, brace, sign, fr };
+})();
+function racking(p, x, z, ry, bays, beams, bw = 2.7, dep = 1.1, beamMat = MX.orange, fillFn) { const g = grp(p, x, 0, z, ry), H = beams[beams.length - 1] + 1.2, R = RACK;
+  const col = beamMat === MX.orange ? 0xd06a2e : beamMat === MX.yellow ? 0xdcab2a : beamMat.color.getHex(), con = R.conMat(col);
+  for (let b = 0; b <= bays; b++) {
+    for (const zz of [-dep / 2, dep / 2]) { box(g, .08, H, .08, R.upright(H, Math.floor(R.fr() * 3)), b * bw, 0, zz);
+      box(g, .16, .008, .16, R.steel, b * bw, 0, zz); for (const ax of [-.05, .05]) cyl(g, .008, .03, R.steel, b * bw + ax, .02, zz); }   // base plate + two anchor bolts
+    // end frame: bottom and top horizontals, zig-zag diagonals between (C-section, a shade darker)
+    const ys = [.15]; while (ys[ys.length - 1] + 1.0 < H - .3) ys.push(ys[ys.length - 1] + 1.0); ys.push(H - .15);
+    for (const yy of [ys[0], ys[ys.length - 1]]) box(g, .03, .04, dep - .08, R.brace, b * bw, yy - .02, 0);
+    for (let i = 0; i < ys.length - 1; i++) { const dy = ys[i + 1] - ys[i], L = Math.hypot(dy, dep - .08), m = new THREE.Mesh(new THREE.BoxGeometry(.03, L, .04), R.brace);
+      m.position.set(b * bw, (ys[i] + ys[i + 1]) / 2, 0); m.rotation.x = (i % 2 ? 1 : -1) * Math.atan2(dep - .08, dy); m.castShadow = m.receiveShadow = true; g.add(m); }
+    if (b === 0) { const s = new THREE.Mesh(new THREE.PlaneGeometry(.2, .25), R.sign); s.position.set(-.042, 1.55, dep / 2 - .22); s.rotation.y = -Math.PI / 2; g.add(s); } }   // SWL sign on the run's end frame
+  for (let b = 0; b < bays; b++) for (const yy of beams) { for (const zz of [-dep / 2, dep / 2]) { const k = Math.floor(R.fr() * 3), out = zz > 0 ? 1 : -1, L = bw - .1;
+      box(g, L, .12, .05, R.beam(col, L, zz > 0 && yy > .5 ? k : 0), b * bw + bw / 2, yy, zz);
+      box(g, L, .025, .02, con, b * bw + bw / 2, yy + .095, zz - out * .033);   // the step the decking/pallets sit in
+      for (const ex of [b * bw + .065, b * bw + bw - .065]) { box(g, .035, .18, .052, con, ex, yy - .03, zz);   // welded end connector over the upright face
+        if (zz > 0) { const pp = cyl(g, .007, .02, R.pin, ex + (ex < b * bw + 1 ? .03 : -.03), yy + .14, zz + .03, 'z', 8); } } }   // red safety-lock pin
+    if (fillFn) fillFn(g, b * bw + bw / 2, yy + .12, b, yy); }
   return g; }
 function rackFill(g, cx, y) { for (let k = 0; k < 3; k++) { const x = cx - .85 + k * .85, kind = rnd();
   if (kind < .3) { box(g, .62, .4, .78, STD({ color: 0xe9eef0, transparent: true, opacity: .75, roughness: .2 }), x, y, 0); box(g, .66, .04, .82, STD({ color: 0xd5dde1 }), x, y + .4, 0); }
