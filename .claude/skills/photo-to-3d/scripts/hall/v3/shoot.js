@@ -28,7 +28,10 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   bayfar: [[14.4, 2.1, -11.3], [18.4, 1.55, -11.3], true],      // yard-bay bays 1–2 from the far end (z −14.2…−8.63), levels 1–3
   baydoor: [[14.9, 2.3, -5.4], [18.4, 1.5, -1.8], true],     // yard-bay bay 5 by the door (z −3.13…−0.35)
   stockclose: [[16.9, 1.3, -9.0], [18.4, .75, -10.4], true],    // close on bay 2's lower shelf: what's stacked on it
-  canvasclose: [[3.4, 1.5, -20.0], [1.0, 1.0, -21.6], true],   // the red 14 ft canvas covers on the left wall
+  doorbay: [[16.4, 2.2, -5.6], [16.6, 1.5, -1.2], true],       // the door-wall orange bay (x 15.2–18.1), seen from the hall
+  yellowback: [[16.0, 2.3, -10.6], [16.0, 1.5, -15.4], true],   // the yellow run across the back of the yard bay (x 13.6–18.5)
+  backclose: [[15.3, 1.35, -12.9], [15.0, .8, -15.1], true],    // close on its lower shelf
+  canvasclose:[[3.4, 1.5, -20.0], [1.0, 1.0, -21.6], true],   // the red 14 ft canvas covers on the left wall
 };
 const want = only ? only.split(',') : ['door', 'up', 'roofclose', 'far'];
 (async () => {

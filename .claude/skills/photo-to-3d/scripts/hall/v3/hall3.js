@@ -516,7 +516,43 @@ const STOCK = (() => {
     else if ((b === 2 || b === 3) && lv === 2) { duffle(g, cx - .6, y, 0, .85, .5, .9, b === 2 ? 0x9a9b97 : 0xcbbd9c, 0x8ac43f); duffle(g, cx + .5, y, 0, .8, .45, .85, 0xb5ac93, 0x8ac43f); }
     else return null;
     return items; }
-  return { fill }; })();
+  // rolled canvas bundle: a long roll lying along the beam, spiral end showing the layers, two webbing straps, a loose flap
+  const rollEnd = col => { const [c, x] = can(128, 128); x.fillStyle = `rgb(${hex(col)})`; x.fillRect(0, 0, 128, 128);
+    x.strokeStyle = 'rgba(0,0,0,.35)'; x.lineWidth = 1.4; x.beginPath(); for (let a = 0; a < 46; a += .1) { const r = 6 + a * 1.25; x.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r); } x.stroke();
+    x.fillStyle = 'rgba(30,26,22,.8)'; x.beginPath(); x.arc(64, 64, 6, 0, 7); x.fill(); return STD({ map: toTex(c), roughness: .9 }); };
+  function roll(p, x, y, z, len, r, col) { const g = grp(p, x, y + r * .92, z), body = sheetMat(col), end = rollEnd(col);
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 1.03, len, 20, 6), [body, end, end]); const P = m.geometry.attributes.position;
+    for (let i = 0; i < P.count; i++) { const yy = P.getY(i); P.setX(i, P.getX(i) * (1 + Math.sin(yy * 5) * .04)); P.setZ(i, P.getZ(i) * (.88 + Math.cos(yy * 3) * .04)); }   // sags flat, not a perfect tube
+    m.geometry.computeVertexNormals(); m.rotation.z = Math.PI / 2; m.castShadow = m.receiveShadow = true; g.add(m);
+    for (const s of [-.3, .3]) { const t = new THREE.Mesh(new THREE.TorusGeometry(r * 1.01, .012, 4, 22), web); t.rotation.y = Math.PI / 2; t.scale.set(1, 1, .88); t.position.x = s * len; g.add(t); }
+    const f = new THREE.Mesh(new THREE.PlaneGeometry(len * .7, r * 1.2, 6, 2), body); f.position.set(0, -r * .35, r * .9); f.rotation.x = .25; g.add(f);   // the loose outer flap
+    return g; }
+  // the yellow run across the back of the yard bay (2 bays × 2.45 m, beams 1.35 / 3.0; fillBack below the decking): b 0 = the x 13.6 end. Scan: light and part-empty;
+  // a long beige bundle laid along the top beam the whole run, mixed small stock (orange, teal, a yellow-and-navy case) on the middle beam,
+  // a grey bag and a few bits low down, a big beige bag at the end by the orange run
+  // galvanised wire-mesh decking panel across a beam pair (50 × 100 mm mesh, see-through, channel supports underneath)
+  const meshM = (() => { const [c, x] = can(256, 256); x.clearRect(0, 0, 256, 256); x.strokeStyle = '#b9c0c4'; x.lineWidth = 3; for (let i = 0; i <= 256; i += 16) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, 256); x.stroke(); } x.lineWidth = 4; for (let i = 0; i <= 256; i += 32) { x.beginPath(); x.moveTo(0, i); x.lineTo(256, i); x.stroke(); }
+    const t = toTex(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(5, 2); return STD({ map: t, transparent: true, alphaTest: .4, metalness: .6, roughness: .45, side: THREE.DoubleSide }); })();
+  function deck(g, cx, y, w) { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, 1.12), meshM); m.rotation.x = -Math.PI / 2; m.position.set(cx, y - .006, 0); m.receiveShadow = true; g.add(m);
+    for (const dx of [-w / 3, 0, w / 3]) box(g, .04, .03, 1.1, RACK.brace || meshM, cx + dx, y - .04, 0); }
+  function fillBack(g, cx, y, b, lv) { const items = [], at = (o, n, w, s) => { items.push([o, n, w, s]); return o; }; deck(g, cx, y, 2.33);
+    if (lv === 2) { if (b === 0) at(roll(g, cx + 1.22, y, 0, 4.6, .3, 0xb9a882), 'Rolled canvas', 'A long roll of beige canvas laid along the top beam, strapped. The scan shows one long pale bundle across both bays up here.', '≈ 4.6 m long · ≈ 0.6 m across'); else duffle(g, cx + .75, y + .55, -.15, .6, .4, .6, 0x2f3437, null); }
+    else if (lv === 1) { if (b === 1) { cardBox(g, cx - .7, y, .05, .55, .5, .5); tote(g, cx - .1, y, .05, .6, .42, .4, 0x2a8b8c); reel(g, cx + .6, y, .05, .26, .34, 0xe8742a); duffle(g, cx - .7, y + .5, 0, .55, .3, .55, 0x7a4a2e, null); }
+      else { at(box(g, .75, .42, .5, STD({ color: 0x1f2a44, roughness: .4 }), cx - .3, y, .05), 'Flight case', 'A navy flight case with a yellow case beside it. The scan shows yellow and navy here.', '≈ 0.75 × 0.5 m'); for (const s of [-1, 1]) box(g, .1, .04, .02, MX.alu, cx - .3 + s * .2, y + .32, .31); box(g, .5, .32, .45, STD({ color: 0xe3b11c, roughness: .45 }), cx + .4, y, .05); } }
+    else { if (b === 1) { at(duffle(g, cx - .55, y, .05, .85, .6, .85, 0x9a9b97, 0xd23b2b), 'Bell tent bag', 'A grey bell bag low down with a red tag (red = bad). The scan shows a grey bag here.', '≈ 0.85 × 0.85 m'); jerry(g, cx + .45, y, .2, .15); }
+      else { cardBox(g, cx - .55, y, 0, .5, .4, .45); cardBox(g, cx - .55, y + .4, .02, .42, .3, .4); foldStack(g, cx + .45, y, 0, .8, .85, 5, [SHEETS[1], SHEETS[0]], [.07, .1]); } }
+    return items; }
+  // the door-wall orange bay (1 bay × 2.9 m, beams 2.15 / 3.05). Scan: big beige bags and white sheeting piled low, a blue-grey tarp bundle;
+  // on the 2.15 m beam a folded striped rug and a black-and-white striped bundle; bags and a yellow bag on top to ≈ 4 m
+  function fillDoor(g, cx, y, lv) { const items = [], at = (o, n, w, s) => { items.push([o, n, w, s]); return o; }; deck(g, cx, y, 2.78);
+    if (lv === 0) { at(duffle(g, cx + .85, y, .05, 1.05, .95, 1.0, 0xcbbd9c, 0x8ac43f), 'Bell tent bags', 'Big beige bell bags piled low (beige = bells). The scan shows a tall pale pile here.', '≈ 1.0 × 1.0 m each'); duffle(g, cx + .8, y + .9, 0, .95, .6, .9, 0xd3c6a8, 0x8ac43f);
+      at(duffle(g, cx - .25, y, .05, 1.0, .55, .95, 0x6f8494, null), 'Tarp bundle', 'A blue-grey tarp folded into a bundle. The scan shows blue-grey here.', '≈ 1.0 × 0.95 m'); foldStack(g, cx - .95, y, 0, .75, .9, 6, [SHEETS[1], SHEETS[0]], [.08, .12]); }
+    else if (lv === 1) { at(foldStack(g, cx + .2, y, 0, 1.15, .9, 5, [RUGM[1], RUGM[3]], [.09, .13]), 'Folded rugs', 'Folded striped rugs on the 2.15 m beam. The scan shows pale and orange stripes here.', '≈ 1.15 × 0.9 m');
+      foldStack(g, cx + .95, y, 0, .6, .85, 4, [STD({ map: STD.zebra || (STD.zebra = (() => { const [c, x] = can(256, 64); x.fillStyle = '#e8e4da'; x.fillRect(0, 0, 256, 64); x.fillStyle = '#1d1d1f'; for (let u = 0; u < 256; u += 22) x.fillRect(u, 0, 10, 64); return toTex(c); })()), roughness: .9 })], [.1, .14]);
+      duffle(g, cx - .85, y, 0, .7, .5, .8, 0x9a9b97, 0x8ac43f); }
+    else { duffle(g, cx + .7, y, 0, .85, .62, .85, 0xcbbd9c, 0x8ac43f); duffle(g, cx - .25, y, 0, .7, .5, .8, 0xd8b23a, null); duffle(g, cx - .95, y, 0, .6, .45, .7, 0x9a9b97, 0x8ac43f); }
+    return items; }
+  return { fill, fillBack, fillDoor }; })();
 
 // ---- black ribbed planters (Josh: "black ribbed boxes strapped in pairs on the racking = planters") ----
 // One ribbed, tapered body (extruded plan outline: a 40 mm rib every 100 mm, 18 mm proud), an open top with a thick lip and a silver
@@ -615,9 +651,13 @@ function layout() {
     for (const [i, g] of planted.entries()) T(g, 'Black planters (pair)', 'Two black ribbed planters with a silver trim band round the lip, strapped together with a blue ratchet strap, each on a euro pallet. Josh: "black ribbed boxes strapped in pairs on the racking = planters". Which bays they sit in is read off the LiDAR scan (darkest bays, matching heights), not confirmed.', '≈ 1.24 × 0.98 × 1.05 m each · pair ≈ 2.5 m', 'not sure');
     for (const [o, name, what, size] of stock) T(o, name, what + ' Read off the LiDAR scan\'s elevation of this bay, not confirmed.', size, 'not sure');
     T(r, 'Orange racking (yard bay)', 'Pallet racking with orange beams down the right wall from the door: the yard bay. Bays and beam heights measured from Josh\'s LiDAR scan (15 Oct).', '5 bays × 2.77 m · beams 1.55 / 3.03 m · front 1.55 m off the wall'); }
-  { const r = racking(P, 18.1, -1.2, Math.PI, 1, [.15, 2.15, 3.05], 2.9, 1.1, MX.orange, rackFill);   // LiDAR: one bay along the door wall, x 15.2–18.1
+  { const spare = new THREE.Group(), stock = [], doorFill = (g, cx, y, b, yy) => { rackFill(spare, cx, y); stock.push(...STOCK.fillDoor(g, cx, y, yy < 1 ? 0 : yy < 2.5 ? 1 : 2)); };   // from the scan elevation (16 Oct 07:xx); old random draws still taken into spare so nothing else moves
+    const r = racking(P, 18.1, -1.2, Math.PI, 1, [.15, 2.15, 3.05], 2.9, 1.1, MX.orange, doorFill);   // LiDAR: one bay along the door wall, x 15.2–18.1
+    for (const [o, name, what, size] of stock) T(o, name, what + ' Read off the LiDAR scan\'s elevation of this bay, not confirmed.', size, 'not sure');
     T(r, 'Orange racking (door wall)', 'One bay of orange racking along the door wall, in the corner with the right-wall run (from the LiDAR scan).', '1 bay × 2.9 m · beams 2.15 / 3.05 m', 'fairly sure'); }
-  { const r = racking(P, 13.6, -15.4, FAR, 2, [.15, 1.35, 3.0], 2.45, 1.1, MX.yellow, rackFill);   // LiDAR: across the hall at the back of the yard bay, x 13.6–18.5, front at z -14.85
+  { const spare = new THREE.Group(), stock = [], backFill = (g, cx, y, b, yy) => { rackFill(spare, cx, y); stock.push(...STOCK.fillBack(g, cx, y, b, yy < 1 ? 0 : yy < 2 ? 1 : 2)); };   // from the scan elevation (16 Oct 07:xx)
+    const r = racking(P, 13.6, -15.4, FAR, 2, [.15, 1.35, 3.0], 2.45, 1.1, MX.yellow, backFill);
+    for (const [o, name, what, size] of stock) T(o, name, what + ' Read off the LiDAR scan\'s elevation of this run, not confirmed.', size, 'not sure');   // LiDAR: across the hall at the back of the yard bay, x 13.6–18.5, front at z -14.85
     T(r, 'Yellow racking (back of the yard bay)', 'A short run of yellow-beam racking across the hall at the back of the yard bay, facing the door (from the LiDAR scan).', '2 bays × ≈2.45 m · beams ≈1.35 / 3.0 m', 'fairly sure'); }
   { const g = plainStack(P, coverMats('bedx', '#1c1d20', '#e9e9e6', null, { window: false }), 7.6, -1.8, RIGHT, [[0, 3]], 1.2, 1.1, 1.0); g.scale.setScalar(1);
     const film = new THREE.Mesh(new THREE.BoxGeometry(1.3, 3.95, 1.1), MX.film); film.position.y = 1.97; film.userData.keep = true; g.add(film);
