@@ -45,7 +45,7 @@ const want = only ? only.split(',') : ['door', 'up', 'roofclose', 'far'];
     await p.route(/fonts\./, r => r.abort());
     const t0 = Date.now();
     const died = new Promise((_, no) => p.on('pageerror', e => no(new Error(n + ' page error before ready: ' + e.message))));   // fail fast instead of a 300 s timeout
-    await p.goto('file://' + path.resolve(page)); await Promise.race([p.waitForFunction(() => window.__ready, null, { timeout: 300000 }), died]);
+    await p.goto('file://' + path.resolve(page), { waitUntil: 'commit' }); await Promise.race([p.waitForFunction(() => window.__ready, null, { timeout: 300000 }), died]);
     log.push(`${n}: ready in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
     for (const v of want) {
       const V = VIEWS[v];

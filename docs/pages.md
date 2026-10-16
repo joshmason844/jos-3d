@@ -4,7 +4,7 @@ Every page carries a "code ↗" tab (top right) that opens its source here. Arti
 
 | Page             | Artifact                                          | Source                                             | Build                                        |
 |------------------|---------------------------------------------------|----------------------------------------------------|----------------------------------------------|
-| Main hall (v3)   | https://claude.ai/artifact/SF3bkiATKRbQ2MvYjPHDAw | `.claude/skills/photo-to-3d/scripts/hall/v3`       | `python3 build.py`                           |
+| WW (Workshop warehouse) | https://claude.ai/artifact/SF3bkiATKRbQ2MvYjPHDAw | `.claude/skills/photo-to-3d/scripts/hall/v3`       | `python3 build.py`                           |
 | Section 1        | https://claude.ai/artifact/M2hSPYQHPNRWFjkDosXukW | `.claude/skills/photo-to-3d/scripts/hall/sections` | `python3 build.py sec1 "Title" "H1" "blurb"` |
 | Section 2        | https://claude.ai/artifact/VwhdZzHmhVMJaC5dR2UeSR | `.claude/skills/photo-to-3d/scripts/hall/sections` | `python3 build.py sec2 ...`                  |
 | Section 3        | https://claude.ai/artifact/PdNqkLQX21zrjctdzoY7sj | `.claude/skills/photo-to-3d/scripts/hall/sections` | `python3 build.py sec3 ...`                  |

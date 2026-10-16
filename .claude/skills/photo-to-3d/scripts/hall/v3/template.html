@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Main Hall in 3D</title>
+<title>Workshop warehouse (WW)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -55,7 +55,7 @@ html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 
 </head>
 <body>
 <canvas id="c"></canvas><div id="labels"></div>
-<div class="top"><div class="tag"><h1>Main hall · remodel</h1><p>The whole hall rebuilt in one plan: every crate, stillage and rack in its place, at real size. Fly round by area on the right, tap anything to see what it is. Orange labels = not sure yet.</p></div>
+<div class="top"><div class="tag"><h1>Workshop warehouse (WW)</h1><p>The whole WW rebuilt in one plan: every crate, stillage and rack in its place, at real size. Fly round by area on the right, tap anything to see what it is. Orange labels = not sure yet.</p></div>
 <div id="card" hidden><button id="cardX" aria-label="close">×</button><h2 id="cName"></h2><p id="cWhat"></p><div class="meta" id="cMeta"></div></div></div>
 <div id="secs"></div>
 <div class="bar"><button id="vDoor" class="on">walk in</button><button id="vFar">far end</button><button id="vTop">from above</button><button id="inside">look inside</button><button id="vLab">labels</button><button id="hq" class="on">HQ</button><button id="spin">spin</button></div>
@@ -71,13 +71,20 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 const THREE_ADDONS = { mergeGeometries };
 const $ = id => document.getElementById(id);
+// phones (iPhone Safari has a hard ~384 MB limit on canvas memory; the full page draws ~80 Mpx of canvas textures, so it never opened there):
+// every canvas texture is shrunk to a phone budget the moment it's made and the big canvas freed. ?full=1 forces the desktop page, ?lite=1 the phone one.
+const _q = new URLSearchParams(location.search), LITE = _q.has('lite') || (!_q.has('full') && (/iPhone|iPad|iPod|Android|Mobi/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent))));
+const TEX_MAX = 200000;   // pixels per texture on phones (1024² → 447²)
+function CT(c, ...a) { if (LITE && c && c.width * c.height > TEX_MAX) { const k = Math.sqrt(TEX_MAX / (c.width * c.height)), s = document.createElement('canvas');
+    s.width = Math.max(1, Math.round(c.width * k)); s.height = Math.max(1, Math.round(c.height * k)); const x = s.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(c, 0, 0, s.width, s.height); c.width = c.height = 0; c = s; }
+  return new THREE.CanvasTexture(c, ...a); }
 const renderer = new THREE.WebGLRenderer({ canvas: $('c'), antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setPixelRatio(Math.min(devicePixelRatio, LITE ? 1.5 : 2)); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b1220); scene.fog = new THREE.Fog(0x2a2a28, 35, 90);
 scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), .04).texture; scene.environmentIntensity = .35;
 // light: soft sky through the roof lights, daylight spilling in at the door, warm LED high-bays
 scene.add(new THREE.HemisphereLight(0xe8eef5, 0x5d5a52, 1.15));
-const sun = new THREE.DirectionalLight(0xfff1de, 1.9); sun.position.set(26, 34, 18); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 110 }); sun.shadow.bias = -.0004; sun.shadow.normalBias = .02; sun.target.position.set(10, 0, -19); scene.add(sun, sun.target);
+const sun = new THREE.DirectionalLight(0xfff1de, 1.9); sun.position.set(26, 34, 18); sun.castShadow = true; sun.shadow.mapSize.setScalar(LITE ? 2048 : 4096); Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 110 }); sun.shadow.bias = -.0004; sun.shadow.normalBias = .02; sun.target.position.set(10, 0, -19); scene.add(sun, sun.target);
 const doorLight = new THREE.SpotLight(0xfff6e8, 120, 30, .7, .6, 1.4); doorLight.position.set(9.6, 4.5, 6); doorLight.target.position.set(9.6, 0, -10); scene.add(doorLight, doorLight.target);
 for (let z = -5; z > -39; z -= 8.5) { const l = new THREE.SpotLight(0xfff3df, 22, 16, 1.25, .15, 1.6); l.position.set(10, 6.6, z); l.target.position.set(10, 0, z); scene.add(l, l.target); }   // high-bays light downwards only (a point light here glared the cable tray and roof above it)
 __KIT__
@@ -111,6 +118,8 @@ renderer.domElement.addEventListener('pointerup', e => { if (!down || Math.hypot
   ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1), camera);
   let o = null; for (const h of ray.intersectObjects(scene.children, true)) { if (!h.object.visible || h.object === selBox) continue; o = h.object; while (o && !o.userData.info) o = o.parent; if (o && o.userData.noPick) o = null; if (o) break; } select(o); });
 function layoutView() { renderer.setSize(innerWidth, innerHeight, false); composer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.fov = innerWidth / innerHeight < .8 ? 70 : 55; camera.updateProjectionMatrix(); }
+if (LITE) { const seen = new Set(); scene.traverse(o => { for (const m of [].concat(o.material || [])) for (const k in m) { const t = m[k]; if (t && t.isTexture && !seen.has(t)) seen.add(t); } });   // phones: upload every texture now, then free its canvas (Safari counts canvas memory separately from the GPU's)
+  for (const t of seen) { renderer.initTexture(t); const c = t.image; if (c && c.getContext && !c.__keep) c.width = c.height = 0; } }
 addEventListener('resize', layoutView); layoutView(); camera.position.fromArray(VIEWS.door[0]); controls.target.fromArray(VIEWS.door[1]); controls.update();
 const v = new THREE.Vector3(); let t0 = performance.now();
 renderer.setAnimationLoop(now => { const dt = Math.min(.05, (now - t0) / 1000); t0 = now;
