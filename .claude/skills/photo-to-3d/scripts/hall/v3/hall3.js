@@ -3,12 +3,31 @@
 // Front of every stack faces the aisle. Built from Josh's 60 photos and 2 walk-round videos; sizes from crates (1.2 × 1.0 m), stillages (2.32 × 1.35 m) and the forklift (2.16 m guard).
 const HW = 20, HL = 39, EAVE = 6.0, RIDGE = 7.7, BAY = 6.5, DOOR = { x0: 6.85, x1: 12.35, h: 5.5 }, SIDE = { x0: 13.2, x1: 15.1, h: 2.2 };   // SIDE: the door wall's side door, LiDAR (15 Oct): x 13.2–15.1, daylight through it; head ≈ 2.2 m (down-facing face in the scan)
 const LEFT = Math.PI / 2, RIGHT = -Math.PI / 2, FAR = 0;   // ry that turns a stack's front to face the aisle from the left wall / right wall / far wall
-const SPARE = new THREE.Group();   // never added to the scene: old builds whose random draws must still be taken so the seeded layout after them stays put
 const ZONES = [];                                          // { name, items: [groups] } for the zone buttons
 let ZONE = null; const zone = name => { ZONE = { name, items: [] }; ZONES.push(ZONE); };
 const T = (obj, name, what, size, sure = 'sure') => { tag(obj, name, what, size, [], sure); if (ZONE) ZONE.items.push(obj); return obj; };
 
 // ---------------- materials ----------------
+// Stretch-wrap film: one shared 512² map + alpha map, own RNG (the layout seed must not move). Front faces only, so a pile is wrapped once, not twice.
+function filmMat() { let q = 91; const r = () => (q = (q * 16807) % 2147483647) / 2147483647;
+  const draw = alphaOnly => (x, w, h) => {
+    x.fillStyle = alphaOnly ? 'rgb(70,70,70)' : '#dfe4e6'; x.fillRect(0, 0, w, h);                       // single layer ≈ 27 % milky
+    let y = -20; while (y < h) { const bh = 70 + r() * 50, tilt = (r() - .5) * 30;                         // wound bands, each overlapping the last
+      x.fillStyle = alphaOnly ? `rgba(255,255,255,${.18 + r() * .12})` : `rgba(255,255,255,${.25 + r() * .2})`;
+      x.beginPath(); x.moveTo(0, y); x.lineTo(w, y + tilt); x.lineTo(w, y + tilt + 16 + r() * 10); x.lineTo(0, y + 16 + r() * 10); x.fill();   // overlap strip
+      x.strokeStyle = alphaOnly ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.8)'; x.lineWidth = 1.2; x.beginPath(); x.moveTo(0, y); x.lineTo(w, y + tilt); x.stroke();   // band edge
+      y += bh; }
+    for (let i = 0; i < 70; i++) { const y0 = r() * h, x0 = r() * w, L = 40 + r() * 160;                     // stretch creases, mostly along the wind
+      x.strokeStyle = alphaOnly ? `rgba(255,255,255,${.2 + r() * .35})` : `rgba(255,255,255,${.35 + r() * .4})`; x.lineWidth = .6 + r() * 1.6;
+      x.beginPath(); x.moveTo(x0, y0); let yy = y0; for (let k = 1; k <= 6; k++) x.lineTo(x0 + k * L / 6, yy += (r() - .5) * 6); x.stroke(); }
+    for (let i = 0; i < 22; i++) { const x0 = r() * w, y0 = r() * h;                                         // pulled spots / small puckers
+      const g = x.createRadialGradient(x0, y0, 0, x0, y0, 6 + r() * 14); g.addColorStop(0, alphaOnly ? 'rgba(255,255,255,.45)' : 'rgba(255,255,255,.6)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(x0 - 20, y0 - 20, 40, 40); }
+    for (const [y0, dir] of [[0, 1], [h, -1]]) { const g = x.createLinearGradient(0, y0, 0, y0 + dir * h * .09);   // bunched, many layers thick at top and bottom
+      g.addColorStop(0, alphaOnly ? 'rgba(255,255,255,.75)' : 'rgba(250,252,252,.9)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, Math.min(y0, y0 + dir * h * .09), w, h * .09); }
+    if (!alphaOnly) for (let i = 0; i < 900; i++) { x.fillStyle = `rgba(90,96,100,${r() * .08})`; x.fillRect(r() * w, r() * h, 1 + r() * 3, 1); }   // dust
+  };
+  const map = tex(512, 512, draw(false)), alpha = tex(512, 512, draw(true)); alpha.colorSpace = THREE.NoColorSpace;
+  return new THREE.MeshStandardMaterial({ color: 0xffffff, map, alphaMap: alpha, transparent: true, roughness: .32, metalness: 0, envMapIntensity: .6, side: THREE.FrontSide, depthWrite: false }); }
 const MX = {
   steel: STD({ color: 0x1f3a2b, roughness: .5, metalness: .35 }),
   timber: STD({ map: grain('#c99c5f', '120,80,40', 256, 32, 1), roughness: .75 }),
@@ -25,8 +44,10 @@ const MX = {
   alu: STD({ color: 0xc9cdd1, metalness: .75, roughness: .32 }), white: STD({ color: 0xeceae4, roughness: .9 }), black: STD({ color: 0x1c1e21, roughness: .5 }),
   orange: STD({ color: 0xe0601e, roughness: .5, metalness: .3 }), upright: STD({ color: 0x2c3a6a, roughness: .5, metalness: .4 }), yellow: STD({ color: 0xe3b11c, roughness: .5, metalness: .3 }),
   jute: STD({ map: tex(256, 256, (x, w, h) => { x.fillStyle = '#b8945e'; x.fillRect(0, 0, w, h); for (let i = 0; i < h; i += 6) { x.fillStyle = `rgba(90,60,30,${.2 + rnd() * .2})`; x.fillRect(0, i, w, 2); } for (let i = 0; i < w; i += 6) { x.fillStyle = `rgba(255,235,190,${.08 + rnd() * .1})`; x.fillRect(i, 0, 2, h); } for (let i = 0; i < h; i += 40) { x.fillStyle = 'rgba(60,40,20,.35)'; x.fillRect(0, i, w, 5); } }, [2, 2]), roughness: 1 }),
-  film: new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: .13, roughness: .1, side: THREE.DoubleSide, depthWrite: false }),
+  film: filmMat(),   // milky stretch-wrap: wound bands, overlaps, creases, bunched top and bottom (17 Oct 04:xx; was a 13 % clear double-sided box that read as see-through ghost shelving)
 };
+MX.filmThin = MX.film.clone(); MX.filmThin.opacity = .3;   // one or two clear wraps (black crate tower by the door): the milky pallet-wrap washed black covers out to white
+
 const doorTex = tex(512, 900, (x, w, h) => { x.fillStyle = '#c4873f'; x.fillRect(0, 0, w, h); for (let i = 0; i < w; i += 64) { const g = x.createLinearGradient(i, 0, i + 64, 0); g.addColorStop(0, 'rgba(90,50,20,.45)'); g.addColorStop(.06, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(255,230,190,.06)'); x.fillStyle = g; x.fillRect(i, 0, 64, h); }
   for (let i = 0; i < 160; i++) { x.strokeStyle = `rgba(110,65,25,${.06 + rnd() * .12})`; x.beginPath(); const xx = rnd() * w; x.moveTo(xx, 0); x.bezierCurveTo(xx + (rnd() - .5) * 10, h * .3, xx + (rnd() - .5) * 10, h * .7, xx + (rnd() - .5) * 8, h); x.stroke(); }
   x.strokeStyle = '#7a4a1e'; x.lineWidth = 26; x.strokeRect(13, 13, w - 26, h - 26); x.fillStyle = '#141414'; for (const yy of [130, h - 130]) { x.fillRect(30, yy - 8, 300, 16); x.beginPath(); x.moveTo(330, yy - 8); x.lineTo(380, yy); x.lineTo(330, yy + 8); x.fill(); } x.fillRect(w - 70, h / 2 - 40, 14, 80); });
@@ -855,7 +876,7 @@ function layout() {
     for (const [o, name, what, size] of stock) T(o, name, what + ' Read off the LiDAR scan\'s elevation of this run, not confirmed.', size, 'not sure');   // LiDAR: across the hall at the back of the yard bay, x 13.6–18.5, front at z -14.85
     T(r, 'Yellow racking (back of the yard bay)', 'A short run of yellow-beam racking across the hall at the back of the yard bay, facing the door (from the LiDAR scan).', '2 bays × ≈2.45 m · beams ≈1.35 / 3.0 m', 'fairly sure'); }
   { const g = plainStack(P, coverMats('bedx', '#1c1d20', '#e9e9e6', null, { window: false }), 7.6, -1.8, RIGHT, [[0, 3]], 1.2, 1.1, 1.0); g.scale.setScalar(1);
-    const film = new THREE.Mesh(new THREE.BoxGeometry(1.3, 3.95, 1.1), MX.film); film.position.y = 1.97; film.userData.keep = true; g.add(film);
+    const film = new THREE.Mesh(new THREE.BoxGeometry(1.3, 3.95, 1.1), MX.filmThin); film.position.y = 1.97; film.userData.keep = true; g.add(film);
     T(g, 'Black crate tower', 'Three black Green Yurts crates stacked and cling-filmed together beside the door (the LiDAR scan shows a tall pile left of the roller door, x 4.9–8.2; black kit barely shows on LiDAR), with a flight case on wheels and a stack of trays next to it.', '≈ 3.9 m tall', 'not sure'); }
   { const g = grp(P, 14.6, 0, -1.6, -.3); for (let i = 0; i < 6; i++) { const s = trellisSection({ seed: 700 + i, weathered: .4 }); s.setOpen(s.minOpen); const h = grp(g, 0, 0, i * .1); h.rotation.x = -.3; h.add(s); s.position.set(-s.userData.cx, s.userData.end0, 0); }
     T(g, 'Trellis stood on end', 'Folded trellis sections stood up and leaning, next to the doorway.', '≈ 2.5 m tall'); }
@@ -929,11 +950,9 @@ function layout() {
   { const g = grp(P, 1.08, 0, -21.6, LEFT); const cv = canvasStack(g, 14, 0, 0, 0, [[0, 1, ['13–17']]]); const cage = grp(g, 0, .84, 0); poleLevel(cage, 0, .76, M.red, 1.2, 1.0, true); lump(cage, 0, .08, 0, 1.0, .55, .85, MX.white);
     const up = canvasStack(g, 14, -.15, -.45, 0, [[0, 3, ['28–32', '18–22', '8–12']]]); up.position.y = 1.6;
     T(g, '14 ft canvas crates', 'Red covers marked "14ft CANVAS" with number ranges (13–17, 28–32, 18–22, 8–12…): 14 ft yurt canvases, five to a crate, numbered so a set goes out together; a red mesh cage of bulk bags between them.', '≈ 1.2 × 1.0 × 0.84 m each'); }
-  { const s0 = _seed; trellisStillages(SPARE, 3.4, -21.9, LEFT + .03, [{ sets: 5, per: 3, doors: 1 }, { sets: 5, per: 3, doors: 1 }, { sets: 5, per: 3, doors: 1 }]); const s1 = _seed; _seed = s0;   // old single stack: draws kept, not shown
-    // LiDAR (15 Oct): three cling-filmed stacks run ACROSS the hall at x 3.7–6.6 (not one along the wall): z −18.3…−20.0 ≈ 3.7 m tall, z −21.6…−22.9 ≈ 2.6–3.8 m, z −22.9…−24.6 ≈ 1.25 m. Josh: 5 doors per stillage, 3 trellis each
-    const L5 = { sets: 5, per: 3, doors: 1 }, info = ['14 ft trellis + door stillages', 'Purple 14 ft stillages, cling-filmed, stacked in three piles that run across the hall from the left-wall stillages towards the aisle. A 14 ft yurt is 3 trellis sections per door, and each stillage holds 5 doors with their trellis: 15 sections, the folded trellis laid two side by side with each door flat on its set. Where and how high from the LiDAR scan (15 Oct): one pile four high (≈ 3.7 m in the scan), one three high, one single.'];
-    const st = [trellisStillages(P, 5.0, -19.15, .02, [L5, L5, L5, L5]), trellisStillages(P, 5.05, -22.25, -.015, [L5, L5, L5]), trellisStillages(P, 5.15, -23.78, .01, [L5])];
-    st.forEach((g, k) => T(g, info[0] + ['', ' (three high)', ' (single)'][k], info[1], 'stillages 2.32 × 1.35 m · 5 yurts each · ' + ['≈ 4.0', '≈ 3.0', '≈ 1.0'][k] + ' m tall', 'not sure')); _seed = s1; }
+  { const g = trellisStillages(P, 3.4, -21.9, LEFT + .03, [{ sets: 5, per: 3, doors: 1 }, { sets: 5, per: 3, doors: 1 }, { sets: 5, per: 3, doors: 1 }]);   // Josh: 5 doors per stillage, 3 trellis each
+    // 17 Oct 04:xx: the 02:xx move to three piles across the hall (scan footprints x 3.7–6.6, z −18.3…−24.6) reverted after the blind review scored it worse (see-through film); redo once the film reads opaque
+    T(g, '14 ft trellis + door stillages', 'Purple stillages three high next to the 14 ft canvas. A 14 ft yurt is 3 trellis sections per door, and each stillage holds 5 doors with their trellis: 15 sections, the folded trellis laid two side by side with each door flat on its set, cling-filmed.', 'stillages 2.32 × 1.35 m · 5 yurts each · ≈ 3.1 m tall'); }
   { const g = poleStillage(P, 1.47, -23.9, LEFT, [.5, .5, .5, .5, .5, .5], ['r16', 'r16', 'r16', 'r12', 'r12', 'r12'], M.red, 1.15, 2.4); T(g, 'Pole stillages (red): 16 ft + 12 ft', 'Red pole stillages six high along the left wall: the 16 ft and 12 ft yurt roof poles, strapped in bundles. Moved 1.5 m towards the door on 17 Oct: the LiDAR scan has a pale sheeted block where they were drawn; their own spot isn\'t scanned clearly.', 'poles ≈ 2.3 m (16 ft) and 1.7 m (12 ft), worked out from the yurt sizes'); }
   // ===== left wall band from the scan (17 Oct 03:xx, Josh's request: scan step 2c-iii) =====
   { const stock = [], leftFill = (g, cx, y, b, yy) => stock.push(...STOCK.fillLeft(g, cx, y, b, yy < 1 ? 0 : yy < 3 ? 1 : 2));
@@ -958,7 +977,8 @@ function layout() {
     T(g, 'Plywood crate (GY badge)', 'Big ply crate with clips and the Green Yurts badge burnt on, a rolled green canvas on top. Moved out of the workshop footprint the LiDAR scan measured; spot not scanned.', '≈ 2.2 × 1.15 × 1.2 m', 'not sure'); }
   { const g = grp(P, 8.4, 0, -12.2); for (let i = 0; i < 14; i++) box(g, 1.25, .06, .85, STD({ map: tex(128, 128, (x, w, h) => { x.fillStyle = '#d9dbd9'; x.fillRect(0, 0, w, h); x.strokeStyle = '#4b4f52'; x.lineWidth = 3; for (let k = -w; k < w * 2; k += 18) { x.beginPath(); x.moveTo(k, 0); x.lineTo(k + h, h); x.moveTo(k + h, 0); x.lineTo(k, h); x.stroke(); } }) }), (rnd() - .5) * .05, .144 + i * .06, 0); pallet(g, 1.2, 1.0);
     T(g, 'Rugs (folded, strapped)', 'Grey and white diamond-pattern yurt floor rugs folded flat on a pallet. Moved out of the workshop footprint the LiDAR scan measured; spot not scanned.', '≈ 1.25 × 0.85 m', 'not sure'); }
-  { const g = grp(SPARE, 7.3, 0, -19.8, .1); for (const s of [0, 1]) for (let i = 0; i < 20; i++) { box(g, 1.95 - rnd() * .2, .035, 1.15 - rnd() * .15, STD({ map: grain(['#5a3a26', '#6a4430', '#4e3322'][i % 3], '30,20,10') }), s * 1.3 - .65 + (rnd() - .5) * .08, i * .048, (rnd() - .5) * .08); } }   // LiDAR (15 Oct): open floor here, the only floor-panel pile is the scanned one by the side door. Draws kept, not shown
+  { const g = grp(P, 7.3, 0, -19.8, .1); for (const s of [0, 1]) for (let i = 0; i < 20; i++) { box(g, 1.95 - rnd() * .2, .035, 1.15 - rnd() * .15, STD({ map: grain(['#5a3a26', '#6a4430', '#4e3322'][i % 3], '30,20,10') }), s * 1.3 - .65 + (rnd() - .5) * .08, i * .048, (rnd() - .5) * .08); }
+    T(g, 'Floor panels', 'Yurt floor sections: dark hardwood-faced panels with battens underneath, about twenty high, strapped.', '≈ 2.0 × 1.2 m'); }   // 17 Oct 04:xx: back in (02:xx revert); the LiDAR scan shows open floor here, so it goes again when the piles are redone
   // ===== far end: pole stillage towers, red canvas, timber =====
   zone('Far end · poles + canvas');
   { const g = poleStillage(P, 8.4, -31.2, 0, [1.7, .5, 1.0, 1.13], ['poles', 'alu', 'cage', 'alu']); const s = grp(g, 0, 4.33, 0); tubes(s, 22, -.55, .55, .02, 2, 4.2, .07, RAFTER, { tint: true });
