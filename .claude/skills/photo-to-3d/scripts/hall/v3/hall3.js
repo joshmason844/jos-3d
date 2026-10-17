@@ -713,7 +713,7 @@ const STOCK = (() => {
     const hb = grp(g, x0 + 1.75, y - .12, .62); const bm = new THREE.Mesh(new THREE.CapsuleGeometry(.16, .62, 4, 10), bagMt(0x26272a)); bm.scale.set(1.3, 1, .6); bm.position.y = -.62; bm.rotation.z = .06; bm.castShadow = true; hb.add(bm);
     box(hb, .012, .78, .004, STD({ color: 0x9a9b97, metalness: .6, roughness: .4 }), 0, -.98, .1); for (const sy of [-.25, -1.0]) box(hb, .42, .035, .11, STD({ color: 0x1b1b1d, roughness: .8 }), 0, sy, 0);   // zip down the front, webbing bands round it
     for (const sx of [-.09, .09]) box(hb, .03, .3, .006, STD({ color: 0x1b1b1d, roughness: .8 }), sx, -.17, .01);   // the strap over the beam
-    at(hb, 'Black bag (hanging)', 'A black bag hung by its strap off the front beam. The scan shows a dark shape hanging here, down to about 1.3 m.', '≈ 0.35 × 0.95 m');
+    hb.parent.remove(hb);   // 17 Oct: the hanging bag reverted (07:xx review: it floated in front of a red crate)
     sd = s0; return items; }
   // ---- the left band's tall bay above the pale sheeted block, 17 Oct 07:xx (scan step 2c-iv, part 2): heightmap (q95 and q20) + elevation (private)
   // show a face at x ≈ 1.4 reaching the scan's 5 m top from z −25.0 to −28.2 (uprights read at both ends), a deck at ≈ 2.3 m, a second level at ≈ 3.3 m;
@@ -871,17 +871,17 @@ function layout() {
   { const g = grp(P, 0, 0, -2.3); const MW = 6.0, ML = 10.6, CH = 3.8, DK = CH + .22, SH = 1.95;   // CH: workshop ceiling 3.8 m in Josh's workshop scan (was drawn 3.0); DK: sewing-room floor; SH: its front wall, kept under the 6 m eaves. LiDAR (15 Oct): left as you walk in, 6.1 m deep off the left wall × 10.6 m long, front 2.45 m in from the door wall (Josh guessed 8 × 4)
     box(g, MW, .22, ML, MX.steel, MW / 2, CH, -ML / 2 - .1); for (const [x, z] of [[.3, -.3], [MW - .1, -.3], [MW - .1, -ML / 2], [MW - .1, -ML], [.3, -ML]]) box(g, .14, CH, .14, MX.steel, x, 0, z);
     box(g, MW, CH, .05, MX.osb, MW / 2, 0, -.15); box(g, .05, CH, ML - .2, MX.osb, MW, 0, -ML / 2 - .1);   // workshop walls
-    box(g, .04, .9, 1.6, STD({ color: 0x8aa0ad, metalness: .4, roughness: .1 }), MW + .04, 1.2, -1.1); box(g, .04, .9, 1.6, STD({ color: 0x8aa0ad, metalness: .4, roughness: .1 }), MW + .04, 1.2, -9.5);   // windows clear of the yellow racking (scan: racking z -5.25…-10.85)
-    box(g, .06, 2.0, .9, MX.osb, MW + .04, 0, -2.4);   // door near the front, where the scan shows the way in                                                         // door
+    box(g, .04, 1.4, 2.4, STD({ color: 0x8aa0ad, metalness: .4, roughness: .1 }), MW + .04, 1.2, -1.8); box(g, .04, .9, 1.6, STD({ color: 0x8aa0ad, metalness: .4, roughness: .1 }), MW + .04, 1.2, -9.5);   // windows clear of the yellow racking (scan: racking z -5.25…-10.85)
+    box(SPARE, .06, 2.0, .9, MX.osb, MW + .04, 0, -2.4);   // 17 Oct: no door here (the workshop scan has the long bench and a wide window on this stretch; the way in is in the far wall): drawn into SPARE. Was: door near the front, where the scan shows the way in                                                         // door
     { const sv = _seed, TR = STD({ map: grain('#c8a878', '120,85,45', 256, 32, 0), roughness: .7 }), _r = (_seed = sv), HW_ = STD({ color: 0x8e9196, metalness: .7, roughness: .35 });   // OSB sheets on every face you can see (16–17 Oct): front to the door, long wall to the aisle, sewing-room walls above
       OSB.wall(g, 0, 0, -.122, 0, MW, CH); OSB.wall(g, MW + .028, 0, -.2, Math.PI / 2, ML - .2, CH);
       OSB.wall(g, 0, DK, -.122, 0, MW, SH, false); OSB.wall(g, MW + .028, DK, -.2, Math.PI / 2, ML - .2, .62, false); OSB.wall(g, MW + .028, DK + 1.9, -.2, Math.PI / 2, ML - .2, .5, false);
       for (const [y, h] of [[0, CH], [DK, SH]]) box(g, .07, h, .07, TR, MW - .005, y, -.135);   // corner battens over the sheet edges
-      for (const zc of [-1.1, -9.5]) { for (const s of [-1, 1]) box(g, .03, 1.0, .06, TR, MW + .04, 1.15, zc + s * .83); for (const y of [1.12, 2.1]) box(g, .03, .06, 1.72, TR, MW + .04, y, zc); }   // window architraves
-      OSB.wall(g, MW + .072, 0, -1.95, Math.PI / 2, .9, 2.0);   // the door: an OSB-faced door, frame, three hinges, lever handle
-      for (const s of [-1, 1]) box(g, .035, 2.06, .06, TR, MW + .05, 0, -2.4 + s * .48); box(g, .035, .06, 1.02, TR, MW + .05, 2.0, -2.4);
-      for (const y of [.25, 1.0, 1.75]) box(g, .012, .1, .05, HW_, MW + .078, y, -1.97);
-      box(g, .012, .16, .045, HW_, MW + .078, .95, -2.76); box(g, .05, .022, .022, HW_, MW + .1, 1.02, -2.76); box(g, .022, .022, .12, HW_, MW + .125, 1.02, -2.71); }
+      for (const [zc, ww, y0, wh] of [[-1.8, 2.4, 1.2, 1.4], [-9.5, 1.6, 1.2, .9]]) { for (const s of [-1, 1]) box(g, .03, wh + .1, .06, TR, MW + .04, y0 - .05, zc + s * (ww / 2 + .03)); for (const y of [y0 - .08, y0 + wh]) box(g, .03, .06, ww + .12, TR, MW + .04, y, zc); }   // window architraves (front window 2.4 × 1.4 m from the workshop scan, 17 Oct)
+      OSB.wall(SPARE, MW + .072, 0, -1.95, Math.PI / 2, .9, 2.0);   // (17 Oct: moved to the far wall, old aisle door drawn into SPARE) the door: an OSB-faced door, frame, three hinges, lever handle
+      for (const s of [-1, 1]) box(SPARE, .035, 2.06, .06, TR, MW + .05, 0, -2.4 + s * .48); box(SPARE, .035, .06, 1.02, TR, MW + .05, 2.0, -2.4);
+      for (const y of [.25, 1.0, 1.75]) box(SPARE, .012, .1, .05, HW_, MW + .078, y, -1.97);
+      box(SPARE, .012, .16, .045, HW_, MW + .078, .95, -2.76); box(SPARE, .05, .022, .022, HW_, MW + .1, 1.02, -2.76); box(SPARE, .022, .022, .12, HW_, MW + .125, 1.02, -2.71); }
     box(g, MW, SH, .05, MX.osb, MW / 2, DK, -.15); box(g, .05, .62, ML - .2, MX.osb, MW, DK, -ML / 2 - .1); box(g, .05, .5, ML - .2, MX.osb, MW, DK + 1.9, -ML / 2 - .1);   // sewing room walls, open in the middle so you can see in
     for (const [dy, h] of [[DK + .62, .06], [DK + 1.88, .06]]) box(g, .1, h, 2.7, MX.timber, MW + .03, dy, -4.0); for (const dz of [-5.32, -2.68]) box(g, .1, 1.3, .06, MX.timber, MW + .03, DK + .62, dz);   // open front onto the aisle
     // the sewing room up top (Josh): long cutting tables, industrial machines, rolls of canvas, strip lights
@@ -894,7 +894,7 @@ function layout() {
       for (let i = 0; i < 3; i++) bag(sw, 2.9, 0, -6.8 - i * .45, .45, .34, .55, '#3e5240', '#9cff3a');
       for (const z of [-2, -4, -6]) { box(sw, .12, .04, 1.4, STD({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: .8 }), 1.6, 1.85, z); } }   // strip lights hung under the roof (the sewing room sits 0.8 m higher since the 3.8 m workshop ceiling)
     for (let i = 0; i < 3; i++) box(g, 1.1, .2, .9, MX.ply, 1.2, DK + i * .21, -6.4);
-    T(g, 'Workshop + sewing room', 'Measured from Josh\'s LiDAR scan (15 Oct): about 6.1 × 10.6 m. On the left as you walk in: a boxed-in workshop under a steel mezzanine (OSB walls, windows and a door onto the aisle, bench and tool wall inside). Up on the mezzanine is the sewing room: long cutting tables with canvas laid out, industrial sewing machines, rolls of canvas and a few bags waiting for repair.', '6.1 × 10.6 m (scan) · workshop ceiling ≈ 3.8 m (scan)', 'sure'); }
+    T(g, 'Workshop + sewing room', 'Measured from Josh\'s LiDAR scan (15 Oct): about 6.1 × 10.6 m. On the left as you walk in: a boxed-in workshop under a steel mezzanine (OSB walls and windows onto the aisle, the way in through its far wall; tap "Workshop (inside)" to go in: benches all round, a tool wall, shelving, a centre table). Up on the mezzanine is the sewing room: long cutting tables with canvas laid out, industrial sewing machines, rolls of canvas and a few bags waiting for repair.', '6.1 × 10.6 m (scan) · workshop ceiling ≈ 3.8 m (scan)', 'sure'); }
   { const spare = new THREE.Group(), stock = [], toolFill = (g, cx, y, b, yy) => { rackFill(spare, cx, y); stock.push(...STOCK.fillTool(g, cx, y, b, Math.round((yy - .15) / 1.2))); };   // from the scan elevation (17 Oct); old random draws still taken into spare so nothing else moves
     const r = racking(P, 6.65, -5.25, LEFT, 2, [.15, 1.35, 2.55, 3.75], 2.8, 1.1, MX.yellow, toolFill);   // LiDAR: against the workshop wall, front at x 7.2
     for (const [o, name, what, size] of stock) T(o, name, what + ' Read off the LiDAR scan\'s elevation of this run, not confirmed.', size, 'not sure');
@@ -1021,15 +1021,16 @@ function layout() {
     const hs = [], hi = racking(P, 2.95, -21.8, LEFT, 1, [2.4], 3.2, 1.1, MX.orange, (g, cx, y) => hs.push(...STOCK.fillHigh(g, cx, y)));   // LiDAR: deck ≈ 2.4 m at x 2.8–3.5, uprights z ≈ −21.8 / −25.0
     for (const [o, name, what, size] of hs) T(o, name, what + ' Read off the LiDAR scan, not confirmed.', size, 'not sure');
     T(hi, 'Racking (high bay)', 'One bay of racking with a single deck at about 2.4 m, stock on it up to about 5 m, the red pole stillages underneath. The LiDAR scan shows the deck, the uprights and the stock from the aisle; nothing under the deck is visible in it.', '1 bay × 3.2 m · deck ≈ 2.4 m (scan)', 'not sure');
-    const cr = grp(P, 3.6, 0, -20.55); { const s0 = _seed; pallet(cr, 1.0, 1.2, 0, .3); _seed = s0; }
+    const cr = grp(SPARE, 3.6, 0, -20.55);   // 17 Oct: reverted (07:xx blind review: read as a 3 m thin slab in the walkway, 5.3 → 4.0); still built into SPARE so the stock RNG stays in step
+    { const s0 = _seed; pallet(cr, 1.0, 1.2, 0, .3); _seed = s0; }
     STOCK.tarpBlock(cr, -.25, .06, 0, 1.1, 2.3, .85, 0xd2c8b2, LEFT, .03, 24); STOCK.tarpBlock(cr, .3, .06, 0, 1.05, 3.55, .62, 0xd9cfb8, LEFT, .04, 30);   // scan: ≈ 2.2–2.5 m at x 2.9–3.4, ≈ 3.3–3.8 m at x 3.5–4.25
-    T(cr, 'Sheeted stack (cream)', 'A tall stack about 3.6 m high under a cream sheet, lower at the back, at the end of the walkway between the wrapped piles. The LiDAR scan shows cream fabric with long vertical folds here; what\'s under it isn\'t known.', '≈ 1.2 × 1.3 × 3.6 m (scan)', 'not sure');
+    // (cream stack tag removed with it)
     // ---- 17 Oct 07:xx (scan step 2c-iv, part 2): the tall bay above the pale sheeted block, z −25.0…−28.2, front x 1.4 ----
     { const s0 = _seed, ts = [], tb = racking(P, .85, -25.0, LEFT, 1, [.15, 2.3, 3.3], 3.2, 1.1, MX.orange, (g, cx, y, b, yy) => ts.push(...STOCK.fillTall(g, cx, y, yy < 1 ? 0 : yy < 3 ? 1 : 2))); _seed = s0;   // LiDAR: face to the 5 m top at x ≈ 1.4, deck ≈ 2.3 m (q20), level ≈ 3.3 m
       for (const [o, name, what, size] of ts) T(o, name, what + ' Read off the LiDAR scan, not confirmed.', size, 'not sure');
       T(tb, 'Racking (tall bay)', 'One bay of racking against the left wall behind the pale sheeted block, stocked on its upper two levels up to about 5 m: a teal tote, cream sheeting and a yellow bag, then navy and black bags, grey-white sheeting and timber on top. The bottom level is hidden behind the block in the scan.', '1 bay × 3.2 m · beams ≈ 2.3 / 3.3 m (scan)', 'not sure'); }
   { const g = crownStack(P, K12, 7.2, -15.6, Math.PI, [[0, 1], [1, 1]]); const top = crownCrate(g, K12, .66, 1.24, 0); top.userData.level = 1; CRATES.push(top);   // 3 here + 1 by the door = 4 counted (photo 11)
-    const byDoor = crownStack(P, K12, 6.3, -2.6, Math.PI / 2, [[0, 1]]); T(byDoor, '12 ft crown crate (by the door)', 'A single "12FT CROWN × 12" crate near the roller door.', '1.2 × 1.0 × 1.24 m');
+    const byDoor = crownStack(P, K12, 6.75, -2.6, Math.PI / 2, [[0, 1]]);   // 17 Oct: x 6.3 → 6.75, it poked 0.2 m through the workshop's aisle wall T(byDoor, '12 ft crown crate (by the door)', 'A single "12FT CROWN × 12" crate near the roller door.', '1.2 × 1.0 × 1.24 m');
     T(g, '12 ft crown crates', 'Green covers "12FT CROWN × 12": twelve 12 ft yurt crowns per crate, out in the middle of the hall.', '1.2 × 1.0 × 1.24 m each'); }
   { const g = plainStack(P, coverMats('white', '#efeee9', '#161616', null, { window: false }), 4.4, -15.6, Math.PI, [[0, 2], [1, 2]], 1.2, 1.04, 1.0); T(g, 'Safari tent crates', 'White covers with the black Green Yurts badge, two high: the safari tents (Josh).', '≈ 1.2 × 1.0 × 1.2 m each'); }
   { const g = grp(P, 9.4, 0, -14.3); pallet(g, 2.2, 1.15); box(g, 2.2, 1.05, 1.15, [MX.ply, MX.ply, MX.ply, MX.ply, STD({ map: tex(512, 256, (x, w, h) => { x.drawImage(MX.ply.map.image, 0, 0, w, h); drawBadge(x, w / 2, h / 2, 100, 'rgba(30,25,20,.8)', 'rgba(0,0,0,0)'); }) }), MX.ply], 0, .144, 0); bag(g, .3, 1.2, 0, 1.0, .18, .4, '#3fae86');
@@ -1061,6 +1062,164 @@ function layout() {
   { const g = grp(P, 9.9, 0, -33.8); box(g, 1.2, .14, .8, STD({ color: 0xc0567a }), 0, 0, 0); T(g, 'Pink plastic pallet', 'A pink plastic pallet left on the floor.', '1.2 × 0.8 m'); }
   { const g = poleStillage(P, 17.6, -35.6, 0, [1.1, 1.1, 1.1, 1.1], ['alu', 'coir', 'alu', 'crates']); T(g, 'Red racks: poles + coir (far right)', 'Red post pallets with aluminium poles, rolled coir and jute matting, white canvas bags and black boxes.', '≈ 4.4 m'); }
   { const g = grp(P, 19.4, 0, -37.0); for (let i = 0; i < 26; i++) box(g, .1, .05, 3.6, MX.timber, (rnd() - .5) * .3, i * .05, 0); T(g, 'Timber stack (wall)', 'Planed timber stacked on battens against the far right wall.', '≈ 3.6 m long'); }
+  // ===== the workshop INSIDE (17 Oct, Josh: "a complete picture with even more detail") =====
+  // Read off Josh's workshop LiDAR scan (private; numbers, shapes and sampled colours only, never its textures). Fitted to the WW frame:
+  // scan floor y −1.445, walls square to the scan's axes; WW x = scan z + 3.45, WW z = −scan x − 7.9 (its +z wall is the aisle wall, its −x end the
+  // front). Inside: left lining x ≈ 0.45, aisle wall x ≈ 5.95, front z −2.45, far wall z −12.95 with the way out at its aisle corner (x ≈ 5.0–5.8;
+  // the main scan sees the same gap from the hall). Front 3.6 m sits under a lower ply soffit at ≈ 3.0 m; the rest is open to the 3.8 m deck.
+  zone('Workshop (inside)'); ZONE.cam = [[3.4, 2.05, -12.2], [3.1, 1.25, -5.2]];
+  WSHOP(P);
+}
+// The workshop's contents. Own RNG (wr) and own canvases: nothing here draws from the layout seed, so nothing else moves.
+function WSHOP(P) {
+  let sd = 6271; const wr = () => (sd = (sd * 16807) % 2147483647) / 2147483647, wf = (a, b) => a + (b - a) * wr();
+  const can = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new CT(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
+  const specks = (x, w, h, n, a) => { for (let i = 0; i < n; i++) { x.fillStyle = `rgba(${wr() > .5 ? '255,255,255' : '0,0,0'},${a * wr()})`; x.fillRect(wr() * w, wr() * h, 1 + wr() * 2, 1 + wr() * 2); } };
+  const T2 = (o, n, w, s, sure = 'not sure') => T(o, n, w + ' Read off Josh\'s workshop LiDAR scan (17 Oct).', s, sure);
+  // --- materials
+  const TOP = STD({ roughness: .72, map: can(512, 256, (x, w, h) => { x.fillStyle = '#b48f5f'; x.fillRect(0, 0, w, h);   // worn ply worktop: grain, rings, glue and paint spots, burn marks, saw kerfs
+    for (let i = 0; i < 60; i++) { x.strokeStyle = `rgba(110,72,38,${wf(.05, .16)})`; x.lineWidth = wf(1, 3); x.beginPath(); let y = wr() * h; x.moveTo(0, y); for (let k = 1; k <= 8; k++) x.lineTo(k * w / 8, y += wf(-3, 3)); x.stroke(); }
+    for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(${['60,40,25', '40,40,40', '200,190,170', '90,110,140', '160,60,40'][i % 5]},${wf(.12, .4)})`; x.beginPath(); x.ellipse(wr() * w, wr() * h, wf(2, 14), wf(2, 9), wr() * 3, 0, 7); x.fill(); }
+    for (let i = 0; i < 14; i++) { x.strokeStyle = `rgba(50,32,18,${wf(.25, .5)})`; x.lineWidth = 1; x.beginPath(); const a = wr() * w, b = wr() * h; x.moveTo(a, b); x.lineTo(a + wf(-60, 60), b + wf(-8, 8)); x.stroke(); }
+    specks(x, w, h, 4000, .12); const g = x.createRadialGradient(w / 2, h / 2, h * .2, w / 2, h / 2, w * .6); g.addColorStop(0, 'rgba(70,45,25,.12)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); }) });
+  const CARC = STD({ color: 0x9a7c56, roughness: .85 }), EDGE = STD({ color: 0x6b5236, roughness: .8 });
+  const STEEL = STD({ color: 0x7c8186, metalness: .6, roughness: .45 }), DARK = STD({ color: 0x24272b, roughness: .55, metalness: .3 }), CHIP = STD({ color: 0xc9b48f, roughness: .85 });
+  const RED = STD({ color: 0xb8231d, roughness: .4, metalness: .2 }), YEL = STD({ color: 0xf2b705, roughness: .45 }), BLK = STD({ color: 0x1b1c1e, roughness: .6 }), ORA = STD({ color: 0xe0661c, roughness: .45, metalness: .2 });
+  const CARD = STD({ roughness: .9, map: can(128, 128, (x, w, h) => { x.fillStyle = '#b88d5c'; x.fillRect(0, 0, w, h); specks(x, w, h, 900, .08); x.fillStyle = 'rgba(205,170,115,.9)'; x.fillRect(w / 2 - 8, 0, 16, h); x.fillStyle = '#f0ede6'; x.fillRect(14, 70, 40, 26); x.fillStyle = '#333'; for (let i = 0; i < 4; i++) x.fillRect(18, 75 + i * 5, 20 + wr() * 14, 2); }) });
+  const PEG = STD({ roughness: .8, map: can(512, 256, (x, w, h) => { x.fillStyle = '#a07a52'; x.fillRect(0, 0, w, h); specks(x, w, h, 3000, .08); x.fillStyle = 'rgba(30,20,12,.85)'; for (let j = 8; j < h; j += 16) for (let i = 8; i < w; i += 16) { x.beginPath(); x.arc(i, j, 2.4, 0, 7); x.fill(); }
+    x.strokeStyle = 'rgba(40,30,20,.35)'; x.lineWidth = 2; for (let i = 0; i < 12; i++) { const a = wr() * w, b = wr() * h; x.strokeRect(a, b, wf(20, 70), wf(30, 90)); } }) });   // tool outlines drawn on the board
+  const OSBIN = STD({ roughness: .86, map: can(256, 512, (x, w, h) => { x.fillStyle = '#b08a5a'; x.fillRect(0, 0, w, h); for (let i = 0; i < 1500; i++) { const p = [[150, 118, 80], [176, 142, 98], [128, 98, 64], [196, 160, 112]][i % 4]; x.save(); x.translate(wr() * w, wr() * h); x.rotate(Math.PI / 2 + wf(-.6, .6)); x.fillStyle = `rgb(${p})`; x.fillRect(-wf(8, 20), -wf(2, 4), wf(16, 40), wf(4, 8)); x.restore(); } specks(x, w, h, 2000, .1); }) });
+  OSBIN.map.wrapS = OSBIN.map.wrapT = THREE.RepeatWrapping;
+  const sheet = (w, h, m, x, y, z, ry) => { const s = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m); s.position.set(x, y + h / 2, z); s.rotation.y = ry; s.receiveShadow = true; P.add(s); return s; };
+  // --- shell: OSB lining on the left (x 0.45) and on the inside of the front and aisle walls, the far wall with its doorway, the low ply soffit
+  const shell = grp(P);
+  const lin = (L, H, x, z, ry) => { const m = OSBIN.clone(); m.map = OSBIN.map.clone(); m.map.repeat.set(L / 1.22, H / 2.44); m.map.needsUpdate = true; const s = sheet(L, H, m, x, 0, z, ry); P.remove(s); shell.add(s); return s; };
+  lin(10.5, 3.8, .45, -7.7, Math.PI / 2);
+  { const w = grp(P), GL = STD({ color: 0x9fb4c2, metalness: .3, roughness: .08, emissive: 0x6f8798, emissiveIntensity: .35 }), FR = STD({ color: 0xc8a878, roughness: .7 });   // the front window from inside (scan: the aisle wall reads as glass at z −2.9…−5.3, 1.2–2.6 m)
+    box(w, .02, 1.4, 2.4, GL, 5.945, 1.2, -4.1); for (const s of [-1, 1]) box(w, .05, 1.5, .07, FR, 5.93, 1.15, -4.1 + s * 1.235); for (const y of [1.13, 2.6]) box(w, .05, .07, 2.54, FR, 5.93, y, -4.1); box(w, .05, 1.4, .05, FR, 5.93, 1.2, -4.1);
+    box(w, .16, .03, 2.54, FR, 5.86, 1.13, -4.1); } lin(5.5, 3.8, 3.2, -2.48, Math.PI); lin(10.4, 3.8, 5.96, -7.65, -Math.PI / 2);
+  { const fw = grp(P, 0, 0, -12.95); const H = 3.8, D0 = 4.95, D1 = 5.85, DH = 2.05;   // far wall: OSB on studs, a doorway at the aisle corner (scan: gap at x ≈ 5.0–5.8)
+    for (const [a, b, y0, y1] of [[.45, D0, 0, H], [D1, 6.0, 0, H], [D0, D1, DH, H]]) { box(fw, b - a, y1 - y0, .1, CARC, (a + b) / 2, y0, 0); for (const zz of [.052, -.052]) { const s = new THREE.Mesh(new THREE.PlaneGeometry(b - a, y1 - y0), OSBIN); s.position.set((a + b) / 2, (y0 + y1) / 2, zz); s.rotation.y = zz > 0 ? 0 : Math.PI; s.receiveShadow = true; fw.add(s); } }
+    const TR = STD({ color: 0xc8a878, roughness: .7 }); for (const x of [D0 - .03, D1 + .03]) box(fw, .06, DH + .06, .14, TR, x, 0, 0); box(fw, D1 - D0 + .12, .06, .14, TR, (D0 + D1) / 2, DH, 0);
+    const leaf = grp(fw, D0 + .02, 0, -.07); leaf.rotation.y = -Math.PI * .62; box(leaf, .86, DH - .03, .04, CARC, .43, .01, -.02); for (const s of [.022, -.062]) { const f = new THREE.Mesh(new THREE.PlaneGeometry(.86, DH - .03), OSBIN); f.position.set(.43, (DH) / 2, s); if (s < 0) f.rotation.y = Math.PI; leaf.add(f); }
+    box(leaf, .12, .03, .03, STEEL, .74, 1.0, .02); box(leaf, .12, .03, .03, STEEL, .74, 1.0, -.07);
+    T2(fw, 'Workshop far wall + way out', 'The workshop\'s far wall, OSB on studs, with a doorway at the aisle corner into the hall. The scan walks out through a gap here, and the main hall scan sees the same gap from outside.', 'doorway ≈ 0.9 × 2.05 m', 'fairly sure'); }
+  { const sf = grp(P); const s = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 3.65), STD({ color: 0xc9b089, roughness: .8, side: THREE.DoubleSide })); s.rotation.x = Math.PI / 2; s.position.set(3.2, 2.98, -4.28); sf.add(s);
+    for (const x of [2.2, 4.0]) box(sf, .1, .18, 3.65, CARC, x, 2.8, -4.28); box(sf, 5.5, .2, .1, CARC, 3.2, 2.78, -6.08);
+    T2(sf, 'Low ceiling (front of the workshop)', 'The front 3.6 m of the workshop has a lower ply ceiling at about 3.0 m on two beams; the rest is open up to the deck at 3.8 m. What\'s above it (a store?) isn\'t in the scan.', 'soffit ≈ 3.0 m (scan)'); }
+  T(shell, 'Workshop walls (inside)', 'OSB-lined walls inside the workshop.', '10.5 × 5.5 m inside (scan)', 'fairly sure').userData.noPick = true;
+  // --- builders
+  function bench(p, x, z, L, D, H, ry, opts = {}) { const g = grp(p, x, 0, z, ry);   // a timber workbench: ply top with a front edge, legs, a rail, a shelf underneath (optional cupboard doors)
+    box(g, L, .04, D, TOP, 0, H - .04, 0); box(g, L, .06, .025, EDGE, 0, H - .07, D / 2);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, .07, H - .04, .07, CARC, sx * (L / 2 - .05), 0, sz * (D / 2 - .05));
+    for (let k = 1; k < Math.floor(L / 1.4); k++) for (const sz of [-1, 1]) box(g, .07, H - .04, .07, CARC, -L / 2 + k * L / Math.floor(L / 1.4), 0, sz * (D / 2 - .05));
+    box(g, L - .1, .022, D - .1, CHIP, 0, .16, 0); box(g, L, .07, .04, CARC, 0, H - .14, -D / 2 + .03);
+    if (opts.doors) { const n = Math.round(L / .6); for (let i = 0; i < n; i++) { box(g, L / n - .01, H - .26, .018, STD({ color: 0xd9d4c8, roughness: .6 }), -L / 2 + (i + .5) * L / n, .1, D / 2 - .01); box(g, .1, .015, .02, STEEL, -L / 2 + (i + .5) * L / n, H - .3, D / 2 + .01); } }
+    return g; }
+  function shelving(p, x, z, L, D, H, ry, levels) { const g = grp(p, x, 0, z, ry);   // grey slotted-angle shelving, chipboard shelves
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, .04, H, .04, STEEL, sx * (L / 2 - .02), 0, sz * (D / 2 - .02));
+    for (const y of levels) { box(g, L, .018, D, CHIP, 0, y, 0); for (const sz of [-1, 1]) box(g, L, .035, .015, STEEL, 0, y - .02, sz * D / 2); }
+    for (const sx of [-1, 1]) { const m = new THREE.Mesh(new THREE.BoxGeometry(.012, Math.hypot(H * .5, D) , .02), STEEL); m.position.set(sx * (L / 2 - .02), H * .75, 0); m.rotation.x = Math.atan2(D, H * .5); g.add(m); }
+    return g; }
+  const cbox = (p, x, y, z, w, h, d, ry = 0) => { const b = box(p, w, h, d, CARD, x, y, z, ry); return b; };
+  const tub = (p, x, y, z, w, h, d, lid) => { box(p, w, h, d, STD({ color: 0xe8ecee, transparent: false, roughness: .3 }), x, y, z); box(p, w + .02, .03, d + .02, STD({ color: lid, roughness: .4 }), x, y + h, z); };
+  const tin = (p, x, y, z, r, h, col) => { cyl(p, r, h, STD({ color: 0xb5b9bc, metalness: .7, roughness: .35 }), x, y + h / 2, z); cyl(p, r * 1.01, h * .55, STD({ color: col, roughness: .5 }), x, y + h * .45, z); cyl(p, r * .95, .006, STEEL, x, y + h + .003, z); };
+  const caseY = (p, x, y, z, w, h, d, ry = 0) => { const g = grp(p, x, y, z, ry); box(g, w, h * .5, d, YEL, 0, 0, 0); box(g, w, h * .5, d, BLK, 0, h * .5, 0); box(g, w * .4, .03, .05, BLK, 0, h + .02, 0); for (const sx of [-1, 1]) box(g, .05, .05, .02, BLK, sx * w * .35, h * .45, d / 2 + .005); return g; };   // yellow-and-black tool case
+  const drill = (p, x, y, z, ry, col = YEL) => { const g = grp(p, x, y, z, ry); box(g, .1, .07, .07, BLK, 0, .2, 0); box(g, .22, .09, .075, col, -.02, .16, 0); box(g, .055, .15, .05, BLK, -.06, .02, 0); box(g, .1, .06, .085, BLK, -.06, 0, 0); cyl(g, .012, .08, STEEL, .14, .2, 0, 'x', 8); return g; };
+  const hammer = (p, x, y, z, ry) => { const g = grp(p, x, y, z, ry); cyl(g, .014, .3, STD({ color: 0x9a6b3c }), 0, .15, 0, 'y', 8); box(g, .11, .03, .03, DARK, 0, .29, 0); return g; };
+  const spanner = (p, x, y, z, L) => box(p, .02, L, .006, STD({ color: 0xa9aeb2, metalness: .8, roughness: .3 }), x, y, z);
+  // --- 1. front wall bench, under the window-less front, with shelves over its left end (scan: top ≈ 1.0–1.1 m, a shelf ≈ 2.0 m at x 0.75–2.0)
+  { const g = grp(P), b = bench(g, 3.2, -2.78, 5.4, .62, 1.0, 0, { doors: false });
+    const s = shelving(g, 1.4, -2.68, 1.7, .4, 1.3, 0, [.55, 1.0]); s.position.y = 1.0; for (let i = 0; i < 5; i++) tin(s, -.7 + i * .17, .57, 0, .065, .14, [0xd9dde0, 0x2f5f8f, 0xb8231d, 0xe8e2d0, 0x3b6b3a][i]);
+    for (let i = 0; i < 3; i++) caseY(s, .15 + i * .28, 1.02, 0, .26, .12 + i * .01, .32); cbox(s, -.55, 1.02, 0, .4, .26, .3);
+    const t = grp(g, 0, 1.0, 0); drill(t, 1.6, 0, -2.78, .4); drill(t, 1.95, 0, -2.7, -.3, 0x2a5aa8); caseY(t, 2.6, 0, -2.85, .5, .14, .36); for (let i = 0; i < 4; i++) tin(t, 4.4 + i * .14, 0, -2.9, .055, .12, [0xe8e2d0, 0xe0661c, 0x2f5f8f, 0xe8e2d0][i]);
+    box(t, .3, .1, .2, STD({ color: 0x3c6e9e, roughness: .4 }), 3.6, 0, -2.85); hammer(t, 3.2, 0, -2.66, 0).rotation.z = Math.PI / 2; for (let i = 0; i < 3; i++) cbox(t, 5.15, i * .2, -2.85, .38, .2, .34, wf(-.1, .1));
+    T2(g, 'Bench (front wall)', 'A timber bench right along the front wall: ply top, a shelf underneath, tins, drills and tool cases on it, a slotted-angle shelf unit over its left end with paint tins and yellow tool cases.', '≈ 5.4 × 0.6 m · top ≈ 1.0 m (scan)'); }
+  // --- 2. left wall bench in the front, and a yellow banner on the wall above it (scan: ≈ 0.9–1.3 m at x 0.75–1.25; yellow 1.3–2.4 m at z −3.5…−4.6)
+  { const g = grp(P), b = bench(g, .82, -4.4, 2.6, .7, .95, Math.PI / 2, { doors: true });
+    const t = grp(g, .82, .95, -4.4); const vice = grp(t, 0, 0, .9); box(vice, .2, .12, .14, STD({ color: 0x2f5f8f, metalness: .4, roughness: .4 }), 0, 0, 0); box(vice, .2, .1, .04, STEEL, 0, .12, .08); cyl(vice, .01, .3, STEEL, 0, .08, .2, 'z', 8);
+    for (let i = 0; i < 3; i++) cbox(t, wf(-.15, .1), i * .2, -.8 + i * .02, .5, .2, .4);
+    const ban = sheet(1.05, 1.0, STD({ roughness: .6, map: can(256, 256, (x, w, h) => { x.fillStyle = '#e4e83a'; x.fillRect(0, 0, w, h); specks(x, w, h, 900, .08); x.strokeStyle = '#141414'; x.lineCap = 'round';
+      for (let k = 0; k < 9; k++) { x.lineWidth = wf(5, 10); x.beginPath(); let px = 60 + k * 18, py = 110 + wf(-20, 30); x.moveTo(px, py); for (let s = 0; s < 4; s++) x.lineTo(px += wf(-8, 14), py += wf(-22, 22)); x.stroke(); }
+      x.fillStyle = 'rgba(0,0,0,.15)'; x.fillRect(0, 0, w, 6); }) }), .48, 1.35, -4.05, Math.PI / 2); P.remove(ban); g.add(ban);
+    for (const s of [-1, 1]) { const ey = new THREE.Mesh(new THREE.TorusGeometry(.012, .004, 6, 10), STEEL); ey.position.set(.49, 2.32, -4.05 + s * .48); ey.rotation.y = Math.PI / 2; g.add(ey); }
+    T2(g, 'Bench with vice (left wall, front)', 'A bench along the left wall at the front with cupboards under it and a blue engineer\'s vice on the end; boxes stacked on it. On the wall above, a big yellow banner with black lettering (the scan can\'t read the words).', '≈ 2.6 × 0.7 m · top ≈ 0.95 m (scan)'); }
+  // --- 3. the centre table (scan: ≈ 1.0–1.1 m at x 2.5–3.9, z −4.45…−5.8, open underneath with boxes)
+  { const g = grp(P), b = bench(g, 3.2, -5.1, 1.4, 1.35, 1.05, 0); const t = grp(g, 3.2, 1.05, -5.1);
+    const sht = box(t, 1.2, .018, .9, STD({ color: 0xcfc7b2, roughness: .9 }), -.05, 0, .05); sht.rotation.y = .06;   // a cut piece of canvas or sheet laid out
+    box(t, .6, .02, .03, STEEL, .2, .02, -.1).rotation.y = -.3; box(t, .03, .008, .3, STD({ color: 0xf2b705 }), -.4, .02, .3); hammer(t, .35, .02, .35, 1.1).rotation.z = Math.PI / 2;
+    for (let i = 0; i < 4; i++) cbox(g, 2.75 + (i % 2) * .55, .2 + Math.floor(i / 2) * .32, -5.1 + wf(-.2, .2), .5, .3, .5, wf(-.1, .1));
+    T2(g, 'Centre table', 'A big timber table in the middle of the front, about waist height, with a piece of sheet laid out on it, tools, and boxes stored underneath.', '≈ 1.4 × 1.35 m · top ≈ 1.05 m (scan)'); }
+  // --- 4. bench under the soffit edge, facing the back (scan: ≈ 1.0–1.1 m at x 2.75–4.0, z −6.45…−6.95)
+  { const g = grp(P), b = bench(g, 3.4, -6.7, 1.5, .55, 1.05, 0); const t = grp(g, 3.4, 1.05, -6.7);
+    const saw = grp(t, -.2, 0, 0); box(saw, .45, .08, .35, DARK, 0, 0, 0); cyl(saw, .13, .02, STEEL, 0, .25, 0, 'x', 24); box(saw, .3, .12, .1, YEL, .05, .3, .05); box(saw, .04, .25, .04, DARK, -.15, .05, 0);   // a mitre saw
+    for (let i = 0; i < 2; i++) tub(t, .45, i * .2, 0, .4, .18, .3, [0x2a5aa8, 0xb8231d][i]);
+    T2(g, 'Bench with mitre saw', 'A short bench at the edge of the low ceiling with a mitre saw on it and two plastic boxes of fixings.', '≈ 1.5 × 0.55 m · top ≈ 1.05 m (scan)'); }
+  // --- 5. the long bench down the aisle wall, cupboards under it, shelves over the far half (scan: top ≈ 0.9–1.1 m at x 5.25–5.8 the whole length; stock to ≈ 1.7 m and 2.6 m over z −9…−12.7)
+  { const g = grp(P), b = bench(g, 5.62, -7.6, 9.6, .62, .95, Math.PI / 2, { doors: true }); const t = grp(g, 5.62, .95, 0);
+    let z = -3.4; const kinds = ['case', 'drill', 'tins', 'box', 'reel', 'tub', 'case', 'box', 'drill', 'tins', 'tub', 'box', 'case'];
+    for (const k of kinds) { z -= wf(.55, .8); if (z < -12.3) break;
+      if (k === 'case') caseY(t, 0, 0, z, .35, .13, .5, Math.PI / 2 + wf(-.1, .1)); else if (k === 'drill') drill(t, -.05, 0, z, wf(0, 6), wr() < .5 ? YEL : 0x2a5aa8);
+      else if (k === 'tins') for (let i = 0; i < 3; i++) tin(t, -.12 + (i % 2) * .14, 0, z + i * .13, .05, .1 + wr() * .06, [0xe8e2d0, 0x3b6b3a, 0xb8231d][i]);
+      else if (k === 'box') cbox(t, 0, 0, z, .35, .25, .45, wf(-.2, .2)); else if (k === 'tub') tub(t, 0, 0, z, .32, .22, .45, [0x2a5aa8, 0xb8231d, 0x3b6b3a][Math.floor(wr() * 3)]);
+      else { const r = grp(t, 0, .17, z); cyl(r, .16, .14, ORA, 0, 0, 0, 'x', 20); for (const s of [-1, 1]) cyl(r, .17, .012, BLK, s * .075, 0, 0, 'x', 20); } }
+    const s = shelving(g, 5.74, -10.85, 3.6, .38, 1.75, Math.PI / 2, [.6, 1.15, 1.65]); s.position.y = .95;
+    for (let i = 0; i < 6; i++) { cbox(s, -1.55 + i * .55, .62, 0, .45, .3, .32, wf(-.1, .1)); if (i % 2) tub(s, -1.5 + i * .55, 1.17, 0, .42, .24, .3, 0x2a5aa8); else caseY(s, -1.5 + i * .55, 1.17, 0, .4, .14, .3); }
+    for (let i = 0; i < 5; i++) cbox(s, -1.5 + i * .7, 1.67, 0, .55, .22 + wr() * .1, .32, wf(-.1, .1));
+    T2(g, 'Long bench (aisle wall)', 'A long bench the whole length of the aisle wall with cupboards under it, covered in tool cases, drills, tins, boxes and a cable reel; slotted-angle shelves above the far half full of boxes, fixings tubs and more cases.', '≈ 9.6 × 0.6 m · top ≈ 0.95 m (scan)'); }
+  // --- 6. tall shelving down the left wall, back half (scan: 2.0–2.5 m at x 1.0–2.0, z −6.0…−9.4), and a lower unit after it (1.2–1.5 m, z −9.4…−10.2)
+  { const g = grp(P), s = shelving(g, 1.45, -7.7, 3.3, 1.0, 2.45, Math.PI / 2, [.12, .62, 1.12, 1.62, 2.12]);   // scan: its front face at x ≈ 2.0
+    const cols = [0xb8231d, 0x2a5aa8, 0x3b6b3a, 0xe0661c];
+    for (let lv = 0; lv < 5; lv++) { let u = -1.5; while (u < 1.45) { const k = wr(), y = .14 + lv * .5;
+      if (k < .35) { const w = wf(.3, .5); cbox(s, u + w / 2, y, wf(-.15, .15), w, wf(.2, .4), .5); u += w + .03; }
+      else if (k < .55) { tub(s, u + .22, y, 0, .42, .25, .55, cols[Math.floor(wr() * 4)]); u += .46; }
+      else if (k < .72) { caseY(s, u + .2, y, 0, .38, .14, .5); u += .42; }
+      else if (k < .86) { for (let i = 0; i < 3; i++) tin(s, u + .07 + i * .13, y, wf(-.2, .2), .055, .14, cols[i]); u += .42; }
+      else { const c = grp(s, u + .2, y + .12, 0); for (let i = 0; i < 3; i++) { const tr = new THREE.Mesh(new THREE.TorusGeometry(.12 - i * .02, .012, 6, 20), ORA); tr.rotation.y = Math.PI / 2; c.add(tr); } u += .32; } } }
+    const lo = shelving(g, 1.3, -9.8, .8, .9, 1.45, Math.PI / 2, [.12, .7, 1.3]); for (let lv = 0; lv < 3; lv++) cbox(lo, 0, .14 + lv * .58, 0, .6, .38, .55, wf(-.1, .1));
+    T2(g, 'Tall shelving (left wall)', 'Floor-to-2.4 m slotted-angle shelving down the left wall, packed: cardboard boxes, plastic boxes with coloured lids, yellow tool cases, paint tins and coils of rope; a lower unit of boxes after it.', '≈ 4.1 × 0.85 m · ≈ 2.45 m tall (scan)'); }
+  // --- 7. the far wall: bench with a pegboard tool wall over it, a roll cabinet, the fire extinguisher (scan: bench ≈ 1.2–1.3 m deep in clutter at z −12.2…−12.95, shelving to 2.5 m above; a grey drawer stack ≈ 1.4 m at x ≈ 1.6; red at x ≈ 0.8, 1.3 m)
+  { const g = grp(P), b = bench(g, 3.25, -12.6, 2.9, .65, .95, 0); const t = grp(g, 0, .95, 0);
+    const pb = sheet(3.0, 1.15, PEG, 3.25, 1.15, -12.88, 0); P.remove(pb); g.add(pb);
+    for (let i = 0; i < 6; i++) hammer(g, 2.0 + i * .12, 1.6, -12.86, 0).rotation.z = (i % 2 ? .1 : -.1);
+    for (let i = 0; i < 8; i++) spanner(g, 2.9 + i * .05, 1.45 + i * .008, -12.86, .14 + i * .02);
+    for (let i = 0; i < 3; i++) { const sw = grp(g, 3.5 + i * .2, 1.9, -12.865); box(sw, .12, .5, .004, STEEL, 0, -.45, 0); box(sw, .12, .1, .03, STD({ color: 0x8a3a24 }), 0, 0, 0); }   // hand saws
+    for (let i = 0; i < 4; i++) { const c = grp(g, 4.25 + i * .1, 1.3, -12.85); box(c, .02, .45, .02, STEEL, 0, 0, 0); box(c, .1, .025, .03, RED, .04, .4, 0); box(c, .1, .025, .03, RED, .04, .04, 0); }   // F-clamps
+    box(g, .6, .06, .03, YEL, 2.4, 1.3, -12.86); box(g, .5, .08, .03, STD({ color: 0x2a5aa8 }), 2.5, 2.0, -12.86);   // spirit levels
+    const sh = shelving(g, 3.25, -12.78, 2.9, .3, .55, 0, [.35]); sh.position.y = 2.0; for (let i = 0; i < 6; i++) (i % 2 ? tub : (p, x, y, z, w, h, d) => cbox(p, x, y, z, w, h, d))(sh, -1.2 + i * .48, .37, 0, .4, .18, .26, 0x2a5aa8);
+    drill(t, 2.4, 0, -12.5, .5); caseY(t, 3.0, 0, -12.6, .45, .14, .35); for (let i = 0; i < 3; i++) tub(t, 3.6 + i * .3, 0, -12.65, .26, .12, .2, [0xb8231d, 0x2a5aa8, 0x3b6b3a][i]);
+    const rc = grp(g, 1.45, 0, -12.6); box(rc, .7, 1.0, .5, STD({ color: 0x6b6f73, metalness: .5, roughness: .4 }), 0, .1, 0); box(rc, .72, .4, .5, STD({ color: 0x6b6f73, metalness: .5, roughness: .4 }), 0, 1.1, 0);   // roll cabinet: drawers, a top box
+    for (let i = 0; i < 7; i++) box(rc, .6, .01, .01, BLK, 0, .2 + i * .12, .255); for (let i = 0; i < 7; i++) box(rc, .2, .02, .02, STEEL, 0, .25 + i * .12, .26); for (const sx of [-1, 1]) for (const sz of [-1, 1]) cyl(rc, .04, .03, BLK, sx * .3, .05, sz * .2, 'x', 10);
+    box(rc, .5, .02, .04, STEEL, 0, 1.52, .2);
+    const fe = grp(g, .75, 0, -12.85); cyl(fe, .075, .5, RED, 0, 1.15, 0); cyl(fe, .03, .06, BLK, 0, 1.43, 0); box(fe, .03, .08, .06, BLK, .05, 1.45, 0); const hose = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(.04, 1.43, 0), new THREE.Vector3(.1, 1.3, .03), new THREE.Vector3(.08, 1.0, .05)]), 10, .01, 6), BLK); fe.add(hose);
+    box(fe, .2, .28, .005, STD({ color: 0xf5f3ee }), 0, 1.72, .07);   // its sign
+    T2(g, 'Tool wall (far wall)', 'The far wall: a bench with a pegboard tool wall over it (hammers, spanners, hand saws, F-clamps, levels), a shelf of boxes and fixings tubs on top, a grey roll cabinet of drawers at the left end and the fire extinguisher by the corner.', 'bench ≈ 2.9 × 0.65 m · tool wall to ≈ 2.5 m (scan)'); }
+  // --- 8. on the floor: compressor (scan: ≈ 0.65 m at x 4.0–4.5, z −11.0…−11.5, orange on top), a bin (≈ 0.7 m at x 3.0–3.5, z −8.2…−8.7), offcuts and sheet stock leaning on the left lining
+  { const g = grp(P);
+    const cp = grp(g, 4.25, 0, -11.2, .3); cyl(cp, .19, .62, ORA, 0, .26, 0, 'x', 20); for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(.19, 16, 8), ORA); e.scale.x = .35; e.position.set(s * .31, .26, 0); cp.add(e); }
+    box(cp, .3, .2, .22, BLK, -.05, .45, 0); cyl(cp, .05, .05, STEEL, .2, .5, 0); for (const s of [-1, 1]) cyl(cp, .06, .04, BLK, .25, .06, s * .14, 'z', 12); box(cp, .04, .07, .04, BLK, -.3, 0, 0);
+    const hs = new THREE.Mesh(new THREE.TorusGeometry(.13, .012, 6, 24), STD({ color: 0x2a5aa8 })); hs.rotation.x = Math.PI / 2; hs.position.set(.1, .02, .35); cp.add(hs);
+    T2(cp, 'Compressor', 'An orange air compressor on wheels with a blue airline coiled beside it.', '≈ 0.7 × 0.4 × 0.65 m (scan)');
+    const bn = grp(g, 3.25, 0, -8.45); const bm = new THREE.Mesh(new THREE.CylinderGeometry(.27, .23, .68, 20, 1, true), BLK); bm.position.y = .34; bm.material.side = THREE.DoubleSide; bn.add(bm); cyl(bn, .28, .03, BLK, 0, .68, 0); box(bn, .5, .1, .02, STD({ color: 0xd9d6cc }), .05, .6, .12).rotation.z = .3;
+    for (let i = 0; i < 6; i++) { const o = box(bn, wf(.3, .8), .04, .07, STD({ color: [0xc79a62, 0xb3875a, 0x9a7650][i % 3] }), 0, .5, 0); o.rotation.set(wf(-1.2, -.6), wr() * 6, 0); o.position.y = .55; }
+    for (const [x, z, r, c] of [[2.4, -9.5, .2, 0x2a5aa8], [1.97, -9.95, .16, 0xe8e2d0]]) { const bk = grp(g, x, 0, z); const bm2 = new THREE.Mesh(new THREE.CylinderGeometry(r, r * .85, r * 1.7, 18, 1, true), STD({ color: c, roughness: .5, side: THREE.DoubleSide })); bm2.position.y = r * .85; bk.add(bm2); const rim = new THREE.Mesh(new THREE.TorusGeometry(r, .012, 6, 20), STD({ color: c })); rim.rotation.x = Math.PI / 2; rim.position.y = r * 1.7; bk.add(rim); T2(bk, 'Bucket', 'A plastic bucket on the floor (the scan shows an open ring here).', '≈ ' + (r * 2).toFixed(1) + ' m across'); }   // scan: two rings ≈ 0.4 m at x 2.2–2.6, z −9.3…−9.7 and x 1.6–2.0, z −9.7…−10.1
+    { const lc = grp(g, .9, 0, -11.95); box(lc, .8, .95, .6, STD({ color: 0xd9d4c8, roughness: .6 }), 0, 0, 0); box(lc, .84, .03, .64, TOP, 0, .95, 0); for (const dz of [-.15, .15]) box(lc, .015, .1, .02, STEEL, .41, .75, dz); tin(lc, -.1, .98, .1, .06, .16, 0xb8231d); cbox(lc, .1, .98, -.1, .35, .25, .3); T2(lc, 'Low cupboard', 'A low cupboard in the far left corner with a tin and a box on it.', '≈ 0.8 × 0.6 × 1.0 m (scan)'); }   // scan: ≈ 1.0–1.1 m at x 0.75–1.0, z −11.7…−12.2
+    T2(bn, 'Offcuts bin', 'A black bin full of timber offcuts.', '≈ 0.55 m across · 0.7 m (scan)');
+    const lean = grp(g, .5, 0, -11.0); for (let i = 0; i < 5; i++) { const s = box(lean, .018, 2.4 - i * .25, 1.2 - (i % 2) * .3, i % 2 ? CARC : STD({ color: 0xcdb08a, roughness: .8 }), .05 + i * .02, 0, wf(-.1, .1)); s.rotation.z = -.08; }
+    for (let i = 0; i < 7; i++) { const o = box(lean, .05, wf(1.2, 2.2), .1, STD({ color: [0xc79a62, 0xb3875a][i % 2] }), .22 + i * .015, 0, -.9 + i * .1); o.rotation.z = -.12; }
+    T2(lean, 'Sheet stock + offcuts', 'Ply and OSB sheets and long timber offcuts leaning on the left wall.', '≈ 1.2 × 2.4 m sheets'); }
+  // --- 9. services: strip lights (two lit), sockets and conduit along the benches, a light switch by the door; floor dust and sawdust
+  { const g = grp(P), LT = STD({ color: 0xffffff, emissive: 0xfff6e6, emissiveIntensity: 1.4 }), CND = STD({ color: 0xe9e9e4, roughness: .5 });
+    for (const [x, y, z] of [[1.8, 2.94, -4.3], [4.4, 2.94, -4.3], [1.8, 3.74, -8.2], [4.4, 3.74, -8.2], [1.8, 3.74, -11.4], [4.4, 3.74, -11.4]]) { box(g, .12, .06, 1.5, CND, x, y - .06, z); box(g, .07, .02, 1.42, LT, x, y - .08, z); }
+    for (const [x, y, z] of [[3.2, 2.7, -4.3], [3.2, 3.4, -10.0]]) { const l = new THREE.PointLight(0xfff1dc, 9, 9, 1.6); l.position.set(x, y, z); g.add(l); }
+    box(g, 9.4, .025, .025, CND, 5.93, 1.2, -7.6).rotation.y = Math.PI / 2; for (let z = -3.6; z > -12.3; z -= 1.4) { box(g, .04, .09, .15, CND, 5.93, 1.16, z); for (const dz of [-.035, .035]) box(g, .005, .025, .015, BLK, 5.905, 1.2, z + dz); }
+    box(g, 2.8, .025, .025, CND, 3.25, 1.28, -12.92); for (const x of [2.2, 3.4, 4.5]) box(g, .15, .09, .04, CND, x, 1.24, -12.92);
+    box(g, .08, .12, .03, CND, 4.75, 1.3, -12.92); box(g, .025, 1.3, .025, CND, 4.75, 1.42, -12.92);
+    const dust = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 10.5), new THREE.MeshStandardMaterial({ transparent: true, depthWrite: false, roughness: 1, map: can(256, 512, (x, w, h) => { x.clearRect(0, 0, w, h);
+      for (let i = 0; i < 220; i++) { const cx = wr() * w, cy = wr() * h, r = wf(6, 30), gr = x.createRadialGradient(cx, cy, 0, cx, cy, r); gr.addColorStop(0, `rgba(${wr() < .7 ? '214,180,128' : '120,110,96'},${wf(.15, .4)})`); gr.addColorStop(1, 'rgba(214,180,128,0)'); x.fillStyle = gr; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }
+      for (let i = 0; i < 2500; i++) { x.fillStyle = `rgba(225,195,140,${wf(.2, .6)})`; x.fillRect(wr() * w, wr() * h, 1, 1); } }) }));
+    dust.rotation.x = -Math.PI / 2; dust.position.set(3.2, .004, -7.7); g.add(dust);
+    T(g, 'Workshop lights + sockets', 'Fluorescent strip lights on the ceilings, white conduit and double sockets along the benches, a switch by the door; sawdust on the floor.', '', 'not sure').userData.noPick = true; }
 }
 
 // ---------------- bake: merge each item's static meshes by material (far fewer draw calls) ----------------

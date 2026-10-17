@@ -39,3 +39,25 @@ Evidence: [`ww-scan-top.png`](ww-scan-top.png) — the scan seen from above in t
 
 ## Not reached by the scan (left as they were)
 The right half beyond z −16.7, the far end beyond z −30, the mezzanine top and the roof. Uprights in the yard bay are now measured (2.77 m), so the 2.80 m guess can lose its NOT SURE tag when the yard is merged in.
+
+## Workshop inside (17 Oct, from Josh's workshop scan; evidence `docs/ww-workshop-top.png`, heights only)
+
+Fit: scan floor y −1.445, ceiling 3.83 m over the back, walls square to the scan's axes (0.17°). WW x = scan z + 3.45, WW z = −scan x − 7.9. The scan's +z wall is the aisle wall and its far end has the way out at the aisle corner: the main hall scan shows the same gap in the far wall at x 5.2–6.0 (its top reads 2.8 m there against 4.4–5 m along the rest). Checked against the main scan's view in through the front (heights within the workshop footprint): this way round fits 0.54 m mean height difference, the mirror way 0.76 m.
+
+| Item                     | Where (WW x, z)                       | Height (scan)              | Built as                                   |
+|--------------------------|---------------------------------------|----------------------------|--------------------------------------------|
+| Inside walls             | x 0.45–5.95, z −2.45 to −12.95        | ceiling 3.8 m (back), 3.0 m soffit over z −2.45…−6.1 | OSB lining, ply soffit on two beams |
+| Way out                  | far wall, x ≈ 4.95–5.85               | opening ≈ 2.05 m           | doorway, leaf propped out                  |
+| Front window (aisle)     | z −2.9 to −5.3                        | 1.2–2.6 m (reads as glass) | 2.4 × 1.4 m window; old aisle door removed (the bench runs under it) |
+| Front bench              | x 0.5–5.9, z −2.47…−3.09              | top 1.0–1.1, shelf ≈ 2.0 at x 0.75–2.0 | bench + shelf unit over its left end |
+| Vice bench (left, front) | x 0.47–1.17, z −3.1…−5.7              | 0.9–1.3                    | bench with cupboards, vice; yellow banner above (1.3–2.4 m) |
+| Centre table             | x 2.5–3.9, z −4.45…−5.8               | 1.0–1.1, open under        | table, boxes under                         |
+| Saw bench                | x 2.65–4.15, z −6.43…−6.98            | 1.0–1.1                    | bench with mitre saw                       |
+| Long aisle bench         | x 5.31–5.93, z −2.8…−12.4             | 0.9–1.1; stock to 1.7 / 2.6 over z −9…−12.7 | bench with cupboards, shelves over the far half |
+| Tall shelving (left)     | x 0.95–1.95, z −6.05…−9.35            | 2.0–2.5                    | 5-level slotted-angle shelving             |
+| Low unit                 | x 0.85–1.75, z −9.4…−10.2             | 1.2–1.5                    | 3-level shelving                           |
+| Tool wall bench          | x 1.8–4.7, z −12.28…−12.93            | 1.2–1.3, to 2.5 at the wall | bench, pegboard, shelf                    |
+| Drawer stack             | x 1.1–1.8, z −12.35…−12.85            | ≈ 1.4–1.8                  | roll cabinet                               |
+| Floor items              | (4.25, −11.2), (3.25, −8.45), (2.4, −9.5), (1.97, −9.95) | 0.65, 0.7, ≈0.35, ≈0.3 | compressor, offcuts bin, two buckets |
+| Low cupboard             | x 0.5–1.3, z −11.65…−12.25            | 1.0–1.1                    | cupboard                                   |
+| Red on the far wall      | x ≈ 0.8, 1.3 m                         |                            | fire extinguisher                          |

@@ -50,6 +50,12 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   bandhigh: [[7.6, 3.4, -27.2], [2.8, 3.0, -23.0], true],   // the left band's high bay at z −21.8…−25 (deck ≈ 2.4 m, stock to 5 m), over the single wrapped pile (17 Oct 06:xx)
   bandclose:[[4.8, 3.9, -26.0], [2.6, 3.5, -23.3], true],   // up close on its top level
   cream: [[8.0, 2.3, -20.7], [3.4, 1.9, -20.6], true],      // through the walkway between the wrapped piles: the cream sheeted stack at z −20…−21.1
+  wsin: [[3.4, 2.05, -12.2], [3.1, 1.25, -5.2], true],             // inside the workshop from the far end, looking to the front (the "Workshop (inside)" button's view, 17 Oct)
+  wsfrontin: [[2.0, 2.0, -7.9], [3.0, 1.0, -2.8], true],      // under the low ceiling: front bench, centre table, vice bench, banner
+  wstool: [[3.3, 1.6, -9.6], [3.0, 1.35, -12.9], true],      // the far wall: tool wall, roll cabinet, extinguisher, way out
+  wsaisle: [[2.6, 1.9, -9.0], [5.9, 1.1, -7.2], true],       // the long aisle bench and its shelves, the window
+  wsleft: [[4.4, 2.0, -8.0], [0.6, 1.1, -9.4], true],        // the tall shelving on the left wall, sheet stock, offcuts bin
+  wsout: [[6.2, 1.8, -14.8], [5.2, 1.1, -12.9], true],       // the far wall's doorway from the hall
   tallface: [[6.8, 3.7, -26.4], [1.0, 3.3, -26.6], true],   // the left band's tall bay above the pale sheeted block, z −25…−28.2 (17 Oct 07:xx)
   tallclose:[[3.6, 4.1, -25.4], [0.9, 3.7, -27.0], true],   // up close on its two upper levels
 };

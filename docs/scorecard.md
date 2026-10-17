@@ -295,3 +295,12 @@ One row per build, so each run gets measurably better.
 - Published: NO, on purpose. This build carries the 06:xx changes the review scored worse; shipping it would put a reviewer-worse cream stack live. Next run: revert 06:xx's cream stack and hanging bag, keep this bay, publish.
 - Score (reviewer): tallface Shape 5 · Detail 6 · Surface 5 · Light 6 · Truth 5 · Works 6 = 5.5 (BEFORE 4.8); tallclose 4 · 5 · 5 · 6 · 5 · 5 = 5.0 (BEFORE 4.5)
 
+## 2026-10-17 daytime · WW: the workshop inside, built from Josh's workshop scan (Josh's request: "complete picture with even more detail", W1–W4) · reviewer-scored
+- Meeting: Josh asked for it now, not tonight. W1–W4 in one go; W5 (detail pass) next. Also did the 06:xx reverts the 07:xx review asked for, so the publish didn't ship them.
+- Team: Opus 5.5 (boss + builder) fitted the workshop scan (floor/ceiling/wall-angle from face normals; orientation tested against the main scan: 0.54 vs 0.76 m mean height difference, plus the main scan's gap in the far wall), read heightmaps (q95/q20) and five private elevations, wrote `WSHOP()`, the zone-camera support in template.html, six inside views in shoot.js, the evidence top view; two fix rounds of my own (shelving depth to the scan's 2.0 m face, buckets and a cupboard added; cameras that started inside furniture; shelf uprights through bench tops raised onto the benches). Haiku checker PASS. Fresh Opus reviewer blind, 4 pairs. No researcher.
+- Changed: see the backlog W1–W4 line. Old aisle door removed (the scan has the long bench and a 2.4 m window there); the way in is a doorway in the far wall at the aisle corner.
+- Review (unblinded): inside from the far end 4.7 → 6.0, under the low ceiling 4.0 → 5.7, tool wall 5.8 (new subject), outside door-end 5.7 → 5.5 (missed the door).
+- Checker (Haiku): PASS. errors [] phone and desktop, 0.27 MB, ready 51–62 s; notes: zone list over the right edge on phone, a bucket behind the HQ button.
+- Published: yes (with the keycaps block). Now includes the 07:xx tall bay; 06:xx cream stack and hanging bag reverted.
+- Score (reviewer): inside view Shape 7 · Detail 6 · Surface 6 · Light 5 · Truth 5 · Works 7 = 6.0 (BEFORE 4.7)
+
