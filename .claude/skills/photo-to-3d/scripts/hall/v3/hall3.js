@@ -715,7 +715,26 @@ const STOCK = (() => {
     for (const sx of [-.09, .09]) box(hb, .03, .3, .006, STD({ color: 0x1b1b1d, roughness: .8 }), sx, -.17, .01);   // the strap over the beam
     at(hb, 'Black bag (hanging)', 'A black bag hung by its strap off the front beam. The scan shows a dark shape hanging here, down to about 1.3 m.', '≈ 0.35 × 0.95 m');
     sd = s0; return items; }
-  return { fill, fillBack, fillDoor, fillTool, fillLeft, fillHigh, tarpBlock, roll: (p, x, y, z, len, r) => roll(p, x, y, z, len, r, 0xdcdcd6), duffle, TICK }; })();
+  // ---- the left band's tall bay above the pale sheeted block, 17 Oct 07:xx (scan step 2c-iv, part 2): heightmap (q95 and q20) + elevation (private)
+  // show a face at x ≈ 1.4 reaching the scan's 5 m top from z −25.0 to −28.2 (uprights read at both ends), a deck at ≈ 2.3 m, a second level at ≈ 3.3 m;
+  // the pale block hides everything under 2.1 m. Level 1: a teal tote and a white/cream folded pile with a yellow bag on it, a brown bundle at the far upright;
+  // level 2: dark navy and black bags at the front, grey-white folded sheeting behind them to ≈ 4.9 m, timber lengths laid on top, the brown bundle again.
+  // Local x runs from the door-end upright (z −25.0) to the far one (z −28.2); +z local = the aisle side.
+  function fillTall(g, cx, y, lv) { const s0 = sd; sd = 9931 + lv * 17; const items = [], at = (o, n, w, s) => { items.push([o, n, w, s]); return o; };
+    if (lv === 0) { sd = s0; return items; }   // bottom level: behind the pale block, not seen in the scan, left empty
+    deck(g, cx, y, 3.1); const b = cx + 1.6;   // b = the far upright (z −28.2)
+    if (lv === 1) { at(foldStack(g, cx - .15, y, -.05, 1.05, .85, 7, [sheetMat(0xe4ddcc), SHEETS[1], sheetMat(0xd2c9b4)], [.07, .1]), 'Cream folded pile', 'Cream and white sheeting folded flat. The scan shows cream and white here, about 2.3–2.8 m up.', '≈ 1.0 × 0.85 m');
+      at(duffle(g, cx + .25, y + .55, .05, .75, .3, .6, 0xd8b23a, null), 'Yellow bag', 'A yellow bag on the cream pile. The scan shows a yellow band here, about 3.0–3.3 m up.', '≈ 0.75 × 0.6 m'); duffle(g, cx - .45, y + .55, 0, .55, .28, .55, 0xcfa632, null);
+      at(tote(g, cx + .82, y, .05, .6, .45, .4, 0x2a8b8c), 'Teal tote', 'A teal plastic tote. The scan shows teal-green here.', '≈ 0.6 × 0.4 m'); duffle(g, cx - 1.12, y, 0, .6, .5, .8, 0x9a9b97, 0x8ac43f);
+      at(foldStack(g, b - .24, y, 0, .34, .7, 6, [sheetMat(0x5a4030), sheetMat(0x4a3426)], [.12, .16]), 'Brown bundle', 'A dark brown bundle stood at the far upright. The scan shows brown here from about 2.5 to 4.7 m.', '≈ 0.35 × 0.7 m'); }
+    else { at(foldStack(g, cx - .1, y, -.22, 2.3, .62, 18, [SHEETS[0], SHEETS[1], SHEETS[4], sheetMat(0xa9adab)], [.07, .1]), 'Folded sheeting (top)', 'Grey and white sheeting folded and stacked at the back of the top level. The scan shows pale grey and white here, about 4.0–4.9 m up.', '≈ 2.3 × 0.6 × 1.5 m');
+      at(duffle(g, cx - .85, y, .24, .95, .55, .55, 0x2b3550, null), 'Navy bag', 'A navy bag at the front of the top level. The scan shows dark blue here, about 3.3–3.9 m up.', '≈ 0.95 × 0.55 m'); duffle(g, cx + .45, y, .26, .8, .6, .5, 0x26272a, null);
+      at(foldStack(g, b - .24, y, 0, .34, .7, 8, [sheetMat(0x5a4030), sheetMat(0x4a3426)], [.12, .16]), 'Brown bundle (top)', 'The brown bundle carries on up the far upright.', '≈ 0.35 × 0.7 m');
+      const tm = [0x8a6440, 0x7a5634, 0x94704a].map(c => STD({ color: c, roughness: .85 })), tg = grp(g, cx - .2, y + 1.39, -.2, .02);
+      for (let i = 0; i < 4; i++) box(tg, 2.4 - i * .12, .075, .2, tm[i % 3], fx(-.05, .05), i < 3 ? 0 : .075, -.22 + i * .15 - (i === 3 ? .2 : 0));
+      at(tg, 'Timber lengths', 'Timber boards laid on top of the stack. The scan shows a long brown edge along the top here, about 4.9 m up.', '≈ 2.4 m × 0.2 m boards'); }
+    sd = s0; return items; }
+  return { fill, fillBack, fillDoor, fillTool, fillLeft, fillHigh, fillTall, tarpBlock, roll: (p, x, y, z, len, r) => roll(p, x, y, z, len, r, 0xdcdcd6), duffle, TICK }; })();
 
 // ---- black ribbed planters (Josh: "black ribbed boxes strapped in pairs on the racking = planters") ----
 // One ribbed, tapered body (extruded plan outline: a 40 mm rib every 100 mm, 18 mm proud), an open top with a thick lip and a silver
@@ -1005,6 +1024,10 @@ function layout() {
     const cr = grp(P, 3.6, 0, -20.55); { const s0 = _seed; pallet(cr, 1.0, 1.2, 0, .3); _seed = s0; }
     STOCK.tarpBlock(cr, -.25, .06, 0, 1.1, 2.3, .85, 0xd2c8b2, LEFT, .03, 24); STOCK.tarpBlock(cr, .3, .06, 0, 1.05, 3.55, .62, 0xd9cfb8, LEFT, .04, 30);   // scan: ≈ 2.2–2.5 m at x 2.9–3.4, ≈ 3.3–3.8 m at x 3.5–4.25
     T(cr, 'Sheeted stack (cream)', 'A tall stack about 3.6 m high under a cream sheet, lower at the back, at the end of the walkway between the wrapped piles. The LiDAR scan shows cream fabric with long vertical folds here; what\'s under it isn\'t known.', '≈ 1.2 × 1.3 × 3.6 m (scan)', 'not sure');
+    // ---- 17 Oct 07:xx (scan step 2c-iv, part 2): the tall bay above the pale sheeted block, z −25.0…−28.2, front x 1.4 ----
+    { const s0 = _seed, ts = [], tb = racking(P, .85, -25.0, LEFT, 1, [.15, 2.3, 3.3], 3.2, 1.1, MX.orange, (g, cx, y, b, yy) => ts.push(...STOCK.fillTall(g, cx, y, yy < 1 ? 0 : yy < 3 ? 1 : 2))); _seed = s0;   // LiDAR: face to the 5 m top at x ≈ 1.4, deck ≈ 2.3 m (q20), level ≈ 3.3 m
+      for (const [o, name, what, size] of ts) T(o, name, what + ' Read off the LiDAR scan, not confirmed.', size, 'not sure');
+      T(tb, 'Racking (tall bay)', 'One bay of racking against the left wall behind the pale sheeted block, stocked on its upper two levels up to about 5 m: a teal tote, cream sheeting and a yellow bag, then navy and black bags, grey-white sheeting and timber on top. The bottom level is hidden behind the block in the scan.', '1 bay × 3.2 m · beams ≈ 2.3 / 3.3 m (scan)', 'not sure'); }
   { const g = crownStack(P, K12, 7.2, -15.6, Math.PI, [[0, 1], [1, 1]]); const top = crownCrate(g, K12, .66, 1.24, 0); top.userData.level = 1; CRATES.push(top);   // 3 here + 1 by the door = 4 counted (photo 11)
     const byDoor = crownStack(P, K12, 6.3, -2.6, Math.PI / 2, [[0, 1]]); T(byDoor, '12 ft crown crate (by the door)', 'A single "12FT CROWN × 12" crate near the roller door.', '1.2 × 1.0 × 1.24 m');
     T(g, '12 ft crown crates', 'Green covers "12FT CROWN × 12": twelve 12 ft yurt crowns per crate, out in the middle of the hall.', '1.2 × 1.0 × 1.24 m each'); }

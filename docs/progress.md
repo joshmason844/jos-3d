@@ -5,7 +5,7 @@ Every page in the challenge, its latest score from a fresh-eyes review, and the 
 | Page               | Start (14 Oct) | Latest | Target | At standard? |
 |--------------------|----------------|--------|--------|--------------|
 | People in 3D       | 6.3            | 6.3    | 8      | no           |
-| WW (workshop warehouse) | 6.3            | 6.2 (reviewer, 17 Oct 03:xx: left-wall rack + sheeted block close-ups 6.2); 17 Oct 04:xx self-scored 5.7 → 5.8 (02:xx piles reverted, milky stretch-wrap); 05:xx self-scored 5.8 → 6.0 on the left-side close-ups (scan's three wrapped piles back, wraps sized to the load), review due; 06:xx self-scored 5.4 → 6.0 on the left band close-ups (high bay + cream stack from the scan), review due | 8      | no           |
+| WW (workshop warehouse) | 6.3            | 5.5 (reviewer, 17 Oct 07:xx blind: new tall bay above the pale block 4.8 → 5.5 / 4.5 → 5.0; but 04:xx–06:xx builds scored worse on the left-side shots, 4.0–5.3, reverts due) | 8      | no           |
 | Sections 1–5       | 7.0            | 7.0    | 8      | no           |
 
 Pages: 0 of 3 at standard.
