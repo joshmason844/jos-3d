@@ -5,7 +5,7 @@ Every page in the challenge, its latest score from a fresh-eyes review, and the 
 | Page               | Start (14 Oct) | Latest | Target | At standard? |
 |--------------------|----------------|--------|--------|--------------|
 | People in 3D       | 6.3            | 6.3    | 8      | no           |
-| WW (workshop warehouse) | 6.3            | 6.7 (reviewer, 16 Oct 07:xx: yard-bay + crate close-ups; whole hall last scored 5.8 at 03:xx). Self-scored, review due: 16 Oct 23:xx OSB walls 5.2 → 5.8; 17 Oct 00:xx yellow workshop-wall racking stocked 5.2 → 5.8; 17 Oct 01:xx workshop 3.8 m ceiling, side door, floor-panel pile 5.3 → 5.9; 17 Oct 02:xx left-side stacks matched to the scan 5.2 → 5.7 | 8      | no           |
+| WW (workshop warehouse) | 6.3            | 6.2 (reviewer, 17 Oct 03:xx: left-wall rack + sheeted block close-ups 6.2; the night's earlier builds 6.0–6.5; 02:xx left stacks scored worse, revert due) | 8      | no           |
 | Sections 1–5       | 7.0            | 7.0    | 8      | no           |
 
 Pages: 0 of 3 at standard.
