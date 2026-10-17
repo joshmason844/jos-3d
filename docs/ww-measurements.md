@@ -28,6 +28,7 @@ Evidence: [`ww-scan-top.png`](ww-scan-top.png) — the scan seen from above in t
 | Yard bay                               | x 13 to 18.4 (rack front), z −1.75 to −14.85: 13.1 m deep, open to the aisle on its left | —            | —      |
 | Main aisle by the door                 | 11.2 m, yellow rack front (x 7.2) to orange rack front (x 18.4) | —                         | —      |
 | Floor panels (door end)                | a 2.0 × 0.9 m pile, 1.15 m tall, x 13.0–15.0, z −3.0 to −3.9 | x 13.0, z −3.8, 0.43 m tall  | yes (24 panels, 1.15 m, 17 Oct) |
+| Left-side stacks (z −18…−26)          | three cling-filmed piles across the hall at x 3.7–6.6: z −18.3…−20.0 ≈ 3.5–3.8 m, z −21.6…−22.9 ≈ 2.6–3.9 m, z −22.9…−24.6 ≈ 1.25 m; wall band front x 1.4 (z −15.5…−19.4), x 2.6 (z −19.5…−25) | one 3-high stillage stack along the wall at x 2.7–4.1; pole stillages and canvas through the wall (to x −0.6); floor panels on open floor at x 7.3 | yes (17 Oct: 4/3/1-high piles, wall items back to x ≥ 0.1, floor panels removed; `docs/ww-left-stacks-top.png`) |
 | 14 ft crown crates                     | mid-hall, x 6.1–10.0, z ≈ −27 to −29, fronts to the door ("14FT CROWN 5" readable) | right wall, z −14.6 | yes |
 
 ## Moved because the scan shows something else there (spot itself not scanned: orange NOT SURE)

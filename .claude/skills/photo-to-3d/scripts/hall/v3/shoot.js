@@ -40,7 +40,10 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   canvasclose:[[3.4, 1.5, -20.0], [1.0, 1.0, -21.6], true],   // the red 14 ft canvas covers on the left wall
   sidedoor: [[12.0, 2.0, -6.8], [14.2, 1.3, 0.0], true],     // the door wall's side door (x 13.2–15.1) and the floor-panel pile in front of it
   panelclose:[[12.4, 1.5, -5.2], [14.0, .7, -3.45], true],   // close on the floor-panel pile
-  mezz: [[12.6, 3.6, -1.6], [5.0, 3.5, -8.0], true],         // the workshop and the sewing room on top, from across the aisle by the door
+  mezz: [[12.6, 3.6, -1.6], [5.0, 3.5, -8.0], true],
+  leftstacks:[[10.5, 3.6, -13.6], [3.6, 1.4, -21.6], true],  // the left-side stacks at z −18…−26 from the aisle: wall stillages, the cling-filmed stillage stacks
+  leftside: [[9.2, 2.2, -21.0], [3.0, 1.6, -21.0], true],    // square on to them from mid-aisle
+  leftclose: [[7.6, 1.6, -20.9], [4.6, 1.1, -22.4], true],   // close on the stack ends and the gap between them         // the workshop and the sewing room on top, from across the aisle by the door
 };
 const want = only ? only.split(',') : ['door', 'up', 'roofclose', 'far'];
 (async () => {
