@@ -47,6 +47,9 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   leftrack: [[5.2, 3.5, -14.9], [1.0, 2.5, -18.2], true],    // the left-wall racking bay at z −16.65…−19.4, from the aisle over the safari crates (17 Oct 03:xx)
   leftrackhi:[[3.9, 2.6, -16.0], [1.0, 3.6, -18.4], true],   // up close under its top two levels
   leftfar: [[6.4, 2.3, -24.0], [1.6, 1.2, -26.6], true],     // the pale sheeted block at z −25.1…−28.3 and the red pole stillages by it
+  bandhigh: [[7.6, 3.4, -27.2], [2.8, 3.0, -23.0], true],   // the left band's high bay at z −21.8…−25 (deck ≈ 2.4 m, stock to 5 m), over the single wrapped pile (17 Oct 06:xx)
+  bandclose:[[4.8, 3.9, -26.0], [2.6, 3.5, -23.3], true],   // up close on its top level
+  cream: [[8.0, 2.3, -20.7], [3.4, 1.9, -20.6], true],      // through the walkway between the wrapped piles: the cream sheeted stack at z −20…−21.1
 };
 const want = only ? only.split(',') : ['door', 'up', 'roofclose', 'far'];
 (async () => {

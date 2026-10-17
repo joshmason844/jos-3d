@@ -671,9 +671,9 @@ const STOCK = (() => {
     const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, 'rgba(255,255,255,.08)'); g.addColorStop(.75, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(70,58,44,.35)'); x.fillStyle = g; x.fillRect(0, 0, w, h);
     noise(x, w, h, w * h / 30, .07); return c; };
   // a soft box: sides bulge, top sags between the corners, vertical folds, the hem flares out a little on the floor
-  const softGeo = (bulge, sag, folds, flare) => { const g = new THREE.BoxGeometry(1, 1, 1, 12, 10, 12), P = g.attributes.position, ph = fx(0, 6);
+  const softGeo = (bulge, sag, folds, flare, fq = 9) => { const g = new THREE.BoxGeometry(1, 1, 1, 12, 10, 12), P = g.attributes.position, ph = fx(0, 6);
     for (let i = 0; i < P.count; i++) { let x = P.getX(i), y = P.getY(i), z = P.getZ(i); const t = y + .5, e = Math.sin(Math.PI * t);
-      const fo = 1 + bulge * e + folds * (Math.sin((x + z) * 9 + ph) + .5 * Math.sin((x - z) * 21 + ph * 2)) * (.4 + .6 * e) + flare * Math.max(0, .12 - t) * 8;
+      const fo = 1 + bulge * e + folds * (Math.sin((x + z) * fq + ph) + .5 * Math.sin((x - z) * fq * 7 / 3 + ph * 2)) * (.4 + .6 * e) + flare * Math.max(0, .12 - t) * 8;
       x *= fo; z *= fo; if (y > .45) y -= sag * (1 - 4 * x * x) * (1 - 4 * z * z) - sag * .5;
       P.setXYZ(i, x, y, z); }
     g.computeVertexNormals(); return g; };
@@ -683,8 +683,8 @@ const STOCK = (() => {
     for (const sz of [-1, 1]) box(g, w * .92, .012, .006, STD({ color: 0xcfcdc4, roughness: .8 }), 0, h * .55, sz * (d * .53));   // sewn band round the middle
     return g; }
   // a sheeted stack: a tarp thrown over a block of kit, roped down; folds, sag, hem on the floor
-  function tarpBlock(p, x, y, z, w, h, d, col, ry = 0) { const g = grp(p, x, y, z, ry), tx = toTex(wovenTex(col, 512, 256)), m = STD({ map: tx, roughness: .7 });
-    const b = new THREE.Mesh(softGeo(.04, .07, .022, .06), m); b.scale.set(w, h, d); b.position.y = h / 2; b.castShadow = b.receiveShadow = true; g.add(b);
+  function tarpBlock(p, x, y, z, w, h, d, col, ry = 0, fo = .022, fq = 9) { const g = grp(p, x, y, z, ry), tx = toTex(wovenTex(col, 512, 256)), m = STD({ map: tx, roughness: .7 });
+    const b = new THREE.Mesh(softGeo(.04, .07, fo, .06, fq), m); b.scale.set(w, h, d); b.position.y = h / 2; b.castShadow = b.receiveShadow = true; g.add(b);
     const rp = STD({ color: 0x4f6272, roughness: .75 }), hem = STD({ color: new THREE.Color(col).multiplyScalar(.6), roughness: .8 }), eye = STD({ color: 0xb8bcbe, metalness: .7, roughness: .35 });
     for (const sz of [-1, 1]) { box(g, w * 1.05, .05, .012, hem, 0, .02, sz * d * .53); for (let k = 0; k < 5; k++) cyl(g, .014, .008, eye, -w * .45 + k * w * .225, .045, sz * d * .536, 'z', 10); }   // reinforced hem with eyelets
     for (const f of [-.3, .3]) { const L = w * f, pts = [[L, .05, d * .6], [L, h * .5, d * .6], [L, h * .9, d * .58], [L, h * 1.07, d * .3], [L, h * 1.08, -d * .3], [L, h * .9, -d * .58], [L, h * .5, -d * .6], [L, .05, -d * .6]].map(q => new THREE.Vector3(...q));
@@ -700,7 +700,22 @@ const STOCK = (() => {
       foldStack(g, cx - 1.08, y, 0, .42, .85, 8, [sheetMat(0x4a3426), sheetMat(0x5a4030)], [.08, .12]); }
     else { duffle(g, cx + .85, y, 0, .85, .5, .9, 0xcbbd9c, 0x8ac43f); at(duffle(g, cx, y, 0, .8, .55, .85, 0xb5b5b0, 0x8ac43f), 'Bags (top level)', 'Pale grey and beige bags on the top beam, up to about 5 m. The scan shows pale bags up here.', '≈ 0.85 × 0.9 m'); duffle(g, cx - .85, y, 0, .8, .5, .85, 0xd3c6a8, null); }
     sd = s0; return items; }
-  return { fill, fillBack, fillDoor, fillTool, fillLeft, tarpBlock, roll: (p, x, y, z, len, r) => roll(p, x, y, z, len, r, 0xdcdcd6), duffle, TICK }; })();
+  // ---- the left band's high bay, 17 Oct 06:xx (scan step 2c-iv, part 1): heightmap + elevations (private) show a flat deck at ≈ 2.4 m from x 2.8 to 3.5,
+  // uprights at z ≈ −21.8 and −25.0, nothing seen under it from the aisle but a dark bag hanging off the front, and stock from 2.45 m to the scan's 5 m top
+  // set back to x ≈ 2.8: grey-white folded sheeting (the scan's vertical stripes) at the far end, a blue-grey sheeted mass in the middle, a brown bundle by the door-end upright.
+  // Local x runs from the door-end upright (z −21.8) to the far one (z −25.0); +z local = the aisle side; stock sits to the back (local z ≈ −0.45).
+  function fillHigh(g, cx, y) { const s0 = sd; sd = 8819; const items = [], at = (o, n, w, s) => { items.push([o, n, w, s]); return o; }; deck(g, cx, y, 3.1);
+    const zb = -.42, x0 = cx - 1.6;
+    at(foldStack(g, x0 + 2.47, y, zb, 1.3, .66, 26, [SHEETS[1], SHEETS[4], sheetMat(0xd6cdbb), sheetMat(0x9a948a)], [.07, .1]), 'Folded sheeting (high)', 'Grey and white sheeting folded and stacked to the top, about 2.3 m of it. The scan shows grey and white stripes here (the folded edges), 2.5–4.8 m up.', '≈ 1.3 × 0.7 × 2.3 m');
+    at(tarpBlock(g, x0 + 1.0, y, zb + .02, 1.5, 2.42, .72, 0x8e949a, 0, .028, 22), 'Blue-grey sheeted stack', 'A stack about 1.5 m wide under a blue-grey sheet, up to the scan\'s 5 m top. What\'s under the sheet isn\'t known.', '≈ 1.5 × 0.7 × 2.4 m');
+    at(foldStack(g, x0 + .16, y, zb, .3, .6, 4, [sheetMat(0x5a4030), sheetMat(0x4a3426)], [.16, .26]), 'Brown bundle', 'A dark brown bundle stood against the door-end upright. The scan shows brown here, about 3.5–4.8 m up.', '≈ 0.3 × 0.6 m');
+    // the dark bag the scan sees hanging off the front beam, ≈ 1.3–2.4 m (a black holdall hung by its strap)
+    const hb = grp(g, x0 + 1.75, y - .12, .62); const bm = new THREE.Mesh(new THREE.CapsuleGeometry(.16, .62, 4, 10), bagMt(0x26272a)); bm.scale.set(1.3, 1, .6); bm.position.y = -.62; bm.rotation.z = .06; bm.castShadow = true; hb.add(bm);
+    box(hb, .012, .78, .004, STD({ color: 0x9a9b97, metalness: .6, roughness: .4 }), 0, -.98, .1); for (const sy of [-.25, -1.0]) box(hb, .42, .035, .11, STD({ color: 0x1b1b1d, roughness: .8 }), 0, sy, 0);   // zip down the front, webbing bands round it
+    for (const sx of [-.09, .09]) box(hb, .03, .3, .006, STD({ color: 0x1b1b1d, roughness: .8 }), sx, -.17, .01);   // the strap over the beam
+    at(hb, 'Black bag (hanging)', 'A black bag hung by its strap off the front beam. The scan shows a dark shape hanging here, down to about 1.3 m.', '≈ 0.35 × 0.95 m');
+    sd = s0; return items; }
+  return { fill, fillBack, fillDoor, fillTool, fillLeft, fillHigh, tarpBlock, roll: (p, x, y, z, len, r) => roll(p, x, y, z, len, r, 0xdcdcd6), duffle, TICK }; })();
 
 // ---- black ribbed planters (Josh: "black ribbed boxes strapped in pairs on the racking = planters") ----
 // One ribbed, tapered body (extruded plan outline: a 40 mm rib every 100 mm, 18 mm proud), an open top with a thick lip and a silver
@@ -965,7 +980,9 @@ function layout() {
     const L5 = { sets: 5, per: 3, doors: 1 }, info = ['14 ft trellis + door stillages', 'Purple 14 ft stillages, stretch-wrapped, stacked in three piles that run across the hall from the left-wall stillages towards the aisle. A 14 ft yurt is 3 trellis sections per door, and each stillage holds 5 doors with their trellis: 15 sections, the folded trellis laid two side by side with each door flat on its set. Where and how high from the LiDAR scan (15 Oct): one pile four high (≈ 3.7 m in the scan), one three high, one single.'];
     const st = [trellisStillages(P, 5.0, -19.15, .02, [L5, L5, L5, L5]), trellisStillages(P, 5.05, -22.25, -.015, [L5, L5, L5]), trellisStillages(P, 5.15, -23.78, .01, [L5])];
     st.forEach((g, k) => T(g, info[0] + ['', ' (three high)', ' (single)'][k], info[1], 'stillages 2.32 × 1.35 m · 5 yurts each · ' + ['≈ 4.0', '≈ 3.0', '≈ 1.0'][k] + ' m tall', 'not sure')); _seed = s1; }
-  { const g = poleStillage(P, 1.47, -23.9, LEFT, [.5, .5, .5, .5, .5, .5], ['r16', 'r16', 'r16', 'r12', 'r12', 'r12'], M.red, 1.15, 2.4); T(g, 'Pole stillages (red): 16 ft + 12 ft', 'Red pole stillages six high along the left wall: the 16 ft and 12 ft yurt roof poles, strapped in bundles. Moved 1.5 m towards the door on 17 Oct: the LiDAR scan has a pale sheeted block where they were drawn; their own spot isn\'t scanned clearly.', 'poles ≈ 2.3 m (16 ft) and 1.7 m (12 ft), worked out from the yurt sizes'); }
+  { const s0 = _seed; poleStillage(SPARE, 1.47, -23.9, LEFT, [.5, .5, .5, .5, .5, .5], ['r16', 'r16', 'r16', 'r12', 'r12', 'r12'], M.red, 1.15, 2.4); const s1 = _seed; _seed = s0;   // old six-high stack: draws taken, not shown
+    const g = poleStillage(P, 1.47, -23.9, LEFT, [.5, .5, .5, .5], ['r16', 'r16', 'r12', 'r12'], M.red, 1.15, 2.4); _seed = s1;   // 17 Oct 06:xx: four high, under the high bay's 2.4 m deck
+    T(g, 'Pole stillages (red): 16 ft + 12 ft', 'Red pole stillages four high along the left wall, under the high racking bay: the 16 ft and 12 ft yurt roof poles, strapped in bundles. Moved 1.5 m towards the door on 17 Oct: the LiDAR scan has a pale sheeted block where they were drawn; their own spot isn\'t scanned clearly (it\'s hidden behind the stock in front).', 'poles ≈ 2.3 m (16 ft) and 1.7 m (12 ft), worked out from the yurt sizes', 'not sure'); }
   // ===== left wall band from the scan (17 Oct 03:xx, Josh's request: scan step 2c-iii) =====
   { const stock = [], leftFill = (g, cx, y, b, yy) => stock.push(...STOCK.fillLeft(g, cx, y, b, yy < 1 ? 0 : yy < 3 ? 1 : 2));
     const r = racking(P, .85, -16.53, LEFT, 1, [.15, 2.3, 4.35], 2.77, 1.1, MX.orange, leftFill);   // LiDAR: a face 5 m tall at x ≈ 1.4, z −16.6…−19.4; one 2.77 m bay like the yard bay's
@@ -981,6 +998,13 @@ function layout() {
     const pb = grp(P, 2.05, 0, -26.7); { const s0 = _seed; for (const dz of [-1.1, 0, 1.1]) pallet(grp(pb, 0, 0, dz), 1.2, 1.0, 0, .3); _seed = s0; }
     STOCK.tarpBlock(pb, 0, .05, 0, 3.25, 2.05, 1.15, 0xd8d3c4, LEFT);
     T(pb, 'Sheeted block (pale)', 'A long block about 3.2 m × 1.1 m and 2.1 m tall under a pale tarp, roped down, against the left wall. The LiDAR scan shows a smooth pale top and creased sides here; what\'s under it isn\'t known.', '≈ 3.2 × 1.1 × 2.1 m (scan)', 'not sure'); }
+    // ---- 17 Oct 06:xx (scan step 2c-iv, part 1): the high bay at z −21.8…−25.0 and the cream sheeted stack by the walkway ----
+    const hs = [], hi = racking(P, 2.95, -21.8, LEFT, 1, [2.4], 3.2, 1.1, MX.orange, (g, cx, y) => hs.push(...STOCK.fillHigh(g, cx, y)));   // LiDAR: deck ≈ 2.4 m at x 2.8–3.5, uprights z ≈ −21.8 / −25.0
+    for (const [o, name, what, size] of hs) T(o, name, what + ' Read off the LiDAR scan, not confirmed.', size, 'not sure');
+    T(hi, 'Racking (high bay)', 'One bay of racking with a single deck at about 2.4 m, stock on it up to about 5 m, the red pole stillages underneath. The LiDAR scan shows the deck, the uprights and the stock from the aisle; nothing under the deck is visible in it.', '1 bay × 3.2 m · deck ≈ 2.4 m (scan)', 'not sure');
+    const cr = grp(P, 3.6, 0, -20.55); { const s0 = _seed; pallet(cr, 1.0, 1.2, 0, .3); _seed = s0; }
+    STOCK.tarpBlock(cr, -.25, .06, 0, 1.1, 2.3, .85, 0xd2c8b2, LEFT, .03, 24); STOCK.tarpBlock(cr, .3, .06, 0, 1.05, 3.55, .62, 0xd9cfb8, LEFT, .04, 30);   // scan: ≈ 2.2–2.5 m at x 2.9–3.4, ≈ 3.3–3.8 m at x 3.5–4.25
+    T(cr, 'Sheeted stack (cream)', 'A tall stack about 3.6 m high under a cream sheet, lower at the back, at the end of the walkway between the wrapped piles. The LiDAR scan shows cream fabric with long vertical folds here; what\'s under it isn\'t known.', '≈ 1.2 × 1.3 × 3.6 m (scan)', 'not sure');
   { const g = crownStack(P, K12, 7.2, -15.6, Math.PI, [[0, 1], [1, 1]]); const top = crownCrate(g, K12, .66, 1.24, 0); top.userData.level = 1; CRATES.push(top);   // 3 here + 1 by the door = 4 counted (photo 11)
     const byDoor = crownStack(P, K12, 6.3, -2.6, Math.PI / 2, [[0, 1]]); T(byDoor, '12 ft crown crate (by the door)', 'A single "12FT CROWN × 12" crate near the roller door.', '1.2 × 1.0 × 1.24 m');
     T(g, '12 ft crown crates', 'Green covers "12FT CROWN × 12": twelve 12 ft yurt crowns per crate, out in the middle of the hall.', '1.2 × 1.0 × 1.24 m each'); }
