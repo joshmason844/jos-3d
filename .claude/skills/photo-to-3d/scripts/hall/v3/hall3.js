@@ -1,7 +1,7 @@
 // ===== Main hall v3: one clean model, everything in its place (metres) =====
 // Frame: the roller door is at z = 0 and the hall runs to z = -39. x runs 0 (left wall as you walk in) to 20 (right wall). y up.
 // Front of every stack faces the aisle. Built from Josh's 60 photos and 2 walk-round videos; sizes from crates (1.2 × 1.0 m), stillages (2.32 × 1.35 m) and the forklift (2.16 m guard).
-const HW = 20, HL = 39, EAVE = 6.0, RIDGE = 7.7, BAY = 6.5, DOOR = { x0: 6.85, x1: 12.35, h: 5.5 };
+const HW = 20, HL = 39, EAVE = 6.0, RIDGE = 7.7, BAY = 6.5, DOOR = { x0: 6.85, x1: 12.35, h: 5.5 }, SIDE = { x0: 13.2, x1: 15.1, h: 2.2 };   // SIDE: the door wall's side door, LiDAR (15 Oct): x 13.2–15.1, daylight through it; head ≈ 2.2 m (down-facing face in the scan)
 const LEFT = Math.PI / 2, RIGHT = -Math.PI / 2, FAR = 0;   // ry that turns a stack's front to face the aisle from the left wall / right wall / far wall
 const ZONES = [];                                          // { name, items: [groups] } for the zone buttons
 let ZONE = null; const zone = name => { ZONE = { name, items: [] }; ZONES.push(ZONE); };
@@ -263,8 +263,8 @@ function wwWalls(g) {
   // far gable (s = x)
   panel(g, [[0, HW, flat(0), gab]], HW, RIDGE, gab, { p: [0, 0, -HL], ry: 0 });
   // door wall from inside (s = HW − x): round the roller door opening
-  const d0 = HW - DOOR.x1, d1 = HW - DOOR.x0;
-  panel(g, [[0, d0, flat(0), gab], [d0, d1, flat(DOOR.h), gab], [d1, HW, flat(0), gab]], HW, RIDGE, gab, { p: [HW, 0, 0], ry: Math.PI });
+  const d0 = HW - DOOR.x1, d1 = HW - DOOR.x0, e0 = HW - SIDE.x1, e1 = HW - SIDE.x0;
+  panel(g, [[0, e0, flat(0), gab], [e0, e1, flat(SIDE.h), gab], [e1, d0, flat(0), gab], [d0, d1, flat(DOOR.h), gab], [d1, HW, flat(0), gab]], HW, RIDGE, gab, { p: [HW, 0, 0], ry: Math.PI });
   // galvanised base angle along the foot of the sheets
   const galv = STD({ color: 0x8d9296, metalness: .55, roughness: .5 });
   box(g, .05, .05, HL - 13.2, galv, .025, 0, -(13.2 + HL) / 2).castShadow = false; box(g, .05, .05, HL, galv, HW - .025, 0, -HL / 2).castShadow = false;
@@ -757,33 +757,33 @@ function layout() {
   const P = scene;
   // ===== door end, left: workshop under the mezzanine, racking with the mezzanine store over it, IBCs =====
   zone('Door end · left');
-  { const g = grp(P, 0, 0, -2.3); const MW = 6.0, ML = 10.6;   // LiDAR (15 Oct): left as you walk in, 6.1 m deep off the left wall × 10.6 m long, front 2.45 m in from the door wall (Josh guessed 8 × 4)
-    box(g, MW, .22, ML, MX.steel, MW / 2, 3.0, -ML / 2 - .1); for (const [x, z] of [[.3, -.3], [MW - .1, -.3], [MW - .1, -ML / 2], [MW - .1, -ML], [.3, -ML]]) box(g, .14, 3.0, .14, MX.steel, x, 0, z);
-    box(g, MW, 3.0, .05, MX.osb, MW / 2, 0, -.15); box(g, .05, 3.0, ML - .2, MX.osb, MW, 0, -ML / 2 - .1);   // workshop walls
+  { const g = grp(P, 0, 0, -2.3); const MW = 6.0, ML = 10.6, CH = 3.8, DK = CH + .22, SH = 1.95;   // CH: workshop ceiling 3.8 m in Josh's workshop scan (was drawn 3.0); DK: sewing-room floor; SH: its front wall, kept under the 6 m eaves. LiDAR (15 Oct): left as you walk in, 6.1 m deep off the left wall × 10.6 m long, front 2.45 m in from the door wall (Josh guessed 8 × 4)
+    box(g, MW, .22, ML, MX.steel, MW / 2, CH, -ML / 2 - .1); for (const [x, z] of [[.3, -.3], [MW - .1, -.3], [MW - .1, -ML / 2], [MW - .1, -ML], [.3, -ML]]) box(g, .14, CH, .14, MX.steel, x, 0, z);
+    box(g, MW, CH, .05, MX.osb, MW / 2, 0, -.15); box(g, .05, CH, ML - .2, MX.osb, MW, 0, -ML / 2 - .1);   // workshop walls
     box(g, .04, .9, 1.6, STD({ color: 0x8aa0ad, metalness: .4, roughness: .1 }), MW + .04, 1.2, -1.1); box(g, .04, .9, 1.6, STD({ color: 0x8aa0ad, metalness: .4, roughness: .1 }), MW + .04, 1.2, -9.5);   // windows clear of the yellow racking (scan: racking z -5.25…-10.85)
     box(g, .06, 2.0, .9, MX.osb, MW + .04, 0, -2.4);   // door near the front, where the scan shows the way in                                                         // door
     { const sv = _seed, TR = STD({ map: grain('#c8a878', '120,85,45', 256, 32, 0), roughness: .7 }), _r = (_seed = sv), HW_ = STD({ color: 0x8e9196, metalness: .7, roughness: .35 });   // OSB sheets on every face you can see (16–17 Oct): front to the door, long wall to the aisle, sewing-room walls above
-      OSB.wall(g, 0, 0, -.122, 0, MW, 3.0); OSB.wall(g, MW + .028, 0, -.2, Math.PI / 2, ML - .2, 3.0);
-      OSB.wall(g, 0, 3.22, -.122, 0, MW, 2.4, false); OSB.wall(g, MW + .028, 3.22, -.2, Math.PI / 2, ML - .2, .62, false); OSB.wall(g, MW + .028, 5.12, -.2, Math.PI / 2, ML - .2, .5, false);
-      for (const [y, h] of [[0, 3.0], [3.22, 2.4]]) box(g, .07, h, .07, TR, MW - .005, y, -.135);   // corner battens over the sheet edges
+      OSB.wall(g, 0, 0, -.122, 0, MW, CH); OSB.wall(g, MW + .028, 0, -.2, Math.PI / 2, ML - .2, CH);
+      OSB.wall(g, 0, DK, -.122, 0, MW, SH, false); OSB.wall(g, MW + .028, DK, -.2, Math.PI / 2, ML - .2, .62, false); OSB.wall(g, MW + .028, DK + 1.9, -.2, Math.PI / 2, ML - .2, .5, false);
+      for (const [y, h] of [[0, CH], [DK, SH]]) box(g, .07, h, .07, TR, MW - .005, y, -.135);   // corner battens over the sheet edges
       for (const zc of [-1.1, -9.5]) { for (const s of [-1, 1]) box(g, .03, 1.0, .06, TR, MW + .04, 1.15, zc + s * .83); for (const y of [1.12, 2.1]) box(g, .03, .06, 1.72, TR, MW + .04, y, zc); }   // window architraves
       OSB.wall(g, MW + .072, 0, -1.95, Math.PI / 2, .9, 2.0);   // the door: an OSB-faced door, frame, three hinges, lever handle
       for (const s of [-1, 1]) box(g, .035, 2.06, .06, TR, MW + .05, 0, -2.4 + s * .48); box(g, .035, .06, 1.02, TR, MW + .05, 2.0, -2.4);
       for (const y of [.25, 1.0, 1.75]) box(g, .012, .1, .05, HW_, MW + .078, y, -1.97);
       box(g, .012, .16, .045, HW_, MW + .078, .95, -2.76); box(g, .05, .022, .022, HW_, MW + .1, 1.02, -2.76); box(g, .022, .022, .12, HW_, MW + .125, 1.02, -2.71); }
-    box(g, MW, 2.4, .05, MX.osb, MW / 2, 3.22, -.15); box(g, .05, .62, ML - .2, MX.osb, MW, 3.22, -ML / 2 - .1); box(g, .05, .5, ML - .2, MX.osb, MW, 5.12, -ML / 2 - .1);   // sewing room walls, open in the middle so you can see in
-    for (const [dy, h] of [[3.84, .06], [5.1, .06]]) box(g, .1, h, 2.7, MX.timber, MW + .03, dy, -4.0); for (const dz of [-5.32, -2.68]) box(g, .1, 1.3, .06, MX.timber, MW + .03, 3.84, dz);   // open front onto the aisle
+    box(g, MW, SH, .05, MX.osb, MW / 2, DK, -.15); box(g, .05, .62, ML - .2, MX.osb, MW, DK, -ML / 2 - .1); box(g, .05, .5, ML - .2, MX.osb, MW, DK + 1.9, -ML / 2 - .1);   // sewing room walls, open in the middle so you can see in
+    for (const [dy, h] of [[DK + .62, .06], [DK + 1.88, .06]]) box(g, .1, h, 2.7, MX.timber, MW + .03, dy, -4.0); for (const dz of [-5.32, -2.68]) box(g, .1, 1.3, .06, MX.timber, MW + .03, DK + .62, dz);   // open front onto the aisle
     // the sewing room up top (Josh): long cutting tables, industrial machines, rolls of canvas, strip lights
-    { const sw = grp(g, 0, 3.22, 0), TOP = STD({ color: 0xe9e6dc, roughness: .6 }), LEG = STD({ color: 0x5b5f63, metalness: .5, roughness: .4 });
+    { const sw = grp(g, 0, DK, 0), TOP = STD({ color: 0xe9e6dc, roughness: .6 }), LEG = STD({ color: 0x5b5f63, metalness: .5, roughness: .4 });
       for (const [x, z, L] of [[1.3, -2.4, 3.2], [1.3, -6.0, 2.4]]) { box(sw, 1.2, .04, L, TOP, x, .86, z); for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(sw, .05, .86, .05, LEG, x + sx * .55, 0, z + sz * (L / 2 - .1)); }
       for (let i = 0; i < 2; i++) { const t = new THREE.Mesh(new THREE.BoxGeometry(1.2, .02, 2.2), STD({ color: [0xcbb998, 0x3f5a46][i], roughness: .95 })); t.position.set(1.3, .91 + i * .02, -2.4 + i * .3); t.rotation.y = (rnd() - .5) * .1; t.castShadow = true; sw.add(t); }   // canvas laid out on the cutting table
       for (const z of [-4.4, -5.0]) { box(sw, .55, .74, 1.1, STD({ color: 0x3c3f44, roughness: .5 }), 3.1, 0, z); box(sw, .55, .04, 1.1, TOP, 3.1, .74, z);
         const mc = grp(sw, 3.1, .78, z); box(mc, .18, .1, .45, STD({ color: 0x2b4a7a, roughness: .35, metalness: .2 }), 0, 0, 0); box(mc, .12, .26, .1, STD({ color: 0x2b4a7a, roughness: .35, metalness: .2 }), 0, .1, -.17); box(mc, .12, .1, .4, STD({ color: 0x2b4a7a, roughness: .35, metalness: .2 }), 0, .32, -.02); cyl(mc, .008, .14, M.steel, 0, .22, .17); }
       for (let i = 0; i < 6; i++) { const c = cyl(sw, .12, 1.5, STD({ color: [0xd8cdb4, 0x3f5a46, 0xcbb998, 0xece8df][i % 4], roughness: .95 }), .45, .12 + Math.floor(i / 3) * .24, -6.6 - (i % 3) * .26, 'x', 16); }   // canvas rolls
       for (let i = 0; i < 3; i++) bag(sw, 2.9, 0, -6.8 - i * .45, .45, .34, .55, '#3e5240', '#9cff3a');
-      for (const z of [-2, -4, -6]) { box(sw, .12, .04, 1.4, STD({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: .8 }), 1.6, 2.3, z); } }
-    for (let i = 0; i < 3; i++) box(g, 1.1, .2, .9, MX.ply, 1.2, 3.22 + i * .21, -6.4);
-    T(g, 'Workshop + sewing room', 'Measured from Josh\'s LiDAR scan (15 Oct): about 6.1 × 10.6 m. On the left as you walk in: a boxed-in workshop under a steel mezzanine (OSB walls, windows and a door onto the aisle, bench and tool wall inside). Up on the mezzanine is the sewing room: long cutting tables with canvas laid out, industrial sewing machines, rolls of canvas and a few bags waiting for repair.', '≈ 8 × 4 m (Josh) · deck ≈ 3 m up', 'sure'); }
+      for (const z of [-2, -4, -6]) { box(sw, .12, .04, 1.4, STD({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: .8 }), 1.6, 1.85, z); } }   // strip lights hung under the roof (the sewing room sits 0.8 m higher since the 3.8 m workshop ceiling)
+    for (let i = 0; i < 3; i++) box(g, 1.1, .2, .9, MX.ply, 1.2, DK + i * .21, -6.4);
+    T(g, 'Workshop + sewing room', 'Measured from Josh\'s LiDAR scan (15 Oct): about 6.1 × 10.6 m. On the left as you walk in: a boxed-in workshop under a steel mezzanine (OSB walls, windows and a door onto the aisle, bench and tool wall inside). Up on the mezzanine is the sewing room: long cutting tables with canvas laid out, industrial sewing machines, rolls of canvas and a few bags waiting for repair.', '6.1 × 10.6 m (scan) · workshop ceiling ≈ 3.8 m (scan)', 'sure'); }
   { const spare = new THREE.Group(), stock = [], toolFill = (g, cx, y, b, yy) => { rackFill(spare, cx, y); stock.push(...STOCK.fillTool(g, cx, y, b, Math.round((yy - .15) / 1.2))); };   // from the scan elevation (17 Oct); old random draws still taken into spare so nothing else moves
     const r = racking(P, 6.65, -5.25, LEFT, 2, [.15, 1.35, 2.55, 3.75], 2.8, 1.1, MX.yellow, toolFill);   // LiDAR: against the workshop wall, front at x 7.2
     for (const [o, name, what, size] of stock) T(o, name, what + ' Read off the LiDAR scan\'s elevation of this run, not confirmed.', size, 'not sure');
@@ -812,8 +812,35 @@ function layout() {
     T(g, 'Black crate tower', 'Three black Green Yurts crates stacked and cling-filmed together beside the door (the LiDAR scan shows a tall pile left of the roller door, x 4.9–8.2; black kit barely shows on LiDAR), with a flight case on wheels and a stack of trays next to it.', '≈ 3.9 m tall', 'not sure'); }
   { const g = grp(P, 14.6, 0, -1.6, -.3); for (let i = 0; i < 6; i++) { const s = trellisSection({ seed: 700 + i, weathered: .4 }); s.setOpen(s.minOpen); const h = grp(g, 0, 0, i * .1); h.rotation.x = -.3; h.add(s); s.position.set(-s.userData.cx, s.userData.end0, 0); }
     T(g, 'Trellis stood on end', 'Folded trellis sections stood up and leaning, next to the doorway.', '≈ 2.5 m tall'); }
-  { const g = grp(P, 14.0, 0, -3.45, .05); for (let i = 0; i < 9; i++) { box(g, 1.95, .04, 1.1, STD({ map: grain(['#5a3a26', '#6a4430', '#4e3322'][i % 3], '30,20,10') }), (rnd() - .5) * .08, i * .048, 0); box(g, 1.8, .01, .06, M.pallet, 0, i * .048 + .04, .4); }
-    T(g, 'Floor panels (low stack)', 'A short stack of dark hardwood-faced yurt floor panels by the aisle.', '≈ 2.0 × 1.1 m'); }
+  { const g = grp(P, 14.0, 0, -3.45, .05), faces = [];   // LiDAR (15 Oct): a 2.0 × 0.9 m pile, 1.15 m tall (was drawn 9 panels, 0.43 m). Panels 40 mm + 8 mm battens = 48 mm a layer: 24 high
+    for (let i = 0; i < 9; i++) { faces.push(box(g, 1.95, .04, 1.1, STD({ map: grain(['#5a3a26', '#6a4430', '#4e3322'][i % 3], '30,20,10') }), (rnd() - .5) * .08, i * .048, 0)); box(g, 1.8, .01, .06, M.pallet, 0, i * .048 + .04, .4); }   // the first nine as before (same rnd draws, so nothing else moves)
+    let sd = 4433; const fr = () => (sd = (sd * 16807) % 2147483647) / 2147483647, N = 24, LH = .048;
+    const BAT = STD({ color: 0x9a7650, roughness: .85 }), EDGE = STD({ color: 0x3a281c, roughness: .9 }), STRAP = STD({ color: 0x1c1c1e, roughness: .7 });
+    for (let i = 9; i < N; i++) { const lean = i > 18 ? (i - 18) * .006 : 0;   // the top few slide a touch off square, as hand-stacked panels do
+      const b = box(g, 1.95, .04, 1.1, faces[i % 3].material, (fr() - .5) * .08 + lean, i * LH, (fr() - .5) * .05); b.rotation.y = (fr() - .5) * .025;
+      if (i < N - 1) box(g, 1.8, .01, .06, M.pallet, 0, i * LH + .04, .4); }
+    for (let i = 0; i < N - 1; i++) for (const bz of [-.42, 0, .42]) box(g, 1.85, .008, .045, BAT, 0, i * LH + .04, bz);   // battens under every panel: they show as a stripe of light timber between the dark faces
+    for (let i = 0; i < N; i += 2) box(g, .012, .035, 1.08, EDGE, -.976, i * LH + .003, 0);   // sealed end grain on every other panel
+    for (const sx of [-.55, .55]) {   // two black ratchet straps round the pile
+      box(g, .05, N * LH + .02, .006, STRAP, sx, 0, .556); box(g, .05, N * LH + .02, .006, STRAP, sx, 0, -.556);
+      box(g, .05, .006, 1.12, STRAP, sx, N * LH + .01, 0);
+      box(g, .07, .09, .03, STD({ color: 0x8d9296, metalness: .7, roughness: .35 }), sx, .55, .572); }
+    T(g, 'Floor panels (stack by the side door)', 'Yurt floor sections stacked flat: dark hardwood-faced panels on light timber battens, about two dozen high, two ratchet straps round the pile. Height and footprint from the LiDAR scan (15 Oct).', '≈ 2.0 × 1.1 m · 1.15 m tall (scan)', 'fairly sure'); }
+  { const s0 = _seed, g = grp(P, 0, 0, 0), TR = STD({ map: grain('#c8a878', '120,85,45', 256, 32, 0), roughness: .7 }), HWm = STD({ color: 0x8e9196, metalness: .7, roughness: .35 }); _seed = s0;   // the door wall's side door (LiDAR, 15 Oct: x 13.2–15.1, daylight through it): OSB-lined opening, timber frame, a pair of OSB-faced doors, one open in, one out
+    const { x0, x1, h } = SIDE, W = x1 - x0, LW = W / 2 - .03;
+    OSB.wall(g, x0 + .012, 0, .14, Math.PI / 2, .2, h, false); OSB.wall(g, x1 - .012, 0, -.06, -Math.PI / 2, .2, h, false);   // OSB lining on the reveals
+    box(g, W, .018, .2, MX.osb, (x0 + x1) / 2, h - .018, .04);   // and the head
+    for (const x of [x0 - .035, x1 + .035]) box(g, .07, h + .07, .03, TR, x, 0, -.016); box(g, W + .14, .07, .03, TR, (x0 + x1) / 2, h, -.016);   // architraves on the hall side
+    for (const x of [x0 + .025, x1 - .025]) box(g, .05, h, .07, TR, x, 0, .11); box(g, W, .05, .07, TR, (x0 + x1) / 2, h - .05, .11);   // door frame (stops on the outside line)
+    box(g, W + .04, .012, .2, STD({ color: 0x9aa0a4, metalness: .6, roughness: .45 }), (x0 + x1) / 2, 0, .04);   // galvanised threshold plate, worn bright
+    const leaf = (hx, sgn, ang) => { const lg = grp(g, hx, 0, .1); lg.rotation.y = ang; const f = grp(lg, sgn > 0 ? 0 : -LW, .015, 0);
+      OSB.wall(f, 0, 0, .022, 0, LW, h - .07, false); OSB.wall(f, LW, 0, -.022, Math.PI, LW, h - .07, false);   // OSB both faces on a 40 mm frame
+      box(f, LW, h - .07, .04, MX.osb, LW / 2, 0, 0); for (const yy of [.04, (h - .07) / 2 - .05, h - .18]) box(f, LW - .02, .1, .012, TR, LW / 2, yy, .027);   // ledges on the outside face
+      for (const yy of [.25, 1.05, 1.85]) box(f, .28, .03, .006, HWm, sgn > 0 ? .14 : LW - .14, yy, -.026);   // tee hinges
+      box(f, .025, .2, .03, HWm, sgn > 0 ? LW - .09 : .09, .95, -.04); return lg; };   // pull handle
+    leaf(x0, 1, -Math.PI / 4);   // left leaf propped half open outwards (you see it through the opening)
+    leaf(x1, -1, -Math.PI / 4);   // right leaf propped half open into the hall
+    T(g, 'Side door (door wall)', 'A pedestrian door in the door wall, right of the roller door: OSB-lined opening with a timber frame and a pair of OSB-faced doors, propped open. Opening measured from the LiDAR scan (x 13.2–15.1 m, daylight through it); the doors themselves are a guess.', '≈ 1.9 × 2.2 m (scan)', 'fairly sure'); }
   // ===== the aisle: forklift and a loose bag =====
   zone('Aisle');
   { const f = buildForklift(); f.position.set(9.6, 0, -6.5); f.rotation.y = Math.PI; f.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); P.add(f);

@@ -38,6 +38,9 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   toolhigh: [[9.8, 3.9, -6.6], [6.9, 3.5, -9.2], true],      // its top two levels
   toolclose: [[8.7, 1.25, -8.4], [7.0, .75, -10.1], true],   // close on its lower shelves, far bay
   canvasclose:[[3.4, 1.5, -20.0], [1.0, 1.0, -21.6], true],   // the red 14 ft canvas covers on the left wall
+  sidedoor: [[12.0, 2.0, -6.8], [14.2, 1.3, 0.0], true],     // the door wall's side door (x 13.2–15.1) and the floor-panel pile in front of it
+  panelclose:[[12.4, 1.5, -5.2], [14.0, .7, -3.45], true],   // close on the floor-panel pile
+  mezz: [[12.6, 3.6, -1.6], [5.0, 3.5, -8.0], true],         // the workshop and the sewing room on top, from across the aisle by the door
 };
 const want = only ? only.split(',') : ['door', 'up', 'roofclose', 'far'];
 (async () => {

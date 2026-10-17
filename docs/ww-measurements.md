@@ -16,18 +16,18 @@ Evidence: [`ww-scan-top.png`](ww-scan-top.png) — the scan seen from above in t
 | What                                   | Scan says                                          | hall3.js had                         | Moved? |
 |----------------------------------------|----------------------------------------------------|--------------------------------------|--------|
 | Wall to wall                           | 19.95 m (±5 cm)                                    | 20.0 m                               | no (5 cm) |
-| Workshop under the mezzanine (inside)  | 10.58 × 5.31 m, ceiling ≈ 3.8 m (its own scan)     | 8 × 4 m, deck at 3.0 m               | footprint yes; height next run |
+| Workshop under the mezzanine (inside)  | 10.58 × 5.31 m, ceiling ≈ 3.8 m (its own scan)     | 8 × 4 m, deck at 3.0 m               | yes (footprint 15 Oct; ceiling 3.8 m 17 Oct, sewing room raised 0.8 m with it) |
 | Workshop in the hall                   | x 0–6.1, z −2.45 to −13.0 (±0.3 m)                 | x 0–4, z −0.15 to −8.1               | yes    |
 | Yellow racking (left)                  | on the workshop's outside wall, front x 7.2, z −5.25 to −10.85, 2 bays × 2.8 m | left wall x 0.1–1.2, z −8.6 to −14, 2 × 2.7 | yes |
 | IBC tanks                              | x 6.4–7.1, z −13.1 to −15.2                        | x 2.6, z −13.4                       | yes    |
 | Orange racking, right wall (yard bay)  | front x 18.4, wall 19.95; uprights z −14.2, −11.43, −8.63, −5.9, −3.13, −0.35 → 5 bays × 2.77 m (±5 cm); beams 1.55 and 3.03 m | 3 bays × 2.7 m, z −17.2 to −9.1, beams 1.2/2.3/3.3 | yes |
 | Orange racking, door wall              | 1 bay × 2.9 m, x 15.2–18.1, front z −1.75; beams 2.15 / 3.05 m | not drawn                       | added  |
 | Yellow racking across the back of the yard bay | x 13.6–18.5, front z −14.85, 2 bays ≈ 2.45 m, beams ≈ 1.35 / 3.0 m | not drawn                   | added  |
-| Side door (OSB-lined)                  | x 13.2–15.1 in the door wall                       | not drawn                            | next run |
+| Side door (OSB-lined)                  | x 13.2–15.1 in the door wall                       | not drawn                            | drawn 17 Oct (opening cut, OSB-lined, frame, pair of doors; head ≈ 2.2 m from a down-facing face in the scan) |
 | Roller door                            | open from x ≈ 8.9 to 12.7 at least; left edge not reached | x 6.85–12.35                  | no (left edge unknown) |
 | Yard bay                               | x 13 to 18.4 (rack front), z −1.75 to −14.85: 13.1 m deep, open to the aisle on its left | —            | —      |
 | Main aisle by the door                 | 11.2 m, yellow rack front (x 7.2) to orange rack front (x 18.4) | —                         | —      |
-| Floor panels (door end)                | a 2.0 × 0.9 m pile, 1.15 m tall, x 13.0–15.0, z −3.0 to −3.9 | x 13.0, z −3.8, 0.43 m tall  | position yes; height next run |
+| Floor panels (door end)                | a 2.0 × 0.9 m pile, 1.15 m tall, x 13.0–15.0, z −3.0 to −3.9 | x 13.0, z −3.8, 0.43 m tall  | yes (24 panels, 1.15 m, 17 Oct) |
 | 14 ft crown crates                     | mid-hall, x 6.1–10.0, z ≈ −27 to −29, fronts to the door ("14FT CROWN 5" readable) | right wall, z −14.6 | yes |
 
 ## Moved because the scan shows something else there (spot itself not scanned: orange NOT SURE)
