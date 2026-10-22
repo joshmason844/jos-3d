@@ -1072,6 +1072,8 @@ function layout() {
 }
 // The workshop's contents. Own RNG (wr) and own canvases: nothing here draws from the layout seed, so nothing else moves.
 function WSHOP(P) {
+  let sq = 4409; const qr = () => (sq = (sq * 16807) % 2147483647) / 2147483647, qf = (a, b) => a + (b - a) * qr(), qspecks = (x, w, h, n, a) => { for (let i = 0; i < n; i++) { x.fillStyle = `rgba(${qr() > .5 ? '255,255,255' : '0,0,0'},${a * qr()})`; x.fillRect(qr() * w, qr() * h, 1 + qr() * 2, 1 + qr() * 2); } };   // W5 (22 Oct): own RNG for the detail pass, so wr()'s layout doesn't move
+  const n0 = P.children.length;   // everything added from here on is the workshop (for the contact-shadow bake at the end)
   let sd = 6271; const wr = () => (sd = (sd * 16807) % 2147483647) / 2147483647, wf = (a, b) => a + (b - a) * wr();
   const can = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new CT(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
   const specks = (x, w, h, n, a) => { for (let i = 0; i < n; i++) { x.fillStyle = `rgba(${wr() > .5 ? '255,255,255' : '0,0,0'},${a * wr()})`; x.fillRect(wr() * w, wr() * h, 1 + wr() * 2, 1 + wr() * 2); } };
@@ -1085,10 +1087,25 @@ function WSHOP(P) {
   const CARC = STD({ color: 0x9a7c56, roughness: .85 }), EDGE = STD({ color: 0x6b5236, roughness: .8 });
   const STEEL = STD({ color: 0x7c8186, metalness: .6, roughness: .45 }), DARK = STD({ color: 0x24272b, roughness: .55, metalness: .3 }), CHIP = STD({ color: 0xc9b48f, roughness: .85 });
   const RED = STD({ color: 0xb8231d, roughness: .4, metalness: .2 }), YEL = STD({ color: 0xf2b705, roughness: .45 }), BLK = STD({ color: 0x1b1c1e, roughness: .6 }), ORA = STD({ color: 0xe0661c, roughness: .45, metalness: .2 });
-  const CARD = STD({ roughness: .9, map: can(128, 128, (x, w, h) => { x.fillStyle = '#b88d5c'; x.fillRect(0, 0, w, h); specks(x, w, h, 900, .08); x.fillStyle = 'rgba(205,170,115,.9)'; x.fillRect(w / 2 - 8, 0, 16, h); x.fillStyle = '#f0ede6'; x.fillRect(14, 70, 40, 26); x.fillStyle = '#333'; for (let i = 0; i < 4; i++) x.fillRect(18, 75 + i * 5, 20 + wr() * 14, 2); }) });
+  const burn = n => { for (let i = 0; i < n; i++) wr(); };   // W5: the old CARD/OSBIN canvases drew from wr(); burn the same number of draws so every later item stays where it was
+  burn(5404);
+  const CARDS = [0, 1, 2].map(k => STD({ roughness: .9, map: can(128, 128, (x, w, h) => { x.fillStyle = ['#b88d5c', '#a87f52', '#c29a68'][k]; x.fillRect(0, 0, w, h); qspecks(x, w, h, 900, .08);   // three kinds of box: label, tape and print differ
+    x.fillStyle = 'rgba(205,170,115,.9)'; x.fillRect(w / 2 - 8, 0, 16, h); if (k === 1) { x.fillStyle = 'rgba(160,150,140,.55)'; x.fillRect(0, h / 2 - 7, w, 14); }
+    if (k === 0) { x.fillStyle = '#f0ede6'; x.fillRect(14, 70, 40, 26); x.fillStyle = '#333'; for (let i = 0; i < 4; i++) x.fillRect(18, 75 + i * 5, 20 + qr() * 14, 2); }
+    else if (k === 1) { x.fillStyle = '#1a1a1a'; x.font = 'bold 15px Arial'; x.fillText('FIXINGS', 72, 100); x.fillText('M8', 80, 116); }
+    else { x.strokeStyle = 'rgba(40,40,40,.8)'; x.lineWidth = 2; x.beginPath(); x.moveTo(20, 40); x.lineTo(20, 22); x.moveTo(14, 28); x.lineTo(20, 22); x.lineTo(26, 28); x.moveTo(36, 40); x.lineTo(36, 22); x.moveTo(30, 28); x.lineTo(36, 22); x.lineTo(42, 28); x.stroke(); x.fillStyle = '#2a2a2a'; x.fillRect(74, 84, 40, 4); x.fillRect(74, 92, 30, 3); } }) }));
+  const CARD = CARDS[0]; let cardN = 0;
   const PEG = STD({ roughness: .8, map: can(512, 256, (x, w, h) => { x.fillStyle = '#a07a52'; x.fillRect(0, 0, w, h); specks(x, w, h, 3000, .08); x.fillStyle = 'rgba(30,20,12,.85)'; for (let j = 8; j < h; j += 16) for (let i = 8; i < w; i += 16) { x.beginPath(); x.arc(i, j, 2.4, 0, 7); x.fill(); }
     x.strokeStyle = 'rgba(40,30,20,.35)'; x.lineWidth = 2; for (let i = 0; i < 12; i++) { const a = wr() * w, b = wr() * h; x.strokeRect(a, b, wf(20, 70), wf(30, 90)); } }) });   // tool outlines drawn on the board
-  const OSBIN = STD({ roughness: .86, map: can(256, 512, (x, w, h) => { x.fillStyle = '#b08a5a'; x.fillRect(0, 0, w, h); for (let i = 0; i < 1500; i++) { const p = [[150, 118, 80], [176, 142, 98], [128, 98, 64], [196, 160, 112]][i % 4]; x.save(); x.translate(wr() * w, wr() * h); x.rotate(Math.PI / 2 + wf(-.6, .6)); x.fillStyle = `rgb(${p})`; x.fillRect(-wf(8, 20), -wf(2, 4), wf(16, 40), wf(4, 8)); x.restore(); } specks(x, w, h, 2000, .1); }) });
+  burn(22500);
+  const OSBIN = STD({ roughness: .86, map: can(512, 1024, (x, w, h) => { x.fillStyle = '#b38c5c'; x.fillRect(0, 0, w, h);   // one 1.22 x 2.44 m sheet at ~420 px/m: many small strands close in tone (the 17 Oct big blotchy ones read as camouflage)
+    for (let i = 0; i < 5200; i++) { const t = qf(-32, 32), y0 = [0, 1, -1][i % 3] * 8; x.save(); x.translate(qr() * w, qr() * h); x.rotate(Math.PI / 2 + qf(-.5, .5)); x.fillStyle = `rgb(${179 + t + y0},${140 + t * .9},${92 + t * .7})`; const L = qf(26, 60), Wd = qf(7, 14); x.fillRect(-L / 2, -Wd / 2, L, Wd); x.restore(); }
+    for (let i = 0; i < 420; i++) { x.fillStyle = `rgba(70,45,22,${qf(.3, .6)})`; x.fillRect(qr() * w, qr() * h, qf(2, 9), qf(1, 3)); }   // resin gaps and bark flecks
+    qspecks(x, w, h, 3000, .07);
+    x.fillStyle = 'rgba(60,40,22,.55)'; x.fillRect(0, 0, w, 2); x.fillRect(0, h - 2, w, 2); x.fillRect(0, 0, 2, h); x.fillRect(w - 2, 0, 2, h);   // the joint to the next sheet
+    x.fillStyle = 'rgba(0,0,0,.08)'; x.fillRect(0, 0, w, 10); x.fillRect(0, 0, 10, h);
+    x.fillStyle = 'rgba(45,45,48,.9)'; for (const sx of [10, w / 2, w - 10]) for (let y = 16; y < h; y += 64) { x.beginPath(); x.arc(sx, y + qf(-2, 2), 2.2, 0, 7); x.fill(); }   // screw lines on the studs
+    const g = x.createLinearGradient(0, h, 0, h * .8); g.addColorStop(0, 'rgba(60,45,30,.22)'); g.addColorStop(1, 'rgba(60,45,30,0)'); x.fillStyle = g; x.fillRect(0, h * .8, w, h * .2); }) });   // scuffed and grubby along the bottom
   OSBIN.map.wrapS = OSBIN.map.wrapT = THREE.RepeatWrapping;
   const sheet = (w, h, m, x, y, z, ry) => { const s = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m); s.position.set(x, y + h / 2, z); s.rotation.y = ry; s.receiveShadow = true; P.add(s); return s; };
   // --- shell: OSB lining on the left (x 0.45) and on the inside of the front and aisle walls, the far wall with its doorway, the low ply soffit
@@ -1099,7 +1116,7 @@ function WSHOP(P) {
     box(w, .02, 1.4, 2.4, GL, 5.945, 1.2, -4.1); for (const s of [-1, 1]) box(w, .05, 1.5, .07, FR, 5.93, 1.15, -4.1 + s * 1.235); for (const y of [1.13, 2.6]) box(w, .05, .07, 2.54, FR, 5.93, y, -4.1); box(w, .05, 1.4, .05, FR, 5.93, 1.2, -4.1);
     box(w, .16, .03, 2.54, FR, 5.86, 1.13, -4.1); } lin(5.5, 3.8, 3.2, -2.48, Math.PI); lin(10.4, 3.8, 5.96, -7.65, -Math.PI / 2);
   { const fw = grp(P, 0, 0, -12.95); const H = 3.8, D0 = 4.95, D1 = 5.85, DH = 2.05;   // far wall: OSB on studs, a doorway at the aisle corner (scan: gap at x ≈ 5.0–5.8)
-    for (const [a, b, y0, y1] of [[.45, D0, 0, H], [D1, 6.0, 0, H], [D0, D1, DH, H]]) { box(fw, b - a, y1 - y0, .1, CARC, (a + b) / 2, y0, 0); for (const zz of [.052, -.052]) { const s = new THREE.Mesh(new THREE.PlaneGeometry(b - a, y1 - y0), OSBIN); s.position.set((a + b) / 2, (y0 + y1) / 2, zz); s.rotation.y = zz > 0 ? 0 : Math.PI; s.receiveShadow = true; fw.add(s); } }
+    for (const [a, b, y0, y1] of [[.45, D0, 0, H], [D1, 6.0, 0, H], [D0, D1, DH, H]]) { box(fw, b - a, y1 - y0, .1, CARC, (a + b) / 2, y0, 0); for (const zz of [.052, -.052]) { const om = OSBIN.clone(); om.map = OSBIN.map.clone(); om.map.repeat.set((b - a) / 1.22, (y1 - y0) / 2.44); om.map.needsUpdate = true; const s = new THREE.Mesh(new THREE.PlaneGeometry(b - a, y1 - y0), om); s.position.set((a + b) / 2, (y0 + y1) / 2, zz); s.rotation.y = zz > 0 ? 0 : Math.PI; s.receiveShadow = true; fw.add(s); } }
     const TR = STD({ color: 0xc8a878, roughness: .7 }); for (const x of [D0 - .03, D1 + .03]) box(fw, .06, DH + .06, .14, TR, x, 0, 0); box(fw, D1 - D0 + .12, .06, .14, TR, (D0 + D1) / 2, DH, 0);
     const leaf = grp(fw, D0 + .02, 0, -.07); leaf.rotation.y = -Math.PI * .62; box(leaf, .86, DH - .03, .04, CARC, .43, .01, -.02); for (const s of [.022, -.062]) { const f = new THREE.Mesh(new THREE.PlaneGeometry(.86, DH - .03), OSBIN); f.position.set(.43, (DH) / 2, s); if (s < 0) f.rotation.y = Math.PI; leaf.add(f); }
     box(leaf, .12, .03, .03, STEEL, .74, 1.0, .02); box(leaf, .12, .03, .03, STEEL, .74, 1.0, -.07);
@@ -1121,7 +1138,7 @@ function WSHOP(P) {
     for (const y of levels) { box(g, L, .018, D, CHIP, 0, y, 0); for (const sz of [-1, 1]) box(g, L, .035, .015, STEEL, 0, y - .02, sz * D / 2); }
     for (const sx of [-1, 1]) { const m = new THREE.Mesh(new THREE.BoxGeometry(.012, Math.hypot(H * .5, D) , .02), STEEL); m.position.set(sx * (L / 2 - .02), H * .75, 0); m.rotation.x = Math.atan2(D, H * .5); g.add(m); }
     return g; }
-  const cbox = (p, x, y, z, w, h, d, ry = 0) => { const b = box(p, w, h, d, CARD, x, y, z, ry); return b; };
+  const cbox = (p, x, y, z, w, h, d, ry = 0) => { const b = box(p, w, h, d, CARDS[cardN++ % 3], x, y, z, ry); return b; };
   const tub = (p, x, y, z, w, h, d, lid) => { box(p, w, h, d, STD({ color: 0xe8ecee, transparent: false, roughness: .3 }), x, y, z); box(p, w + .02, .03, d + .02, STD({ color: lid, roughness: .4 }), x, y + h, z); };
   const tin = (p, x, y, z, r, h, col) => { cyl(p, r, h, STD({ color: 0xb5b9bc, metalness: .7, roughness: .35 }), x, y + h / 2, z); cyl(p, r * 1.01, h * .55, STD({ color: col, roughness: .5 }), x, y + h * .45, z); cyl(p, r * .95, .006, STEEL, x, y + h + .003, z); };
   const caseY = (p, x, y, z, w, h, d, ry = 0) => { const g = grp(p, x, y, z, ry); box(g, w, h * .5, d, YEL, 0, 0, 0); box(g, w, h * .5, d, BLK, 0, h * .5, 0); box(g, w * .4, .03, .05, BLK, 0, h + .02, 0); for (const sx of [-1, 1]) box(g, .05, .05, .02, BLK, sx * w * .35, h * .45, d / 2 + .005); return g; };   // yellow-and-black tool case
@@ -1211,7 +1228,15 @@ function WSHOP(P) {
   // --- 9. services: strip lights (two lit), sockets and conduit along the benches, a light switch by the door; floor dust and sawdust
   { const g = grp(P), LT = STD({ color: 0xffffff, emissive: 0xfff6e6, emissiveIntensity: 1.4 }), CND = STD({ color: 0xe9e9e4, roughness: .5 });
     for (const [x, y, z] of [[1.8, 2.94, -4.3], [4.4, 2.94, -4.3], [1.8, 3.74, -8.2], [4.4, 3.74, -8.2], [1.8, 3.74, -11.4], [4.4, 3.74, -11.4]]) { box(g, .12, .06, 1.5, CND, x, y - .06, z); box(g, .07, .02, 1.42, LT, x, y - .08, z); }
-    for (const [x, y, z] of [[3.2, 2.7, -4.3], [3.2, 3.4, -10.0]]) { const l = new THREE.PointLight(0xfff1dc, 9, 9, 1.6); l.position.set(x, y, z); g.add(l); }
+    for (const [x, y, z, I] of [[3.2, 2.2, -4.3, 6], [3.2, 2.85, -9.9, 7.5]]) { const l = new THREE.PointLight(0xfff1dc, I, 9, 1.6); l.position.set(x, y, z); g.add(l); }   // W5: hung lower and softer (at 2.7 m, 0.28 m under the soffit, the front one blew the ceiling white)
+    { const PLY = STD({ roughness: .85, map: can(256, 512, (x, w, h) => { x.fillStyle = '#c9b089'; x.fillRect(0, 0, w, h);   // W5: the underside of the sewing-room deck over the back of the workshop (was bare dark steel): ply sheets on steel joists
+        for (let i = 0; i < 70; i++) { x.strokeStyle = `rgba(150,110,65,${qf(.06, .18)})`; x.lineWidth = qf(1, 4); x.beginPath(); let u = qr() * w; x.moveTo(u, 0); for (let k = 1; k <= 8; k++) x.lineTo(u += qf(-4, 4), k * h / 8); x.stroke(); }
+        qspecks(x, w, h, 2500, .08); x.fillStyle = 'rgba(70,50,30,.5)'; x.fillRect(0, 0, w, 2); x.fillRect(0, 0, 2, h);
+        const gr = x.createRadialGradient(w * .6, h * .4, 0, w * .6, h * .4, w * .5); gr.addColorStop(0, 'rgba(90,70,45,.12)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, w, h); }) });
+      PLY.map.wrapS = PLY.map.wrapT = THREE.RepeatWrapping; PLY.map.repeat.set(5.51 / 1.22, 6.85 / 2.44);
+      const cl = new THREE.Mesh(new THREE.PlaneGeometry(5.51, 6.85), PLY); cl.rotation.x = Math.PI / 2; cl.position.set(3.205, 3.785, -9.525); cl.receiveShadow = true; g.add(cl);
+      const bh = new THREE.Mesh(new THREE.PlaneGeometry(5.51, .82), PLY.clone()); bh.material.map = PLY.map.clone(); bh.material.map.repeat.set(5.51 / 1.22, .82 / 2.44); bh.material.map.needsUpdate = true; bh.position.set(3.205, 3.39, -6.13); bh.rotation.y = Math.PI; bh.receiveShadow = true; g.add(bh);   // the step from the low front ceiling up to the deck: boxed in, not an open dark slot
+      const JST = STD({ color: 0x5d6266, metalness: .5, roughness: .55 }); for (let z = -6.3; z > -12.9; z -= 1.22) { box(g, 5.5, .2, .045, JST, 3.205, 3.585, z); box(g, 5.5, .012, .1, JST, 3.205, 3.585, z); box(g, 5.5, .012, .1, JST, 3.205, 3.773, z); } }
     box(g, 9.4, .025, .025, CND, 5.93, 1.2, -7.6).rotation.y = Math.PI / 2; for (let z = -3.6; z > -12.3; z -= 1.4) { box(g, .04, .09, .15, CND, 5.93, 1.16, z); for (const dz of [-.035, .035]) box(g, .005, .025, .015, BLK, 5.905, 1.2, z + dz); }
     box(g, 2.8, .025, .025, CND, 3.25, 1.28, -12.92); for (const x of [2.2, 3.4, 4.5]) box(g, .15, .09, .04, CND, x, 1.24, -12.92);
     box(g, .08, .12, .03, CND, 4.75, 1.3, -12.92); box(g, .025, 1.3, .025, CND, 4.75, 1.42, -12.92);
@@ -1220,6 +1245,28 @@ function WSHOP(P) {
       for (let i = 0; i < 2500; i++) { x.fillStyle = `rgba(225,195,140,${wf(.2, .6)})`; x.fillRect(wr() * w, wr() * h, 1, 1); } }) }));
     dust.rotation.x = -Math.PI / 2; dust.position.set(3.2, .004, -7.7); g.add(dust);
     T(g, 'Workshop lights + sockets', 'Fluorescent strip lights on the ceilings, white conduit and double sockets along the benches, a switch by the door; sawdust on the floor.', '', 'not sure').userData.noPick = true; }
+  // --- 10. W5 (22 Oct): soft contact shadows on the workshop floor. Every mesh that reaches within 30 cm of the floor darkens its footprint,
+  //     the darker the lower it sits (legs, bins, cupboards, the wall foot), blurred in JS on a small canvas (no ctx.filter: slow under SwiftShader).
+  { const X0 = .45, X1 = 5.96, Z0 = -12.95, Z1 = -2.48, PPM = 28, W = Math.ceil((X1 - X0) * PPM), H = Math.ceil((Z1 - Z0) * PPM), A = new Float32Array(W * H).fill(.18), bb = new THREE.Box3();
+    P.updateMatrixWorld(true);
+    for (const top of P.children.slice(n0)) top.traverse(o => { if (!o.isMesh || o.material.transparent || o.isLight) return; bb.setFromObject(o);
+      if (bb.min.y > .3 || bb.max.y - bb.min.y < .01 || bb.max.x < X0 || bb.min.x > X1 || bb.max.z < Z0 || bb.min.z > Z1) return;
+      const k = Math.pow(1 - Math.max(0, bb.min.y) / .3, 2) * (bb.max.y - bb.min.y > .25 ? .72 : .4), pad = .05;
+      const i0 = Math.max(0, Math.floor((bb.min.x - pad - X0) * PPM)), i1 = Math.min(W - 1, Math.ceil((bb.max.x + pad - X0) * PPM)), j0 = Math.max(0, Math.floor((bb.min.z - pad - Z0) * PPM)), j1 = Math.min(H - 1, Math.ceil((bb.max.z + pad - Z0) * PPM));
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) A[j * W + i] = 1 - (1 - A[j * W + i]) * (1 - k); });
+    for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const d = Math.min((i + .5) / PPM, (W - i - .5) / PPM, (j + .5) / PPM, (H - j - .5) / PPM); if (d < .35) A[j * W + i] = 1 - (1 - A[j * W + i]) * (1 - .5 * Math.pow(1 - d / .35, 2)); }   // the wall foot
+    const B = new Float32Array(W * H); for (let pass = 0; pass < 3; pass++) { for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { let t = 0, n = 0; for (let d = -2; d <= 2; d++) { const ii = i + d; if (ii >= 0 && ii < W) { t += A[j * W + ii]; n++; } } B[j * W + i] = t / n; }
+      for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { let t = 0, n = 0; for (let d = -2; d <= 2; d++) { const jj = j + d; if (jj >= 0 && jj < H) { t += B[jj * W + i]; n++; } } A[j * W + i] = t / n; } }
+    const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'), im = x.createImageData(W, H);
+    for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const q = ((H - 1 - j) * W + i) * 4; im.data[q] = 22; im.data[q + 1] = 16; im.data[q + 2] = 10; im.data[q + 3] = Math.min(255, A[j * W + i] * 255); }   // canvas row 0 = the door end (z1)
+    x.putImageData(im, 0, 0); const tx = new CT(c); tx.colorSpace = THREE.SRGBColorSpace;
+    const cs = new THREE.Mesh(new THREE.PlaneGeometry(X1 - X0, Z1 - Z0), new THREE.MeshBasicMaterial({ map: tx, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }));
+    cs.rotation.x = -Math.PI / 2; cs.position.set((X0 + X1) / 2, .006, (Z0 + Z1) / 2); cs.renderOrder = 1; P.add(cs); }
+  // --- W5 (22 Oct): sawdust heaped under the mitre-saw bench and the vice, and swept against the wall foot (own RNG)
+  { const SD = STD({ color: 0xd2b07a, roughness: 1 }), heap = (x, z, r, h) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 6, 0, Math.PI * 2, 0, Math.PI / 2), SD); m.scale.set(r * qf(.8, 1.2), h, r * qf(.8, 1.2)); m.position.set(x, 0, z); m.rotation.y = qf(0, 6); m.receiveShadow = true; P.add(m); };
+    for (let i = 0; i < 7; i++) heap(3.1 + qf(-.5, .5), -6.75 + qf(-.25, .25), qf(.08, .22), qf(.012, .035));   // under the mitre saw
+    for (let i = 0; i < 4; i++) heap(.95 + qf(-.2, .3), -3.55 + qf(-.3, .3), qf(.06, .15), qf(.01, .025));     // under the vice
+    for (let i = 0; i < 6; i++) heap(qf(.6, .75), qf(-6, -10.5), qf(.1, .25), qf(.01, .03)); }                 // swept up against the left wall
 }
 
 // ---------------- bake: merge each item's static meshes by material (far fewer draw calls) ----------------
