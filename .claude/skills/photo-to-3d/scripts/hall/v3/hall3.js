@@ -1153,10 +1153,48 @@ function WSHOP(P) {
   const cbox = (p, x, y, z, w, h, d, ry = 0) => { const b = box(p, w, h, d, CARDS[cardN++ % 3], x, y, z, ry); return b; };
   const tub = (p, x, y, z, w, h, d, lid) => { box(p, w, h, d, STD({ color: 0xe8ecee, transparent: false, roughness: .3 }), x, y, z); box(p, w + .02, .03, d + .02, STD({ color: lid, roughness: .4 }), x, y + h, z); };
   const tin = (p, x, y, z, r, h, col) => { cyl(p, r, h, STD({ color: 0xb5b9bc, metalness: .7, roughness: .35 }), x, y + h / 2, z); cyl(p, r * 1.01, h * .55, STD({ color: col, roughness: .5 }), x, y + h * .45, z); cyl(p, r * .95, .006, STEEL, x, y + h + .003, z); };
-  const caseY = (p, x, y, z, w, h, d, ry = 0) => { const g = grp(p, x, y, z, ry); box(g, w, h * .5, d, YEL, 0, 0, 0); box(g, w, h * .5, d, BLK, 0, h * .5, 0); box(g, w * .4, .03, .05, BLK, 0, h + .02, 0); for (const sx of [-1, 1]) box(g, .05, .05, .02, BLK, sx * w * .35, h * .45, d / 2 + .005); return g; };   // yellow-and-black tool case
-  const drill = (p, x, y, z, ry, col = YEL) => { const g = grp(p, x, y, z, ry); box(g, .1, .07, .07, BLK, 0, .2, 0); box(g, .22, .09, .075, col, -.02, .16, 0); box(g, .055, .15, .05, BLK, -.06, .02, 0); box(g, .1, .06, .085, BLK, -.06, 0, 0); cyl(g, .012, .08, STEEL, .14, .2, 0, 'x', 8); return g; };
-  const hammer = (p, x, y, z, ry) => { const g = grp(p, x, y, z, ry); cyl(g, .014, .3, STD({ color: 0x9a6b3c }), 0, .15, 0, 'y', 8); box(g, .11, .03, .03, DARK, 0, .29, 0); return g; };
-  const spanner = (p, x, y, z, L) => box(p, .02, L, .006, STD({ color: 0xa9aeb2, metalness: .8, roughness: .3 }), x, y, z);
+  const caseY = (p, x, y, z, w, h, d, ry = 0) => { const g = grp(p, x, y, z, ry); box(g, w, h * .5, d, YEL, 0, 0, 0); box(g, w, h * .5, d, BLK, 0, h * .5, 0); box(g, w + .008, .012, d + .008, BLK, 0, h * .5 - .006, 0);   // moulded seam rim
+    for (const sx of [-1, 1]) { box(g, .022, .028, .03, BLK, sx * w * .2, h, 0); box(g, .05, .05, .018, YEL, sx * w * .35, h * .42, d / 2 + .009); box(g, .036, .014, .02, BLK, sx * w * .35, h * .5, d / 2 + .012); }   // handle posts, flip latches
+    const hd = tmesh(g, new THREE.CapsuleGeometry(.011, w * .36, 3, 8), BLK, 0, h + .036, 0); hd.rotation.z = Math.PI / 2;   // grip
+    for (let i = 0; i < 3; i++) box(g, w * .7, .004, .006, BLK, 0, h * .78 + i * .018, -d / 2 - .003);   // ribs on the lid back
+    return g; };   // yellow-and-black tool case
+  // hand and power tools (23 Oct 04:xx: shaped, not blocks; same footprints and call signatures as before)
+  const tmesh = (p, geo, m, x, y, z) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; p.add(o); return o; };
+  const GRIP = STD({ color: 0x2a2c2e, roughness: .85 }), WOODH = STD({ color: 0x9a6b3c, roughness: .6 }), BRIGHT = STD({ color: 0xb4b9bd, metalness: .85, roughness: .28 });
+  const drill = (p, x, y, z, ry, col = YEL) => { const g = grp(p, x, y, z, ry), C = col.isMaterial ? col : STD({ color: col, roughness: .45 });   // callers pass YEL (a material) or a colour number
+    const body = tmesh(g, new THREE.CapsuleGeometry(.038, .12, 4, 12), C, -.015, .215, 0); body.rotation.z = Math.PI / 2; body.scale.set(1, 1, .9);   // motor housing
+    const vent = tmesh(g, new THREE.CylinderGeometry(.034, .034, .03, 14), BLK, -.075, .215, 0); vent.rotation.z = Math.PI / 2;   // rear cap
+    const clutch = tmesh(g, new THREE.CylinderGeometry(.03, .032, .028, 16), BLK, .07, .215, 0); clutch.rotation.z = Math.PI / 2;
+    const chuck = tmesh(g, new THREE.CylinderGeometry(.015, .022, .05, 12), BLK, .108, .215, 0); chuck.rotation.z = Math.PI / 2;
+    const nose = tmesh(g, new THREE.CylinderGeometry(.01, .012, .012, 10), BRIGHT, .138, .215, 0); nose.rotation.z = Math.PI / 2;
+    const bit = tmesh(g, new THREE.CylinderGeometry(.0035, .0035, .06, 6), BRIGHT, .173, .215, 0); bit.rotation.z = Math.PI / 2;
+    const h = new THREE.Group(); h.position.set(-.035, .05, 0); h.rotation.z = -.18; g.add(h);   // handle, raked back
+    box(h, .046, .135, .044, GRIP, 0, 0, 0); box(h, .02, .13, .046, C, .02, 0, 0); box(h, .016, .03, .02, BLK, .03, .1, 0);   // grip, coloured front, trigger
+    box(g, .115, .022, .082, C, -.045, .03, 0); box(g, .12, .032, .086, BLK, -.045, 0, 0); box(g, .012, .006, .03, STD({ color: 0x3fd26a, emissive: 0x0c3a1a }), -.095, .054, 0);   // battery: coloured top, black pack, charge lights
+    return g; };
+  const hammer = (p, x, y, z, ry) => { const g = grp(p, x, y, z, ry);
+    tmesh(g, new THREE.CylinderGeometry(.012, .015, .3, 10), WOODH, 0, .15, 0); tmesh(g, new THREE.CylinderGeometry(.0165, .0175, .11, 10), GRIP, 0, .055, 0);   // ash shaft, rubber grip
+    const fc = tmesh(g, new THREE.CylinderGeometry(.015, .015, .045, 14), DARK, .035, .295, 0); fc.rotation.z = Math.PI / 2;   // striking face side
+    const fr = tmesh(g, new THREE.CylinderGeometry(.0165, .0165, .006, 14), BRIGHT, .06, .295, 0); fr.rotation.z = Math.PI / 2;   // polished face
+    box(g, .03, .036, .028, DARK, 0, .277, 0);   // eye block
+    for (const sz of [-1, 1]) { const c = box(g, .07, .012, .009, DARK, -.04, .286, sz * .007); c.rotation.z = -.45; }   // split claw, curving down
+    return g; };
+  const spanner = (p, x, y, z, L) => { const g = grp(p, x, y, z);
+    box(g, .012, L * .78, .004, BRIGHT, 0, L * .11, 0);   // shaft
+    const ring = tmesh(g, new THREE.TorusGeometry(.011 + L * .02, .0045, 6, 14), BRIGHT, 0, L * .9, 0); ring.scale.z = .8;   // ring end
+    for (const sx of [-1, 1]) box(g, .008, .028, .004, BRIGHT, sx * (.008 + L * .015), 0, 0);   // open-end jaws
+    box(g, .03 + L * .03, .01, .004, BRIGHT, 0, -.004, 0);
+    return g; };
+  const saw = (p, x, y, z) => { const g = grp(p, x, y, z), sh = new THREE.Shape(); sh.moveTo(-.06, .02);   // hand saw hung by its handle: blade tapers to the toe, teeth down the front edge
+    const n = 34; for (let i = 0; i <= n; i++) { const t = i / n, ex = .06 - .05 * t, ey = .02 - .47 * t; sh.lineTo(ex + (i % 2 ? .005 : 0), ey); }
+    sh.lineTo(-.06, -.45); sh.lineTo(-.06, .02);
+    const bl = tmesh(g, new THREE.ShapeGeometry(sh), STD({ color: 0xaeb3b7, metalness: .8, roughness: .32, side: THREE.DoubleSide }), 0, 0, .001);
+    const hs = new THREE.Shape(); hs.moveTo(-.07, 0); hs.lineTo(.07, 0); hs.lineTo(.065, .07); hs.quadraticCurveTo(.06, .13, .0, .13); hs.quadraticCurveTo(-.07, .13, -.07, .07); hs.lineTo(-.07, 0);
+    const hole = new THREE.Path(); hole.moveTo(-.035, .03); hole.lineTo(.035, .03); hole.quadraticCurveTo(.04, .095, .0, .095); hole.quadraticCurveTo(-.04, .095, -.035, .03); hs.holes.push(hole);
+    const hg = new THREE.ExtrudeGeometry(hs, { depth: .022, bevelEnabled: true, bevelSize: .004, bevelThickness: .004, bevelSegments: 2 }); hg.translate(0, 0, -.011);
+    tmesh(g, hg, STD({ color: 0x8a3a24, roughness: .55 }), 0, -.01, .005);
+    for (const sx of [-.035, .035]) { const r = tmesh(g, new THREE.CylinderGeometry(.006, .006, .03, 8), BRIGHT, sx, .01, 0); r.rotation.x = Math.PI / 2; }   // brass-ish rivets
+    return g; };
   // --- 1. front wall bench, under the window-less front, with shelves over its left end (scan: top ≈ 1.0–1.1 m, a shelf ≈ 2.0 m at x 0.75–2.0)
   { const g = grp(P), b = bench(g, 3.2, -2.78, 5.4, .62, 1.0, 0, { doors: false });
     const s = shelving(g, 1.4, -2.68, 1.7, .4, 1.3, 0, [.55, 1.0]); s.position.y = 1.0; for (let i = 0; i < 5; i++) tin(s, -.7 + i * .17, .57, 0, .065, .14, [0xd9dde0, 0x2f5f8f, 0xb8231d, 0xe8e2d0, 0x3b6b3a][i]);
@@ -1212,7 +1250,7 @@ function WSHOP(P) {
     const pb = sheet(3.0, 1.15, PEG, 3.25, 1.15, -12.88, 0); P.remove(pb); g.add(pb);
     for (let i = 0; i < 6; i++) hammer(g, 2.0 + i * .12, 1.6, -12.86, 0).rotation.z = (i % 2 ? .1 : -.1);
     for (let i = 0; i < 8; i++) spanner(g, 2.9 + i * .05, 1.45 + i * .008, -12.86, .14 + i * .02);
-    for (let i = 0; i < 3; i++) { const sw = grp(g, 3.5 + i * .2, 1.9, -12.865); box(sw, .12, .5, .004, STEEL, 0, -.45, 0); box(sw, .12, .1, .03, STD({ color: 0x8a3a24 }), 0, 0, 0); }   // hand saws
+    for (let i = 0; i < 3; i++) saw(g, 3.5 + i * .2, 1.9, -12.865);   // hand saws
     for (let i = 0; i < 4; i++) { const c = grp(g, 4.25 + i * .1, 1.3, -12.85); box(c, .02, .45, .02, STEEL, 0, 0, 0); box(c, .1, .025, .03, RED, .04, .4, 0); box(c, .1, .025, .03, RED, .04, .04, 0); }   // F-clamps
     box(g, .6, .06, .03, YEL, 2.4, 1.3, -12.86); box(g, .5, .08, .03, STD({ color: 0x2a5aa8 }), 2.5, 2.0, -12.86);   // spirit levels
     const sh = shelving(g, 3.25, -12.78, 2.9, .3, .55, 0, [.35]); sh.position.y = 2.0; for (let i = 0; i < 6; i++) (i % 2 ? tub : (p, x, y, z, w, h, d) => cbox(p, x, y, z, w, h, d))(sh, -1.2 + i * .48, .37, 0, .4, .18, .26, 0x2a5aa8);
