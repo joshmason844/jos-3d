@@ -1195,6 +1195,60 @@ function WSHOP(P) {
     tmesh(g, hg, STD({ color: 0x8a3a24, roughness: .55 }), 0, -.01, .005);
     for (const sx of [-.035, .035]) { const r = tmesh(g, new THREE.CylinderGeometry(.006, .006, .03, 8), BRIGHT, sx, .01, 0); r.rotation.x = Math.PI / 2; }   // brass-ish rivets
     return g; };
+  // 23 Oct 05:xx: the last plain blocks on the far wall and floor get real shapes (F-clamps, spirit levels, roll cabinet, offcuts bin, bench cable reel). No RNG draws, so nothing else moves
+  const CLR = STD({ color: 0xc0221b, roughness: .42, metalness: .25 }), ALU = STD({ color: 0xc3c7ca, metalness: .75, roughness: .38 });
+  const peg = (p, x, y, z, L = .05) => { const k = tmesh(p, new THREE.CylinderGeometry(.0028, .0028, L, 6), BRIGHT, x, y, z + L / 2); k.rotation.x = Math.PI / 2; return k; };   // a pegboard hook sticking out of the board
+  const fclamp = (p, x, y, z, L = .45, R = .1) => { const g = grp(p, x, y, z);   // F-clamp hung by its fixed jaw: flat steel bar, cast red jaws, a sliding jaw part way down, a threaded spindle with a wooden handle and a swivel pad
+    box(g, .02, L, .006, BRIGHT, 0, -L, 0); for (let i = 0; i < 12; i++) box(g, .022, .002, .007, DARK, 0, -L + .02 + i * L / 13, 0);   // the bar and its notches
+    const jaw = (yy, len, top) => { const sh = new THREE.Shape(); sh.moveTo(-.015, 0); sh.lineTo(len, top ? -.004 : .004); sh.lineTo(len, top ? -.026 : .026); sh.lineTo(.02, top ? -.034 : .034); sh.lineTo(-.015, top ? -.03 : .03); sh.lineTo(-.015, 0);
+      const ge = new THREE.ExtrudeGeometry(sh, { depth: .014, bevelEnabled: true, bevelSize: .002, bevelThickness: .002, bevelSegments: 1 }); ge.translate(0, 0, -.007); return tmesh(g, ge, CLR, 0, yy, 0); };
+    jaw(0, R, true); box(g, .022, .012, .016, BRIGHT, R - .008, -.038, 0);   // fixed jaw at the top and its pad
+    const sy = -L * .62; jaw(sy, R, false);   // sliding jaw
+    const sp = tmesh(g, new THREE.CylinderGeometry(.005, .005, .12, 8), BRIGHT, R - .01, sy + .02, 0);   // spindle up through the sliding jaw
+    tmesh(g, new THREE.CylinderGeometry(.008, .008, .006, 10), BRIGHT, R - .01, sy + .083, 0);   // swivel pad
+    tmesh(g, new THREE.CylinderGeometry(.011, .013, .08, 10), WOODH, R - .01, sy - .045, 0); tmesh(g, new THREE.CylinderGeometry(.0135, .0135, .008, 10), BRIGHT, R - .01, sy - .004, 0);   // wooden handle and ferrule
+    peg(p, x + .01, y + .012, z - .02, .04); return g; };
+  const sLevel = (p, x, y, z, L, col) => { const g = grp(p, x, y, z);   // spirit level hung flat on two hooks: painted box section, dark rubber end caps, a centre vial in a window and a plumb vial near one end
+    const C = STD({ color: col, roughness: .45, metalness: .25 });
+    box(g, L - .04, .055, .025, C, 0, 0, 0); box(g, L - .04, .006, .027, ALU, 0, -.003, 0); box(g, L - .04, .006, .027, ALU, 0, .052, 0);   // body, machined top and bottom faces
+    for (const s of [-1, 1]) box(g, .02, .06, .03, GRIP, s * (L / 2 - .01), -.0025, 0);
+    const vial = (vx, vert) => { box(g, .055, .035, .028, BLK, vx, .01, 0); const v = tmesh(g, new THREE.CylinderGeometry(.006, .006, .036, 8), STD({ color: 0xc8e04a, emissive: 0x2a3a08, roughness: .2 }), vx, .0275, .0145); if (!vert) v.rotation.z = Math.PI / 2; box(g, .002, .02, .001, BLK, vx - .005, .0175, .0151); box(g, .002, .02, .001, BLK, vx + .005, .0175, .0151); };
+    vial(0, false); vial(-L / 2 + .12, true);
+    for (const s of [-.3, .3]) peg(p, x + s * L, y - .006, z - .02, .04);
+    return g; };
+  const rollCab = (p, x, z) => { const g = grp(p, x, 0, z);   // grey steel roll cabinet: castors, a seven-drawer base with pull bars and label slots, a lift-lid top chest, side handle, rubber mat on top
+    const GC = STD({ color: 0x5e6367, metalness: .55, roughness: .42 }), GE = STD({ color: 0x494d51, metalness: .5, roughness: .5 }), LBL = STD({ color: 0xe9e6dc, roughness: .7 });
+    box(g, .7, .03, .5, GE, 0, .1, 0); box(g, .02, .97, .5, GC, -.34, .13, 0); box(g, .02, .97, .5, GC, .34, .13, 0); box(g, .7, .97, .02, GC, 0, .13, -.24); box(g, .7, .025, .5, GE, 0, 1.075, 0);   // carcass
+    const hs = [.1, .1, .1, .12, .14, .16, .2]; let yy = .135;
+    for (const h of hs) { box(g, .655, h - .008, .02, GC, 0, yy, .245); box(g, .6, .012, .018, BRIGHT, 0, yy + h - .03, .262); for (const s of [-1, 1]) box(g, .012, .018, .03, BRIGHT, s * .29, yy + h - .033, .256);   // drawer front, aluminium pull bar on two posts
+      box(g, .06, .022, .003, LBL, -.22, yy + h * .35, .256); yy += h; }
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const c = grp(g, sx * .29, 0, sz * .19); box(c, .045, .006, .045, GE, 0, .093, 0); box(c, .006, .045, .03, GE, -.016, .045, 0); box(c, .006, .045, .03, GE, .016, .045, 0); cyl(c, .035, .025, GRIP, 0, .035, 0, 'x', 14); cyl(c, .012, .028, BRIGHT, 0, .035, 0, 'x', 8); }   // swivel castors
+    const tc = grp(g, 0, 1.1, 0); box(tc, .72, .3, .48, GC, 0, 0, 0); box(tc, .73, .1, .49, GC, 0, .3, 0); box(tc, .73, .006, .49, GE, 0, .3, 0);   // top chest and its lid, hinge line
+    for (let i = 0; i < 3; i++) { box(tc, .62, .075, .015, GC, 0, .02 + i * .093, .24); box(tc, .5, .01, .014, BRIGHT, 0, .072 + i * .093, .254); }
+    box(tc, .7, .008, .47, STD({ color: 0x2a2b2d, roughness: .95 }), 0, .4, 0);   // rubber mat on the lid
+    cyl(tc, .012, .012, BRIGHT, .3, .3, .248, 'z', 10);   // key lock
+    for (const yy2 of [.85, .45]) box(g, .02, .02, .03, BRIGHT, .36, yy2, 0); cyl(g, .01, .42, BRIGHT, .385, .65, 0, 'y', 8);   // side push handle
+    return g; };
+  const offBin = (p, x, z) => { const g = grp(p, x, 0, z), BB = STD({ color: 0x1d1e20, roughness: .7 });   // ribbed black bin of timber offcuts
+    const bm = new THREE.Mesh(new THREE.CylinderGeometry(.27, .23, .68, 28, 1, true), STD({ color: 0x1d1e20, roughness: .7, side: THREE.DoubleSide })); bm.position.y = .34; bm.castShadow = bm.receiveShadow = true; g.add(bm);
+    cyl(g, .23, .02, BB, 0, .01, 0, 'y', 24);   // base
+    for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2, r = box(g, .022, .6, .012, BB, Math.cos(a) * .254, .05, Math.sin(a) * .254); r.rotation.order = 'YXZ'; r.rotation.set(0, -a, -.06); }   // vertical ribs following the taper
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(.275, .016, 8, 32), BB); rim.rotation.x = Math.PI / 2; rim.position.y = .68; g.add(rim);
+    for (const s of [-1, 1]) { const hd = new THREE.Mesh(new THREE.TorusGeometry(.045, .01, 6, 12, Math.PI), BB); hd.position.set(s * .285, .6, 0); hd.rotation.set(0, Math.PI / 2, Math.PI); g.add(hd); }   // two side handles
+    const WD = [0xc79a62, 0xb3875a, 0x9a7650, 0xd2b07c, 0xa8865e];
+    for (let i = 0; i < 11; i++) { const a = i * 2.39, rr = .05 + (i % 4) * .045, L = .35 + (i * 37 % 50) / 100, o = box(g, [.045, .07, .095, .035][i % 4], L, [.02, .045, .018, .035][i % 4], STD({ color: WD[i % 5], roughness: .8 }), Math.cos(a) * rr, .2, Math.sin(a) * rr); o.rotation.set(Math.sin(a) * .35, a, Math.cos(a) * .3); }   // offcuts stood up and leaning, poking out the top
+    const sx = box(g, .34, .1, .018, STD({ color: 0xd9d6cc, roughness: .8 }), -.02, .56, .08); sx.rotation.set(-.45, .2, .12);   // a strip of ply across the top, inside the rim
+    return g; };
+  const benchReel = (p, x, y, z, ry) => { const g = grp(p, x, y, z, ry), YR = STD({ color: 0xf0b414, roughness: .5 });   // site cable reel on its frame: yellow drum ends, four sockets on the hub, orange flex wound on, a winding handle
+    const d = grp(g, 0, .17, 0); for (const s of [-1, 1]) { const f = tmesh(d, new THREE.CylinderGeometry(.155, .155, .014, 24), YR, s * .085, 0, 0); f.rotation.z = Math.PI / 2; }
+    for (let i = 0; i < 6; i++) { const c = tmesh(d, new THREE.TorusGeometry(.115, .02, 6, 24), STD({ color: 0xe0661c, roughness: .55 }), -.065 + i * .026, 0, 0); c.rotation.y = Math.PI / 2; }   // turns of flex
+    for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + .4; box(d, .012, .04, .04, STD({ color: 0x2a2c2e, roughness: .6 }), .098, Math.sin(a) * .06 - .02, Math.cos(a) * .06); }   // sockets in the front hub
+    const fr = STD({ color: 0x2a2c2e, roughness: .55, metalness: .3 }); for (const s of [-1, 1]) { box(g, .012, .2, .02, fr, s * .1, 0, -.06).rotation.x = -.35; box(g, .012, .2, .02, fr, s * .1, 0, .06).rotation.x = .35; }   // A-frame legs
+    box(g, .21, .012, .025, fr, 0, .3, 0);   // carry bar
+    tmesh(g, new THREE.CylinderGeometry(.008, .008, .07, 8), BRIGHT, .13, .17, .09).rotation.z = Math.PI / 2; tmesh(g, new THREE.CylinderGeometry(.012, .012, .05, 10), GRIP, .165, .17, .09);   // winding handle
+    const tail = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(0, .05, .12), new THREE.Vector3(.02, .005, .2), new THREE.Vector3(-.06, .006, .32), new THREE.Vector3(-.16, .006, .3)]), 16, .007, 6), STD({ color: 0xe0661c, roughness: .55 })); tail.castShadow = true; g.add(tail);   // loose tail and plug
+    box(g, .04, .03, .05, STD({ color: 0x1b1c1e }), -.18, 0, .3);
+    return g; };
   // --- 1. front wall bench, under the window-less front, with shelves over its left end (scan: top ≈ 1.0–1.1 m, a shelf ≈ 2.0 m at x 0.75–2.0)
   { const g = grp(P), b = bench(g, 3.2, -2.78, 5.4, .62, 1.0, 0, { doors: false });
     const s = shelving(g, 1.4, -2.68, 1.7, .4, 1.3, 0, [.55, 1.0]); s.position.y = 1.0; for (let i = 0; i < 5; i++) tin(s, -.7 + i * .17, .57, 0, .065, .14, [0xd9dde0, 0x2f5f8f, 0xb8231d, 0xe8e2d0, 0x3b6b3a][i]);
@@ -1229,7 +1283,7 @@ function WSHOP(P) {
       if (k === 'case') caseY(t, 0, 0, z, .35, .13, .5, Math.PI / 2 + wf(-.1, .1)); else if (k === 'drill') drill(t, -.05, 0, z, wf(0, 6), wr() < .5 ? YEL : 0x2a5aa8);
       else if (k === 'tins') for (let i = 0; i < 3; i++) tin(t, -.12 + (i % 2) * .14, 0, z + i * .13, .05, .1 + wr() * .06, [0xe8e2d0, 0x3b6b3a, 0xb8231d][i]);
       else if (k === 'box') cbox(t, 0, 0, z, .35, .25, .45, wf(-.2, .2)); else if (k === 'tub') tub(t, 0, 0, z, .32, .22, .45, [0x2a5aa8, 0xb8231d, 0x3b6b3a][Math.floor(wr() * 3)]);
-      else { const r = grp(t, 0, .17, z); cyl(r, .16, .14, ORA, 0, 0, 0, 'x', 20); for (const s of [-1, 1]) cyl(r, .17, .012, BLK, s * .075, 0, 0, 'x', 20); } }
+      else benchReel(t, -.02, 0, z, Math.PI / 2); }   // 05:xx: a real site cable reel
     const s = shelving(g, 5.74, -10.85, 3.6, .38, 1.75, Math.PI / 2, [.6, 1.15, 1.65]); s.position.y = .95;
     for (let i = 0; i < 6; i++) { cbox(s, -1.55 + i * .55, .62, 0, .45, .3, .32, wf(-.1, .1)); if (i % 2) tub(s, -1.5 + i * .55, 1.17, 0, .42, .24, .3, 0x2a5aa8); else caseY(s, -1.5 + i * .55, 1.17, 0, .4, .14, .3); }
     for (let i = 0; i < 5; i++) cbox(s, -1.5 + i * .7, 1.67, 0, .55, .22 + wr() * .1, .32, wf(-.1, .1));
@@ -1248,16 +1302,14 @@ function WSHOP(P) {
   // --- 7. the far wall: bench with a pegboard tool wall over it, a roll cabinet, the fire extinguisher (scan: bench ≈ 1.2–1.3 m deep in clutter at z −12.2…−12.95, shelving to 2.5 m above; a grey drawer stack ≈ 1.4 m at x ≈ 1.6; red at x ≈ 0.8, 1.3 m)
   { const g = grp(P), b = bench(g, 3.25, -12.6, 2.9, .65, .95, 0); const t = grp(g, 0, .95, 0);
     const pb = sheet(3.0, 1.15, PEG, 3.25, 1.15, -12.88, 0); P.remove(pb); g.add(pb);
-    for (let i = 0; i < 6; i++) hammer(g, 2.0 + i * .12, 1.6, -12.86, 0).rotation.z = (i % 2 ? .1 : -.1);
+    for (let i = 0; i < 5; i++) { hammer(g, 2.02 + i * .165, 1.48, -12.86, 0); for (const hx of [-.022, .022]) peg(g, 2.02 + i * .165 + hx, 1.755, -12.875, .05); }   // 05:xx: hung straight, heads up, on pairs of hooks (they overlapped in crossed pairs)
     for (let i = 0; i < 8; i++) spanner(g, 2.9 + i * .05, 1.45 + i * .008, -12.86, .14 + i * .02);
     for (let i = 0; i < 3; i++) saw(g, 3.5 + i * .2, 1.9, -12.865);   // hand saws
-    for (let i = 0; i < 4; i++) { const c = grp(g, 4.25 + i * .1, 1.3, -12.85); box(c, .02, .45, .02, STEEL, 0, 0, 0); box(c, .1, .025, .03, RED, .04, .4, 0); box(c, .1, .025, .03, RED, .04, .04, 0); }   // F-clamps
-    box(g, .6, .06, .03, YEL, 2.4, 1.3, -12.86); box(g, .5, .08, .03, STD({ color: 0x2a5aa8 }), 2.5, 2.0, -12.86);   // spirit levels
+    for (let i = 0; i < 4; i++) fclamp(g, 4.22 + i * .13, 1.76 - (i % 2) * .02, -12.855, .45 - (i % 2) * .1, .1 - (i % 2) * .015);   // F-clamps (05:xx: bar, cast jaws, spindle, handle)
+    sLevel(g, 2.4, 1.27, -12.86, .6, 0xf2b705); sLevel(g, 2.5, 2.0, -12.86, .6, 0x2a5aa8);   // spirit levels (05:xx: box section, end caps, vials)
     const sh = shelving(g, 3.25, -12.78, 2.9, .3, .55, 0, [.35]); sh.position.y = 2.0; for (let i = 0; i < 6; i++) (i % 2 ? tub : (p, x, y, z, w, h, d) => cbox(p, x, y, z, w, h, d))(sh, -1.2 + i * .48, .37, 0, .4, .18, .26, 0x2a5aa8);
     drill(t, 2.4, 0, -12.5, .5); caseY(t, 3.0, 0, -12.6, .45, .14, .35); for (let i = 0; i < 3; i++) tub(t, 3.6 + i * .3, 0, -12.65, .26, .12, .2, [0xb8231d, 0x2a5aa8, 0x3b6b3a][i]);
-    const rc = grp(g, 1.45, 0, -12.6); box(rc, .7, 1.0, .5, STD({ color: 0x6b6f73, metalness: .5, roughness: .4 }), 0, .1, 0); box(rc, .72, .4, .5, STD({ color: 0x6b6f73, metalness: .5, roughness: .4 }), 0, 1.1, 0);   // roll cabinet: drawers, a top box
-    for (let i = 0; i < 7; i++) box(rc, .6, .01, .01, BLK, 0, .2 + i * .12, .255); for (let i = 0; i < 7; i++) box(rc, .2, .02, .02, STEEL, 0, .25 + i * .12, .26); for (const sx of [-1, 1]) for (const sz of [-1, 1]) cyl(rc, .04, .03, BLK, sx * .3, .05, sz * .2, 'x', 10);
-    box(rc, .5, .02, .04, STEEL, 0, 1.52, .2);
+    rollCab(g, 1.45, -12.6);   // roll cabinet (05:xx: castors, drawers with pull bars and labels, lift-lid top chest, side handle)
     const fe = grp(g, .75, 0, -12.85); cyl(fe, .075, .5, RED, 0, 1.15, 0); cyl(fe, .03, .06, BLK, 0, 1.43, 0); box(fe, .03, .08, .06, BLK, .05, 1.45, 0); const hose = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(.04, 1.43, 0), new THREE.Vector3(.1, 1.3, .03), new THREE.Vector3(.08, 1.0, .05)]), 10, .01, 6), BLK); fe.add(hose);
     box(fe, .2, .28, .005, STD({ roughness: .5, map: can(100, 140, (x, w, h) => { x.fillStyle = '#c8201b'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.fillRect(4, 4, w - 8, 2); x.beginPath(); x.roundRect(40, 26, 22, 56, 6); x.fill(); x.fillRect(46, 18, 10, 9); x.fillRect(56, 20, 14, 4); x.font = 'bold 12px Arial'; x.textAlign = 'center'; x.fillText('FIRE', w / 2, 104); x.fillText('EXTINGUISHER', w / 2, 120); }) }), 0, 1.72, .07);   // its sign (W5b: a real red sign, was a plain white card)
     T2(g, 'Tool wall (far wall)', 'The far wall: a bench with a pegboard tool wall over it (hammers, spanners, hand saws, F-clamps, levels), a shelf of boxes and fixings tubs on top, a grey roll cabinet of drawers at the left end and the fire extinguisher by the corner.', 'bench ≈ 2.9 × 0.65 m · tool wall to ≈ 2.5 m (scan)'); }
@@ -1267,8 +1319,8 @@ function WSHOP(P) {
     box(cp, .3, .2, .22, BLK, -.05, .45, 0); cyl(cp, .05, .05, STEEL, .2, .5, 0); for (const s of [-1, 1]) cyl(cp, .06, .04, BLK, .25, .06, s * .14, 'z', 12); box(cp, .04, .07, .04, BLK, -.3, 0, 0);
     const hs = new THREE.Mesh(new THREE.TorusGeometry(.13, .012, 6, 24), STD({ color: 0x2a5aa8 })); hs.rotation.x = Math.PI / 2; hs.position.set(.1, .02, .35); cp.add(hs);
     T2(cp, 'Compressor', 'An orange air compressor on wheels with a blue airline coiled beside it.', '≈ 0.7 × 0.4 × 0.65 m (scan)');
-    const bn = grp(g, 3.25, 0, -8.45); const bm = new THREE.Mesh(new THREE.CylinderGeometry(.27, .23, .68, 20, 1, true), BLK); bm.position.y = .34; bm.material.side = THREE.DoubleSide; bn.add(bm); cyl(bn, .28, .03, BLK, 0, .68, 0); box(bn, .5, .1, .02, STD({ color: 0xd9d6cc }), .05, .6, .12).rotation.z = .3;
-    for (let i = 0; i < 6; i++) { const o = box(bn, wf(.3, .8), .04, .07, STD({ color: [0xc79a62, 0xb3875a, 0x9a7650][i % 3] }), 0, .5, 0); o.rotation.set(wf(-1.2, -.6), wr() * 6, 0); o.position.y = .55; }
+    const bn = offBin(g, 3.25, -8.45);   // 05:xx: ribbed bin, rim, side handles, offcuts stood up in it
+    for (let i = 0; i < 18; i++) wr();   // the old offcuts took 18 layout draws: keep taking them so nothing after this moves
     for (const [x, z, r, c] of [[2.4, -9.5, .2, 0x2a5aa8], [1.97, -9.95, .16, 0xe8e2d0]]) { const bk = grp(g, x, 0, z); const bm2 = new THREE.Mesh(new THREE.CylinderGeometry(r, r * .85, r * 1.7, 18, 1, true), STD({ color: c, roughness: .5, side: THREE.DoubleSide })); bm2.position.y = r * .85; bk.add(bm2); const rim = new THREE.Mesh(new THREE.TorusGeometry(r, .012, 6, 20), STD({ color: c })); rim.rotation.x = Math.PI / 2; rim.position.y = r * 1.7; bk.add(rim); T2(bk, 'Bucket', 'A plastic bucket on the floor (the scan shows an open ring here).', '≈ ' + (r * 2).toFixed(1) + ' m across'); }   // scan: two rings ≈ 0.4 m at x 2.2–2.6, z −9.3…−9.7 and x 1.6–2.0, z −9.7…−10.1
     { const lc = grp(g, .9, 0, -11.95); box(lc, .8, .95, .6, DOORM, 0, 0, 0); box(lc, .84, .03, .64, TOP, 0, .95, 0); for (const dz of [-.15, .15]) box(lc, .015, .1, .02, STEEL, .41, .75, dz); tin(lc, -.1, .98, .1, .06, .16, 0xb8231d); cbox(lc, .1, .98, -.1, .35, .25, .3); T2(lc, 'Low cupboard', 'A low cupboard in the far left corner with a tin and a box on it.', '≈ 0.8 × 0.6 × 1.0 m (scan)'); }   // scan: ≈ 1.0–1.1 m at x 0.75–1.0, z −11.7…−12.2
     T2(bn, 'Offcuts bin', 'A black bin full of timber offcuts.', '≈ 0.55 m across · 0.7 m (scan)');
