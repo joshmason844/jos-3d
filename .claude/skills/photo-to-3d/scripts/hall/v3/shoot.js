@@ -55,7 +55,11 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   wstool: [[3.3, 1.6, -9.6], [3.0, 1.35, -12.9], true],      // the far wall: tool wall, roll cabinet, extinguisher, way out
   wsaisle: [[2.6, 1.9, -9.0], [5.9, 1.1, -7.2], true],       // the long aisle bench and its shelves, the window
   wsleft: [[4.4, 2.0, -8.0], [0.6, 1.1, -9.4], true],        // the tall shelving on the left wall, sheet stock, offcuts bin
-  wsout: [[6.2, 1.8, -14.8], [5.2, 1.1, -12.9], true],       // the far wall's doorway from the hall
+  wsout: [[6.2, 1.8, -14.8], [5.2, 1.1, -12.9], true],
+  wswin: [[1.7, 1.75, -5.6], [5.6, 1.05, -3.9], true],        // the front window from inside: daylight on the long bench and the floor (W5b, 23 Oct)
+  wsboard: [[3.4, 1.7, -7.0], [5.9, 1.45, -7.5], true],      // the aisle wall by the long bench: notice board, first-aid box, grimy cupboard doors, bench-top shadows
+  wsfloor: [[3.5, 3.45, -9.85], [3.5, 0, -9.9], true],      // straight down on the back half of the workshop floor: contact shadows under the compressor, bin and buckets
+  wssigns: [[3.0, 1.75, -5.0], [0.5, 1.6, -5.7], true],      // the left wall's safety signs over the vice bench       // the far wall's doorway from the hall
   tallface: [[6.8, 3.7, -26.4], [1.0, 3.3, -26.6], true],   // the left band's tall bay above the pale sheeted block, z −25…−28.2 (17 Oct 07:xx)
   tallclose:[[3.6, 4.1, -25.4], [0.9, 3.7, -27.0], true],   // up close on its two upper levels
 };

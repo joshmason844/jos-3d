@@ -1107,12 +1107,29 @@ function WSHOP(P) {
     x.fillStyle = 'rgba(45,45,48,.9)'; for (const sx of [10, w / 2, w - 10]) for (let y = 16; y < h; y += 64) { x.beginPath(); x.arc(sx, y + qf(-2, 2), 2.2, 0, 7); x.fill(); }   // screw lines on the studs
     const g = x.createLinearGradient(0, h, 0, h * .8); g.addColorStop(0, 'rgba(60,45,30,.22)'); g.addColorStop(1, 'rgba(60,45,30,0)'); x.fillStyle = g; x.fillRect(0, h * .8, w, h * .2); }) });   // scuffed and grubby along the bottom
   OSBIN.map.wrapS = OSBIN.map.wrapT = THREE.RepeatWrapping;
+  // --- W5b (23 Oct): grime on the cupboard doors and the bench front edges. Own RNG (gr), so wr()/qr() draws and every later item stay put
+  let sg = 7717; const gr = () => (sg = (sg * 16807) % 2147483647) / 2147483647, gf = (a, b) => a + (b - a) * gr();
+  const soft = (x, cx, cy, r, c, a) => { const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, `rgba(${c},${a})`); g.addColorStop(1, `rgba(${c},0)`); x.fillStyle = g; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); };
+  const DOORS = [0, 1, 2].map(k => STD({ roughness: .6, map: can(128, 160, (x, w, h) => { x.fillStyle = '#d9d4c8'; x.fillRect(0, 0, w, h);   // painted cupboard door: hand grime round the pull, boot scuffs low, dirty edges
+    for (let i = 0; i < 1400; i++) { x.fillStyle = `rgba(${gr() > .5 ? '255,255,255' : '60,50,40'},${.06 * gr()})`; x.fillRect(gr() * w, gr() * h, 1 + gr() * 2, 1 + gr() * 2); }
+    for (let i = 0; i < 9; i++) soft(x, w / 2 + gf(-30, 30), gf(8, 40), gf(8, 22), '85,70,52', gf(.18, .34));   // fingers round the pull
+    const gb = x.createLinearGradient(0, h, 0, h * .7); gb.addColorStop(0, 'rgba(70,58,45,.5)'); gb.addColorStop(1, 'rgba(70,58,45,0)'); x.fillStyle = gb; x.fillRect(0, h * .7, w, h * .3);
+    for (let i = 0; i < 6 + k * 3; i++) { x.strokeStyle = `rgba(40,32,26,${gf(.25, .55)})`; x.lineWidth = gf(1, 3); x.beginPath(); const a = gr() * w, b = h - gf(4, 34); x.moveTo(a, b); x.lineTo(a + gf(-22, 22), b + gf(-3, 3)); x.stroke(); }   // kick marks
+    if (k === 1) soft(x, gf(30, 100), gf(60, 110), 18, '120,95,60', .25);   // a glue/varnish run
+    if (k === 2) { x.fillStyle = 'rgba(40,40,40,.7)'; x.font = 'bold 13px Arial'; x.fillText('SCREWS', 34, 72); }   // marker label
+    x.strokeStyle = 'rgba(80,66,50,.45)'; x.lineWidth = 3; x.strokeRect(1.5, 1.5, w - 3, h - 3); }) }));
+  let doorN = 0;
+  EDGE.color.set(0xffffff); EDGE.map = can(512, 32, (x, w, h) => { x.fillStyle = '#6b5236'; x.fillRect(0, 0, w, h);   // the bench front edge: knocked, polished by hands, darker grime
+    for (let i = 0; i < 30; i++) soft(x, gr() * w, gf(8, 24), gf(6, 20), gr() < .5 ? '40,28,16' : '150,118,80', gf(.15, .35));
+    for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(${gr() < .6 ? '35,24,14' : '170,140,100'},${gf(.3, .7)})`; x.fillRect(gr() * w, gf(2, h - 4), gf(2, 8), gf(1, 3)); }   // dents and bright chips
+    x.fillStyle = 'rgba(30,20,12,.45)'; x.fillRect(0, 0, w, 3); x.fillRect(0, h - 3, w, 3); });
+  EDGE.map.wrapS = THREE.RepeatWrapping;
   const sheet = (w, h, m, x, y, z, ry) => { const s = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m); s.position.set(x, y + h / 2, z); s.rotation.y = ry; s.receiveShadow = true; P.add(s); return s; };
   // --- shell: OSB lining on the left (x 0.45) and on the inside of the front and aisle walls, the far wall with its doorway, the low ply soffit
   const shell = grp(P);
   const lin = (L, H, x, z, ry) => { const m = OSBIN.clone(); m.map = OSBIN.map.clone(); m.map.repeat.set(L / 1.22, H / 2.44); m.map.needsUpdate = true; const s = sheet(L, H, m, x, 0, z, ry); P.remove(s); shell.add(s); return s; };
   lin(10.5, 3.8, .45, -7.7, Math.PI / 2);
-  { const w = grp(P), GL = STD({ color: 0x9fb4c2, metalness: .3, roughness: .08, emissive: 0x6f8798, emissiveIntensity: .35 }), FR = STD({ color: 0xc8a878, roughness: .7 });   // the front window from inside (scan: the aisle wall reads as glass at z −2.9…−5.3, 1.2–2.6 m)
+  { const w = grp(P), GL = STD({ color: 0x9fb4c2, metalness: .3, roughness: .32, emissive: 0x6f8798, emissiveIntensity: .35 }), FR = STD({ color: 0xc8a878, roughness: .7 });   // the front window from inside (scan: the aisle wall reads as glass at z −2.9…−5.3, 1.2–2.6 m)
     box(w, .02, 1.4, 2.4, GL, 5.945, 1.2, -4.1); for (const s of [-1, 1]) box(w, .05, 1.5, .07, FR, 5.93, 1.15, -4.1 + s * 1.235); for (const y of [1.13, 2.6]) box(w, .05, .07, 2.54, FR, 5.93, y, -4.1); box(w, .05, 1.4, .05, FR, 5.93, 1.2, -4.1);
     box(w, .16, .03, 2.54, FR, 5.86, 1.13, -4.1); } lin(5.5, 3.8, 3.2, -2.48, Math.PI); lin(10.4, 3.8, 5.96, -7.65, -Math.PI / 2);
   { const fw = grp(P, 0, 0, -12.95); const H = 3.8, D0 = 4.95, D1 = 5.85, DH = 2.05;   // far wall: OSB on studs, a doorway at the aisle corner (scan: gap at x ≈ 5.0–5.8)
@@ -1131,7 +1148,7 @@ function WSHOP(P) {
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, .07, H - .04, .07, CARC, sx * (L / 2 - .05), 0, sz * (D / 2 - .05));
     for (let k = 1; k < Math.floor(L / 1.4); k++) for (const sz of [-1, 1]) box(g, .07, H - .04, .07, CARC, -L / 2 + k * L / Math.floor(L / 1.4), 0, sz * (D / 2 - .05));
     box(g, L - .1, .022, D - .1, CHIP, 0, .16, 0); box(g, L, .07, .04, CARC, 0, H - .14, -D / 2 + .03);
-    if (opts.doors) { const n = Math.round(L / .6); for (let i = 0; i < n; i++) { box(g, L / n - .01, H - .26, .018, STD({ color: 0xd9d4c8, roughness: .6 }), -L / 2 + (i + .5) * L / n, .1, D / 2 - .01); box(g, .1, .015, .02, STEEL, -L / 2 + (i + .5) * L / n, H - .3, D / 2 + .01); } }
+    if (opts.doors) { const n = Math.round(L / .6); for (let i = 0; i < n; i++) { box(g, L / n - .01, H - .26, .018, DOORS[doorN++ % 3], -L / 2 + (i + .5) * L / n, .1, D / 2 - .01); box(g, .1, .015, .02, STEEL, -L / 2 + (i + .5) * L / n, H - .3, D / 2 + .01); } }
     return g; }
   function shelving(p, x, z, L, D, H, ry, levels) { const g = grp(p, x, 0, z, ry);   // grey slotted-angle shelving, chipboard shelves
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, .04, H, .04, STEEL, sx * (L / 2 - .02), 0, sz * (D / 2 - .02));
@@ -1245,6 +1262,37 @@ function WSHOP(P) {
       for (let i = 0; i < 2500; i++) { x.fillStyle = `rgba(225,195,140,${wf(.2, .6)})`; x.fillRect(wr() * w, wr() * h, 1, 1); } }) }));
     dust.rotation.x = -Math.PI / 2; dust.position.set(3.2, .004, -7.7); g.add(dust);
     T(g, 'Workshop lights + sockets', 'Fluorescent strip lights on the ceilings, white conduit and double sockets along the benches, a switch by the door; sawdust on the floor.', '', 'not sure').userData.noPick = true; }
+  // --- W5b (23 Oct): signs and notices on the walls, and light from the front window. Guessed (the scan can't read signs): tagged not sure
+  { const g = grp(P), SG = (w, h, cw, ch, draw) => STD({ roughness: .5, map: can(cw, ch, draw) }), plate = (m, w, h, x, y, z, ry) => { const s = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m); s.position.set(x, y, z); s.rotation.y = ry; s.receiveShadow = true; g.add(s); return s; };
+    const must = (word1, word2, icon) => SG(.2, .3, 128, 192, (x, w, h) => { x.fillStyle = '#f7f6f1'; x.fillRect(0, 0, w, h); x.fillStyle = '#1f5fa8'; x.beginPath(); x.arc(w / 2, 58, 46, 0, 7); x.fill();   // blue "must wear" sign
+      x.fillStyle = '#fff'; x.strokeStyle = '#fff'; x.lineWidth = 5; icon(x, w / 2, 58); x.fillStyle = '#1f5fa8'; x.fillRect(0, 118, w, 74); x.fillStyle = '#fff'; x.font = 'bold 12px Arial'; x.textAlign = 'center'; x.fillText(word1, w / 2, 146); x.fillText(word2, w / 2, 168);
+      for (let i = 0; i < 300; i++) { x.fillStyle = `rgba(90,80,60,${.08 * gr()})`; x.fillRect(gr() * w, gr() * h, 2, 2); } x.strokeStyle = 'rgba(0,0,0,.25)'; x.lineWidth = 2; x.strokeRect(1, 1, w - 2, h - 2); });
+    const eyes = (x, cx, cy) => { x.beginPath(); x.ellipse(cx - 17, cy + 2, 14, 10, 0, 0, 7); x.ellipse(cx + 17, cy + 2, 14, 10, 0, 0, 7); x.stroke(); x.beginPath(); x.moveTo(cx - 4, cy); x.lineTo(cx + 4, cy); x.stroke(); x.beginPath(); x.arc(cx, cy - 22, 12, 0, 7); x.fill(); };   // face with goggles
+    const ears = (x, cx, cy) => { x.beginPath(); x.arc(cx, cy, 24, Math.PI, 0); x.stroke(); x.fillRect(cx - 32, cy - 4, 14, 26); x.fillRect(cx + 18, cy - 4, 14, 26); };   // ear defenders
+    const ms = .006;   // signs sit just off the lining
+    plate(must('EYE PROTECTION', 'MUST BE WORN', eyes), .2, .3, .45 + ms, 1.75, -5.55, Math.PI / 2);   // left wall, between the banner and the tall shelving
+    plate(must('EAR PROTECTION', 'MUST BE WORN', ears), .2, .3, .45 + ms, 1.75, -5.82, Math.PI / 2);
+    plate(SG(.4, .15, 256, 96, (x, w, h) => { x.fillStyle = '#1c8a3c'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.fillRect(16, 16, 74, 64); x.fillStyle = '#1c8a3c';   // green fire-exit sign over the way out
+      x.beginPath(); x.arc(56, 30, 7, 0, 7); x.fill(); x.lineWidth = 7; x.strokeStyle = '#1c8a3c'; x.lineCap = 'round'; x.beginPath(); x.moveTo(52, 40); x.lineTo(46, 58); x.lineTo(34, 70); x.moveTo(46, 58); x.lineTo(60, 66); x.lineTo(64, 76); x.moveTo(50, 46); x.lineTo(66, 50); x.moveTo(50, 46); x.lineTo(36, 48); x.stroke();
+      x.fillStyle = '#fff'; x.font = 'bold 30px Arial'; x.fillText('FIRE EXIT', 104, 52); x.font = 'bold 34px Arial'; x.fillText('→', 196, 86); }), .4, .15, 5.4, 2.24, -12.95 + .052 + ms, 0);
+    plate(SG(.24, .1, 192, 80, (x, w, h) => { x.fillStyle = '#c4221b'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.font = 'bold 22px Arial'; x.textAlign = 'center'; x.fillText('NO SMOKING', w / 2, 34); x.font = '14px Arial'; x.fillText('IN THIS WORKSHOP', w / 2, 60); }), .24, .1, 4.35, 1.95, -12.95 + .052 + ms, 0);
+    { const fa = grp(g, 5.955, 1.5, -6.55, -Math.PI / 2); box(fa, .36, .3, .1, STD({ color: 0x1f8a43, roughness: .45 }), 0, 0, .05); box(fa, .34, .006, .102, STD({ color: 0x15682f }), 0, .2, .05);   // first-aid box on the aisle wall
+      const cr = STD({ color: 0xffffff, roughness: .5 }); box(fa, .14, .04, .004, cr, 0, .13, .102); box(fa, .04, .14, .004, cr, 0, .08, .102); box(fa, .08, .015, .02, STD({ color: 0xd9d9d6 }), 0, .3, .05); }
+    { const nb = grp(g, 5.93, 1.45, -8.35, -Math.PI / 2), CORK = STD({ roughness: .95, map: can(256, 160, (x, w, h) => { x.fillStyle = '#a77b4f'; x.fillRect(0, 0, w, h); for (let i = 0; i < 4000; i++) { x.fillStyle = `rgba(${gr() < .5 ? '70,45,25' : '200,160,110'},${.35 * gr()})`; x.fillRect(gr() * w, gr() * h, 1 + gr() * 2, 1 + gr() * 2); } }) });   // notice board
+      box(nb, .92, .62, .02, STD({ color: 0x8a6a46 }), 0, 0, -.01); const ck = new THREE.Mesh(new THREE.PlaneGeometry(.86, .56), CORK); ck.position.set(0, .31, .002); nb.add(ck);
+      const paper = (w, h, kind) => STD({ roughness: .9, map: can(96, Math.round(96 * h / w), (x, W, H) => { x.fillStyle = kind === 2 ? '#fff6a8' : '#f6f4ee'; x.fillRect(0, 0, W, H); x.fillStyle = 'rgba(40,40,45,.75)';
+        if (kind === 0) { x.fillRect(8, 8, W - 16, 6); for (let y = 22; y < H - 8; y += 7) x.fillRect(8, y, gf(30, W - 16), 2); } else if (kind === 1) { for (let r = 0; r < 6; r++) for (let c = 0; c < 4; c++) { x.strokeStyle = 'rgba(60,60,70,.6)'; x.lineWidth = 1; x.strokeRect(6 + c * ((W - 12) / 4), 16 + r * ((H - 24) / 6), (W - 12) / 4, (H - 24) / 6); } x.fillRect(6, 4, W - 12, 6); } else { for (let y = 12; y < H - 6; y += 9) x.fillRect(6, y, gf(20, W - 12), 2); }
+        x.fillStyle = 'rgba(0,0,0,.06)'; x.fillRect(0, H - 3, W, 3); }) });
+      for (const [px, py, w, h, k, rz] of [[-.27, .34, .21, .297, 0, .03], [-.02, .3, .21, .297, 1, -.02], [.22, .38, .21, .297, 0, .05], [.3, .12, .1, .1, 2, -.1], [.12, .1, .1, .1, 2, .08]]) { const pp = new THREE.Mesh(new THREE.PlaneGeometry(w, h), paper(w, h, k)); pp.position.set(px, py, .006); pp.rotation.z = rz; nb.add(pp); if (k < 2) cyl(nb, .006, .008, RED, px, py + h / 2 - .02, .01, 'z', 8); } }
+    // light from the front window: the hall's high-bays shine in through it from above, so a cool soft patch falls on the long bench and the floor in front of it, and a spot gives the kit there real light
+    const win = new THREE.SpotLight(0xdde7f2, 9, 7.5, .62, 1, 1.4); win.position.set(7.8, 3.3, -4.1); win.target.position.set(3.6, .2, -4.1); g.add(win); g.add(win.target);
+    const patch = (W, Hh, draw) => { const c = document.createElement('canvas'); c.width = W; c.height = Hh; const x = c.getContext('2d'); x.fillStyle = '#000'; x.fillRect(0, 0, W, Hh); draw(x, W, Hh); const t = new CT(c); t.colorSpace = THREE.SRGBColorSpace; return new THREE.MeshBasicMaterial({ map: t, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3 }); };
+    const lit = (x, x0, y0, x1, y1, a) => { for (let k = 0; k < 8; k++) { const sp = 2 + k * 2.2; x.fillStyle = `rgba(175,190,210,${a / 8})`; x.beginPath(); x.roundRect(x0 - sp, y0 - sp, x1 - x0 + 2 * sp, y1 - y0 + 2 * sp, sp); x.fill(); } };
+    { const fp = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 2.6), patch(170, 260, (x, w, h) => { lit(x, 22, 18, 104, 118, 1.5); lit(x, 22, 136, 104, 238, 1.5); x.globalCompositeOperation = 'destination-out'; const fade = x.createLinearGradient(w, 0, 0, 0); fade.addColorStop(0, 'rgba(0,0,0,0)'); fade.addColorStop(1, 'rgba(0,0,0,.55)'); x.fillStyle = fade; x.fillRect(0, 0, w, h); }));   // two panes (the mullion's shadow between), fading as it reaches into the room
+      fp.rotation.x = -Math.PI / 2; fp.position.set(4.35, .009, -4.1); fp.renderOrder = 3; g.add(fp); }
+    { const bp = new THREE.Mesh(new THREE.PlaneGeometry(.6, 2.5), patch(60, 250, (x, w, h) => { lit(x, 6, 8, 56, 118, 1.1); lit(x, 6, 132, 56, 242, 1.1); }));   // the bench top under the sill
+      bp.rotation.x = -Math.PI / 2; bp.position.set(5.6, .954, -4.1); bp.renderOrder = 3; g.add(bp); }
+    T(g, 'Signs + notices', 'Eye and ear protection signs, a fire-exit sign over the way out, a no-smoking sign, a first-aid box and a notice board by the long bench. Typical for a workshop: the scan can\'t read signs, so these are guesses.', '', 'not sure'); }
   // --- 10. W5 (22 Oct): soft contact shadows on the workshop floor. Every mesh that reaches within 30 cm of the floor darkens its footprint,
   //     the darker the lower it sits (legs, bins, cupboards, the wall foot), blurred in JS on a small canvas (no ctx.filter: slow under SwiftShader).
   { const X0 = .45, X1 = 5.96, Z0 = -12.95, Z1 = -2.48, PPM = 28, W = Math.ceil((X1 - X0) * PPM), H = Math.ceil((Z1 - Z0) * PPM), A = new Float32Array(W * H).fill(.18), bb = new THREE.Box3();
@@ -1258,10 +1306,29 @@ function WSHOP(P) {
     const B = new Float32Array(W * H); for (let pass = 0; pass < 3; pass++) { for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { let t = 0, n = 0; for (let d = -2; d <= 2; d++) { const ii = i + d; if (ii >= 0 && ii < W) { t += A[j * W + ii]; n++; } } B[j * W + i] = t / n; }
       for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { let t = 0, n = 0; for (let d = -2; d <= 2; d++) { const jj = j + d; if (jj >= 0 && jj < H) { t += B[jj * W + i]; n++; } } A[j * W + i] = t / n; } }
     const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'), im = x.createImageData(W, H);
-    for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const q = ((H - 1 - j) * W + i) * 4; im.data[q] = 22; im.data[q + 1] = 16; im.data[q + 2] = 10; im.data[q + 3] = Math.min(255, A[j * W + i] * 255); }   // canvas row 0 = the door end (z1)
+    for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const q = (j * W + i) * 4; im.data[q] = 22; im.data[q + 1] = 16; im.data[q + 2] = 10; im.data[q + 3] = Math.min(255, A[j * W + i] * 255); }   // canvas row 0 = the far wall (z0): a plane laid flat with rotation.x = −π/2 puts its top edge (v = 1, canvas row 0) at −z. (Was flipped until 23 Oct: every blob sat mirrored end to end.)
     x.putImageData(im, 0, 0); const tx = new CT(c); tx.colorSpace = THREE.SRGBColorSpace;
     const cs = new THREE.Mesh(new THREE.PlaneGeometry(X1 - X0, Z1 - Z0), new THREE.MeshBasicMaterial({ map: tx, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }));
     cs.rotation.x = -Math.PI / 2; cs.position.set((X0 + X1) / 2, .006, (Z0 + Z1) / 2); cs.renderOrder = 1; P.add(cs); }
+  // --- W5b (23 Oct): contact shadows on bench tops and shelves. For every worktop (TOP) and chipboard shelf (CHIP), splat the footprint of each mesh sitting
+  //     on it (darker the lower it starts) into a small grid, blur it, and lay it on the surface. Same method as the floor bake above.
+  { P.updateMatrixWorld(true); const all = [], surf = [], bb = new THREE.Box3();
+    for (const top of P.children.slice(n0)) top.traverse(o => { if (!o.isMesh || o.material.transparent) return; const b = new THREE.Box3().setFromObject(o); all.push([o, b]);
+      if ((o.material === TOP || o.material === CHIP) && b.max.y - b.min.y < .05 && b.max.y > .1 && (b.max.x - b.min.x) * (b.max.z - b.min.z) > .06) surf.push([o, b]); });
+    const SM = new THREE.MeshBasicMaterial({ color: 0x160f08, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }); let nS = 0;
+    for (const [so, sb] of surf) { const ty = sb.max.y, PPM = 60, X0 = sb.min.x, Z0 = sb.min.z, W = Math.max(2, Math.ceil((sb.max.x - X0) * PPM)), H = Math.max(2, Math.ceil((sb.max.z - Z0) * PPM)), A = new Float32Array(W * H); let hit = 0;
+      for (const [o, b] of all) { if (o === so || b.min.y < ty - .006 || b.min.y > ty + .2 || b.max.y < ty + .005 || b.max.x < X0 || b.min.x > sb.max.x || b.max.z < Z0 || b.min.z > sb.max.z) continue;
+        const k = Math.pow(1 - (b.min.y - ty) / .2, 2) * .88, pad = .015; hit++;
+        const i0 = Math.max(0, Math.floor((b.min.x - pad - X0) * PPM)), i1 = Math.min(W - 1, Math.ceil((b.max.x + pad - X0) * PPM)), j0 = Math.max(0, Math.floor((b.min.z - pad - Z0) * PPM)), j1 = Math.min(H - 1, Math.ceil((b.max.z + pad - Z0) * PPM));
+        for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) A[j * W + i] = 1 - (1 - A[j * W + i]) * (1 - k); }
+      if (!hit) continue;
+      const B = new Float32Array(W * H); for (let pass = 0; pass < 3; pass++) { for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { let t = 0, n = 0; for (let d = -2; d <= 2; d++) { const ii = i + d; if (ii >= 0 && ii < W) { t += A[j * W + ii]; n++; } } B[j * W + i] = t / n; }
+        for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { let t = 0, n = 0; for (let d = -2; d <= 2; d++) { const jj = j + d; if (jj >= 0 && jj < H) { t += B[jj * W + i]; n++; } } A[j * W + i] = t / n; } }
+      const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'), im = x.createImageData(W, H);
+      for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const q = (j * W + i) * 4; im.data[q] = im.data[q + 1] = im.data[q + 2] = 255; im.data[q + 3] = Math.min(255, A[j * W + i] * 255); }
+      x.putImageData(im, 0, 0); const tx = new CT(c); const m = SM.clone(); m.alphaMap = null; m.map = tx; m.color.set(0x160f08);
+      const pl = new THREE.Mesh(new THREE.PlaneGeometry(sb.max.x - X0, sb.max.z - Z0), m); pl.rotation.x = -Math.PI / 2; pl.position.set((X0 + sb.max.x) / 2, ty + .002, (Z0 + sb.max.z) / 2); pl.renderOrder = 1; P.add(pl); nS++; }
+    window.__wsShadowSurfaces = nS; }
   // --- W5 (22 Oct): sawdust heaped under the mitre-saw bench and the vice, and swept against the wall foot (own RNG)
   { const SD = STD({ color: 0xd2b07a, roughness: 1 }), heap = (x, z, r, h) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 6, 0, Math.PI * 2, 0, Math.PI / 2), SD); m.scale.set(r * qf(.8, 1.2), h, r * qf(.8, 1.2)); m.position.set(x, 0, z); m.rotation.y = qf(0, 6); m.receiveShadow = true; P.add(m); };
     for (let i = 0; i < 7; i++) heap(3.1 + qf(-.5, .5), -6.75 + qf(-.25, .25), qf(.08, .22), qf(.012, .035));   // under the mitre saw
