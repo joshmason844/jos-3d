@@ -1495,6 +1495,50 @@ function WSHOP(P) {
     for (let i = 0; i < 7; i++) heap(3.1 + qf(-.5, .5), -6.75 + qf(-.25, .25), qf(.08, .22), qf(.012, .035));   // under the mitre saw
     for (let i = 0; i < 4; i++) heap(.95 + qf(-.2, .3), -3.55 + qf(-.3, .3), qf(.06, .15), qf(.01, .025));     // under the vice
     for (let i = 0; i < 6; i++) heap(qf(.6, .75), qf(-6, -10.5), qf(.1, .25), qf(.01, .03)); }                 // swept up against the left wall
+  // --- 23 Oct 23:xx: use-wear on the small kit (tools, cases, clamps, cabinet, compressor, vice...). The 07:xx review: "tools read as clean plastic".
+  // Every mapless small mesh (< .75 m) in the workshop gets a worn clone of its material, picked by what it is: paint/plastic (edge chips, rub-through,
+  // grime round where hands go, fine scratches), rubber (diamond-knurl grip bump, dust in the grooves), steel (oily smudges, brushed lines, rust specks),
+  // wood (grain along the length, darker where held). Big things (benches, lining) are untouched; own RNG so nothing else moves.
+  { let su = 5113; const ur = () => (su = (su * 16807) % 2147483647) / 2147483647, uf = (a, b) => a + (b - a) * ur();
+    const cv = (draw, srgb) => { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); draw(x, 256, 256); const t = new CT(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
+    const blot = (x, cx, cy, r, rgba) => { const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, rgba); g.addColorStop(1, rgba.replace(/[\d.]+\)$/, '0)')); x.fillStyle = g; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); };
+    const edges = (x, w, h, col, a, d) => { for (const [x0, y0, x1, y1, rx, ry, rw, rh, k] of [[0, 0, 0, d, 0, 0, w, d, 1], [0, h, 0, h - d, 0, h - d, w, d, 1], [0, 0, d, 0, 0, 0, d, h, .45], [w, 0, w - d, 0, w - d, 0, d, h, .45]]) { const g = x.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, `rgba(${col},${a * k})`); g.addColorStop(1, `rgba(${col},0)`); x.fillStyle = g; x.fillRect(rx, ry, rw, rh); } };   // face edges = the part's real edges (box faces, cylinder ends); the u seam weaker
+    const chips = (x, w, h, n, col, edgeOnly) => { for (let i = 0; i < n; i++) { const e = ur() < .7 || edgeOnly; const px = e && ur() < .5 ? (ur() < .5 ? uf(0, 10) : w - uf(0, 10)) : uf(0, w), py = e ? (ur() < .5 ? uf(0, 14) : h - uf(0, 14)) : uf(0, h);
+      x.fillStyle = `rgba(${col},${uf(.45, .9)})`; x.beginPath(); x.moveTo(px, py); for (let k = 0; k < 6; k++) { const a = k / 6 * 6.28 + uf(-.4, .4), r = uf(1.5, 7); x.lineTo(px + Math.cos(a) * r, py + Math.sin(a) * r * uf(.5, 1)); } x.fill(); } };
+    const scratches = (x, w, h, n, col, len) => { for (let i = 0; i < n; i++) { x.strokeStyle = `rgba(${col},${uf(.15, .5)})`; x.lineWidth = uf(.5, 1.4); x.beginPath(); const a = uf(0, w), b = uf(0, h), t = uf(0, 6.28), L = uf(len * .3, len); x.moveTo(a, b); x.quadraticCurveTo(a + Math.cos(t) * L * .5 + uf(-4, 4), b + Math.sin(t) * L * .5 + uf(-4, 4), a + Math.cos(t) * L, b + Math.sin(t) * L); x.stroke(); } };
+    const K = {};
+    K.paint = { map: cv((x, w, h) => { x.fillStyle = '#efefef'; x.fillRect(0, 0, w, h);
+        for (let i = 0; i < 26; i++) blot(x, uf(0, w), uf(0, h), uf(12, 50), `rgba(70,58,44,${uf(.05, .14)})`);   // handling grime
+        edges(x, w, h, '55,45,36', .24, 18); chips(x, w, h, 60, '120,112,102'); chips(x, w, h, 18, '60,52,44', true);   // dirty, rubbed edges; chips (dull primer, dark dirt)
+        scratches(x, w, h, 60, '255,255,255', 40); scratches(x, w, h, 30, '60,50,40', 30);
+        for (let i = 0; i < 2500; i++) { x.fillStyle = `rgba(${ur() > .4 ? '120,105,85' : '255,255,255'},${uf(.03, .14)})`; x.fillRect(uf(0, w), uf(0, h), uf(.6, 1.8), uf(.6, 1.8)); } }, true),
+      rough: cv((x, w, h) => { x.fillStyle = '#c8c8c8'; x.fillRect(0, 0, w, h); for (let i = 0; i < 20; i++) blot(x, uf(0, w), uf(0, h), uf(15, 45), `rgba(255,255,255,${uf(.2, .5)})`);   // dull grime patches
+        edges(x, w, h, '255,255,255', .45, 16); scratches(x, w, h, 60, '80,80,80', 40); chips(x, w, h, 60, '60,60,60'); }), bump: .6 };
+    K.rubber = { map: cv((x, w, h) => { x.fillStyle = '#dcdcdc'; x.fillRect(0, 0, w, h); const n = 14, s = w / n;
+        for (let i = 0; i <= n; i++) for (let j = 0; j <= n * 2; j++) { x.fillStyle = `rgba(255,250,240,${uf(.08, .22)})`; x.fillRect(i * s - 1, j * s / 2 - 1, 2.5, 2.5); }   // dust caught in the grooves
+        for (let i = 0; i < 18; i++) blot(x, uf(0, w), uf(0, h), uf(10, 40), `rgba(${ur() < .5 ? '255,248,235' : '30,26,22'},${uf(.06, .16)})`); edges(x, w, h, '255,248,236', .22, 14); }, true),
+      rough: cv((x, w, h) => { x.fillStyle = '#ffffff'; x.fillRect(0, 0, w, h); const n = 14, s = w / n; x.strokeStyle = 'rgba(40,40,40,.85)'; x.lineWidth = 2.2;   // diamond knurl: two sets of diagonals
+        for (let i = -n; i <= 2 * n; i++) { x.beginPath(); x.moveTo(i * s, 0); x.lineTo(i * s + h, h); x.stroke(); x.beginPath(); x.moveTo(i * s, 0); x.lineTo(i * s - h, h); x.stroke(); }
+        for (let i = 0; i < 10; i++) blot(x, uf(0, w), uf(0, h), uf(10, 30), `rgba(150,150,150,${uf(.2, .4)})`); }), bump: 1.4 };   // worn-smooth patches
+    K.steel = { map: cv((x, w, h) => { x.fillStyle = '#f2f2f2'; x.fillRect(0, 0, w, h); for (let i = 0; i < 140; i++) { x.fillStyle = `rgba(${ur() < .5 ? '255,255,255' : '110,110,112'},${uf(.03, .08)})`; x.fillRect(0, uf(0, h), w, uf(.5, 2)); }   // brushed lines
+        for (let i = 0; i < 16; i++) blot(x, uf(0, w), uf(0, h), uf(10, 40), `rgba(38,34,30,${uf(.1, .28)})`);   // oily thumb smudges
+        for (let i = 0; i < 40; i++) blot(x, uf(0, w), uf(0, h), uf(1.5, 5), `rgba(130,62,28,${uf(.25, .6)})`); edges(x, w, h, '40,34,28', .3, 12); }, true),   // rust specks, dirty edges
+      rough: cv((x, w, h) => { x.fillStyle = '#d0d0d0'; x.fillRect(0, 0, w, h); for (let i = 0; i < 160; i++) { x.fillStyle = `rgba(${ur() < .5 ? '255,255,255' : '120,120,120'},${uf(.04, .14)})`; x.fillRect(0, uf(0, h), w, uf(.5, 2)); }
+        for (let i = 0; i < 16; i++) blot(x, uf(0, w), uf(0, h), uf(10, 40), `rgba(255,255,255,${uf(.3, .6)})`); }), bump: .3 };
+    K.wood = { map: cv((x, w, h) => { x.fillStyle = '#f0f0f0'; x.fillRect(0, 0, w, h); for (let i = 0; i < 70; i++) { x.strokeStyle = `rgba(80,48,22,${uf(.08, .25)})`; x.lineWidth = uf(.6, 2.2); x.beginPath(); let a = uf(0, w); x.moveTo(a, 0); for (let k = 1; k <= 8; k++) x.lineTo(a += uf(-2, 2), k * h / 8); x.stroke(); }   // grain along the length (v)
+        const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, 'rgba(50,32,18,.0)'); g.addColorStop(.35, 'rgba(50,32,18,.28)'); g.addColorStop(.65, 'rgba(50,32,18,.28)'); g.addColorStop(1, 'rgba(50,32,18,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h);   // darker where it's held
+        chips(x, w, h, 20, '60,38,20', true); }, true),
+      rough: cv((x, w, h) => { x.fillStyle = '#e0e0e0'; x.fillRect(0, 0, w, h); for (let i = 0; i < 70; i++) { x.strokeStyle = `rgba(110,110,110,${uf(.2, .5)})`; x.lineWidth = uf(.6, 2); x.beginPath(); let a = uf(0, w); x.moveTo(a, 0); for (let k = 1; k <= 8; k++) x.lineTo(a += uf(-2, 2), k * h / 8); x.stroke(); }
+        const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(.3, 'rgba(120,120,120,0)'); g.addColorStop(.5, 'rgba(120,120,120,.5)'); g.addColorStop(.7, 'rgba(120,120,120,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); }), bump: .5 };   // polished where held
+    const kind = m => { if (m.metalness >= .5) return 'steel'; const hsl = {}; m.color.getHSL(hsl, THREE.SRGBColorSpace);   // sRGB hue: in linear, yellow paint (45°) reads as wood (32°)
+      if (hsl.l < .2 && m.roughness >= .7) return 'rubber'; if (hsl.h > .07 && hsl.h < .11 && hsl.s > .25 && hsl.l > .2 && hsl.l < .45 && m.roughness < .75) return 'wood'; return 'paint'; };
+    const uvDone = new Set(), uvFix = g => { if (uvDone.has(g)) return; uvDone.add(g); if (!/Extrude|Shape/.test(g.type) || !g.attributes.uv) return; const u = g.attributes.uv; for (let i = 0; i < u.count; i++) u.setXY(i, u.getX(i) * 6, u.getY(i) * 6); u.needsUpdate = true; };   // extrude/shape UVs are in metres: one tile per ~17 cm, or a 3 cm chip blows up to fill a saw hood
+    const worn = new Map(), bb = new THREE.Box3(), sz = new THREE.Vector3(); let nw = 0; P.updateMatrixWorld(true);
+    for (let i = n0; i < P.children.length; i++) P.children[i].traverse(o => { const m = o.material; if (!o.isMesh || !m || !m.isMeshStandardMaterial || Array.isArray(m) || m.map || m.transparent || m.roughness >= .95 || (m.emissive && m.emissive.getHex())) return;
+      bb.setFromObject(o).getSize(sz); if (Math.max(sz.x, sz.y, sz.z) > .75) return;
+      let c = worn.get(m); if (!c) { const k = K[kind(m)]; c = m.clone(); c.map = k.map; c.roughnessMap = k.rough; c.bumpMap = k.rough; c.bumpScale = k.bump; c.needsUpdate = true; worn.set(m, c); }
+      uvFix(o.geometry); o.material = c; nw++; });
+    console.log('wear: ' + nw + ' small parts, ' + worn.size + ' materials'); }
 }
 
 // ---------------- bake: merge each item's static meshes by material (far fewer draw calls) ----------------

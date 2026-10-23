@@ -209,3 +209,7 @@ Runs alternate: one People item, then one Warehouse item (Main hall, sections, y
 - [ ] WW workshop (23 Oct 07:xx review): the reshaped tools read as clean plastic: flat colour, no rubber grip texture, no wear, chips or dust; give drills, saw, compressor and clamps a worn-surface pass (grip stipple bump, scuffed paint edges, dust on top faces).
 - [ ] WW workshop (23 Oct 07:xx review): guessed tools carry no orange NOT SURE tag in the close-ups; tag the pegboard tools, drills, saw and compressor as not sure (they're placed from the scan's shapes, not seen), so Truth can lift above 5.
 - [ ] WW workshop (23 Oct 07:xx review): the roll cabinet and low cupboard are very dark on phone with thin drawer pulls; lift the cabinet's red/black value and thicken the pulls.
+- [ ] WW workshop: hand-saw blades read as grimy grey more than steel (blotches too big for the blade); smaller, fainter smudges on thin steel, a bright edge along the teeth.
+- [ ] WW workshop: compressor tank rust/dirt patches a bit big at phone scale; scale the paint chips by part size (UVs are per face, so small parts get dense wear, big ones sparse).
+- [ ] WW workshop: guessed tools show no orange NOT SURE label in the close-ups (reviewer, 23 Oct 07:xx: Truth capped at 5); show tags for the tool wall in the Workshop (inside) view.
+
