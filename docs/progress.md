@@ -5,7 +5,7 @@ Every page in the challenge, its latest score from a fresh-eyes review, and the 
 | Page               | Start (14 Oct) | Latest | Target | At standard? |
 |--------------------|----------------|--------|--------|--------------|
 | People in 3D       | 6.3            | 6.3    | 8      | no           |
-| WW (workshop warehouse) | 6.3            | 6.5 (self, 23 Oct 02:xx: workshop inside 6.3 → 6.5 after the lighting gate on the 01:xx W5b; live, review due; last reviewer score 6.0, 17 Oct; left-side wrap still the weakest, 4.0–5.3) | 8      | no           |
+| WW (workshop warehouse) | 6.3            | 5.9 (reviewer, 23 Oct 03:xx blind W5c review: workshop inside 5.5 → 5.85 on phone vs 17 Oct, better in all 5 views; the night's self-scores of 6.3–6.5 ran about 0.6 high; left-side wrap still the weakest, 4.0–5.3) | 8      | no           |
 | Sections 1–5       | 7.0            | 7.0    | 8      | no           |
 
 Pages: 0 of 3 at standard.
