@@ -59,6 +59,9 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   wscab:    [[2.45, 1.45, -11.3], [1.45, .8, -12.6], true],     // close on the roll cabinet and the low cupboard, far left corner (23 Oct 05:xx)
   wsbin:    [[3.95, 1.35, -7.55], [3.25, .35, -8.45], true],     // close on the offcuts bin (23 Oct 05:xx)
   wsclamp:  [[4.05, 1.6, -11.95], [4.15, 1.5, -12.9], true],     // close on the pegboard's right half: F-clamps, saws (23 Oct 05:xx)
+  wssaw:    [[3.75, 1.6, -7.45], [3.2, 1.15, -6.7], true],      // close on the mitre-saw bench (23 Oct 06:xx)
+  wscomp:   [[4.95, 1.05, -10.35], [4.25, .3, -11.2], true],    // close on the compressor (23 Oct 06:xx)
+  wsvice:   [[1.75, 1.55, -3.0], [.85, 1.0, -3.5], true],       // close on the vice at the front of the left-wall bench (23 Oct 06:xx)
   wsdrill:  [[1.95, 1.55, -3.55], [1.85, 1.02, -2.75], true],   // close on the front bench: two drills, a tool case (23 Oct)
   wsaisle: [[2.6, 1.9, -9.0], [5.9, 1.1, -7.2], true],       // the long aisle bench and its shelves, the window
   wsleft: [[4.4, 2.0, -8.0], [0.6, 1.1, -9.4], true],        // the tall shelving on the left wall, sheet stock, offcuts bin

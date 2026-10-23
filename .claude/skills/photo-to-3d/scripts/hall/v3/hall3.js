@@ -1249,6 +1249,69 @@ function WSHOP(P) {
     const tail = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(0, .05, .12), new THREE.Vector3(.02, .005, .2), new THREE.Vector3(-.06, .006, .32), new THREE.Vector3(-.16, .006, .3)]), 16, .007, 6), STD({ color: 0xe0661c, roughness: .55 })); tail.castShadow = true; g.add(tail);   // loose tail and plug
     box(g, .04, .03, .05, STD({ color: 0x1b1c1e }), -.18, 0, .3);
     return g; };
+  // 23 Oct 06:xx: the mitre saw, the compressor and the vice get real shapes (they were stacked blocks). No RNG draws, so nothing else moves
+  const sector = (r0, r1, a0, a1, depth) => { const sh = new THREE.Shape(); sh.absarc(0, 0, r1, a0, a1, false); sh.lineTo(Math.cos(a1) * r0, Math.sin(a1) * r0); sh.absarc(0, 0, r0, a1, a0, true); sh.closePath();
+    const ge = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: true, bevelSize: .003, bevelThickness: .003, bevelSegments: 1, curveSegments: 20 }); ge.translate(0, 0, -depth / 2); ge.rotateY(Math.PI / 2); return ge; };   // a ring sector in the y-z plane (thickness along x)
+  const mitreSaw = (p, x, y, z, ry = 0) => { const g = grp(p, x, y, z, ry);   // sliding-free chop/mitre saw, operator on −z: cast base and turntable, split fence, pivot at the back, arm, toothed blade under a yellow hood, motor, D-handle, dust bag
+    const CAST = STD({ color: 0x9da3a8, metalness: .55, roughness: .5 }), SY = STD({ color: 0xf2b705, roughness: .42 });
+    box(g, .46, .05, .36, CAST, 0, 0, .02); for (const sx of [-1, 1]) { box(g, .1, .035, .3, CAST, sx * .29, .012, .02); for (const sz of [-1, 1]) box(g, .05, .012, .05, GRIP, sx * .2, -.01, .02 + sz * .14); }   // base, side wings, rubber feet
+    const tt = tmesh(g, new THREE.CylinderGeometry(.16, .16, .022, 36), CAST, 0, .061, .0); box(g, .012, .004, .3, BLK, 0, .073, .0);   // turntable, kerf plate slot
+    for (let i = -4; i <= 4; i++) { const a = i * .17; box(g, .003, .002, .018, BLK, Math.sin(a) * .15, .073, -Math.cos(a) * .15).rotation.y = a; }   // mitre scale ticks round the front
+    const arm = box(g, .05, .025, .14, CAST, 0, .06, -.2); box(g, .03, .03, .03, GRIP, 0, .085, -.27);   // mitre arm and lock knob, out the front
+    for (const sx of [-1, 1]) { box(g, .2, .075, .012, ALU, sx * .125, .072, .13); box(g, .2, .012, .03, ALU, sx * .125, .072, .14); }   // split fence
+    box(g, .09, .14, .06, CAST, 0, .072, .2); const pv = tmesh(g, new THREE.CylinderGeometry(.022, .022, .1, 14), BRIGHT, 0, .2, .2); pv.rotation.z = Math.PI / 2;   // pivot post and hinge pin
+    const head = grp(g, 0, .2, .2); head.rotation.x = .12;   // the head, tipped up a touch at rest
+    const am = box(head, .05, .04, .2, SY, .045, -.02, -.1); am.rotation.x = -.18;   // arm forward from the pivot
+    const bl = new THREE.Shape(), R = .127, n = 48; for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2, b = (i + .55) / n * Math.PI * 2; bl.lineTo(Math.cos(a) * R * .95, Math.sin(a) * R * .95); bl.lineTo(Math.cos(b) * R, Math.sin(b) * R); }   // 48-tooth blade
+    const bg = new THREE.ShapeGeometry(bl); bg.rotateY(Math.PI / 2); tmesh(head, bg, STD({ color: 0xaeb3b7, metalness: .85, roughness: .3, side: THREE.DoubleSide }), 0, .05, -.2);
+    const fl = tmesh(head, new THREE.CylinderGeometry(.032, .032, .012, 16), BRIGHT, 0, .05, -.2); fl.rotation.z = Math.PI / 2;   // arbor flange
+    tmesh(head, sector(.02, .147, -.25, Math.PI + .5, .06), SY, 0, .05, -.2);   // upper blade guard (hood) over the top half and the back
+    const mo = tmesh(head, new THREE.CylinderGeometry(.055, .06, .14, 18), BLK, .12, .07, -.18); mo.rotation.z = Math.PI / 2; for (let i = 0; i < 6; i++) box(head, .1, .004, .012, GRIP, .13, .1 + 0, -.24 + i * .02).position.y = .125;   // motor and its vents
+    const ec = tmesh(head, new THREE.CylinderGeometry(.045, .045, .02, 16), SY, .2, .07, -.18); ec.rotation.z = Math.PI / 2;   // brush cap end
+    const hd = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(.04, .1, -.15), new THREE.Vector3(.04, .2, -.22), new THREE.Vector3(.04, .19, -.33), new THREE.Vector3(.04, .1, -.35)]), 16, .016, 8), BLK); hd.castShadow = true; head.add(hd);   // D-handle
+    box(head, .012, .03, .02, RED, .04, .14, -.33);   // trigger
+    const bag = tmesh(head, new THREE.CapsuleGeometry(.05, .14, 4, 12), STD({ color: 0x5a5d61, roughness: .95 }), 0, .1, .19); bag.rotation.x = -1.75; bag.scale.set(1, 1, .8);   // dust bag on the back
+    box(g, .07, .05, .004, STD({ roughness: .6, map: can(64, 48, (c, w, h) => { c.fillStyle = '#111'; c.fillRect(0, 0, w, h); c.fillStyle = '#f2b705'; c.fillRect(3, 3, w - 6, 12); c.fillStyle = '#ddd'; for (let i = 0; i < 4; i++) c.fillRect(6, 22 + i * 6, 30 + (i * 7) % 20, 2); }) }), .16, .05, -.16);   // rating plate on the base front
+    return g; };
+  const compressor = (p, x, z, ry) => { const g = grp(p, x, 0, z, ry);   // wheeled site compressor: orange tank with welded end caps, saddle feet, wheels and a pull handle; pump and motor on top with fins, two gauges, regulator, couplers, drain cock
+    const TK = STD({ color: 0xe0661c, roughness: .42, metalness: .2 });
+    cyl(g, .19, .56, TK, 0, .26, 0, 'x', 28); for (const s of [-1, 1]) { const e = tmesh(g, new THREE.SphereGeometry(.19, 24, 12), TK, s * .28, .26, 0); e.scale.x = .32; const w = tmesh(g, new THREE.TorusGeometry(.19, .004, 6, 32), STD({ color: 0xb4501a, roughness: .5 }), s * .28, .26, 0); w.rotation.y = Math.PI / 2; }   // tank, domed ends, weld seams
+    box(g, .34, .006, .002, STD({ color: 0xb4501a }), 0, .449, 0);   // long seam on top
+    for (const sx of [-.2]) { box(g, .05, .1, .3, DARK, sx, 0, 0); box(g, .06, .02, .34, GRIP, sx, 0, 0); }   // rubber foot saddle at the pump end
+    tmesh(g, new THREE.CylinderGeometry(.008, .008, .4, 8), BRIGHT, .25, .07, 0).rotation.x = Math.PI / 2;   // axle
+    for (const s of [-1, 1]) { const wh = tmesh(g, new THREE.CylinderGeometry(.07, .07, .045, 20), GRIP, .25, .07, s * .19); wh.rotation.x = Math.PI / 2; const hb = tmesh(g, new THREE.CylinderGeometry(.035, .035, .05, 14), STD({ color: 0xd8d8d0, roughness: .5 }), .25, .07, s * .19); hb.rotation.x = Math.PI / 2; }   // wheels with grey hubs
+    const hp = new THREE.CatmullRomCurve3([new THREE.Vector3(.2, .3, -.13), new THREE.Vector3(.36, .55, -.13), new THREE.Vector3(.4, .68, -.1), new THREE.Vector3(.4, .7, 0), new THREE.Vector3(.4, .68, .1), new THREE.Vector3(.36, .55, .13), new THREE.Vector3(.2, .3, .13)]);
+    const hn = new THREE.Mesh(new THREE.TubeGeometry(hp, 30, .011, 8), DARK); hn.castShadow = true; g.add(hn); const gr = tmesh(g, new THREE.CylinderGeometry(.016, .016, .14, 10), GRIP, .4, .7, 0); gr.rotation.x = Math.PI / 2;   // pull handle with a grip
+    box(g, .3, .012, .2, DARK, -.03, .44, 0);   // mounting plate on the tank
+    const mo = tmesh(g, new THREE.CylinderGeometry(.075, .075, .17, 20), BLK, .06, .53, .02); mo.rotation.z = Math.PI / 2; for (let i = 0; i < 7; i++) { const f = tmesh(g, new THREE.TorusGeometry(.076, .004, 4, 20), GRIP, -.01 + i * .022, .53, .02); f.rotation.y = Math.PI / 2; }   // motor, ribbed
+    const cy = grp(g, -.1, .45, .0); cyl(cy, .045, .09, STEEL, 0, .09, 0, 'y', 16); for (let i = 0; i < 6; i++) cyl(cy, .062, .006, STEEL, 0, .05 + i * .015, 0, 'y', 16); box(cy, .11, .03, .11, RED, 0, .15, 0); for (const sx of [-1, 1]) for (const sz of [-1, 1]) cyl(cy, .006, .01, BRIGHT, sx * .04, .185, sz * .04);   // finned pump cylinder, red head, bolts
+    const fil = tmesh(g, new THREE.CylinderGeometry(.03, .03, .03, 14), BLK, -.1, .63, .065); fil.rotation.x = Math.PI / 2;   // air filter
+    box(g, .07, .07, .06, STD({ color: 0x2a2b2d, roughness: .5 }), .14, .45, -.12); box(g, .02, .02, .02, RED, .14, .53, -.12);   // pressure switch, on/off button
+    const gface = can(64, 64, (c, w, h) => { c.fillStyle = '#f4f2ea'; c.fillRect(0, 0, w, h); c.strokeStyle = '#222'; c.lineWidth = 2; for (let i = 0; i <= 10; i++) { const a = Math.PI * (.75 + i * .15); c.beginPath(); c.moveTo(32 + Math.cos(a) * 24, 32 + Math.sin(a) * 24); c.lineTo(32 + Math.cos(a) * 29, 32 + Math.sin(a) * 29); c.stroke(); }
+      c.strokeStyle = '#c0221b'; c.beginPath(); c.arc(32, 32, 27, Math.PI * 1.9, Math.PI * 2.25); c.stroke(); c.strokeStyle = '#111'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(32, 32); c.lineTo(48, 20); c.stroke(); });
+    const GF = STD({ map: gface, roughness: .25 });
+    box(g, .16, .025, .025, BRIGHT, -.1, .45, -.17);   // manifold
+    for (const gx of [-.15, -.05]) { const gg = grp(g, gx, .5, -.19); const rim = tmesh(gg, new THREE.CylinderGeometry(.03, .03, .018, 20), BRIGHT, 0, 0, 0); rim.rotation.x = Math.PI / 2; const f = tmesh(gg, new THREE.CircleGeometry(.026, 20), GF, 0, 0, -.0095); f.rotation.y = Math.PI; tmesh(gg, new THREE.CylinderGeometry(.006, .006, .04, 8), BRIGHT, 0, -.035, .01); }   // two gauges: tank and line pressure
+    const kb = tmesh(g, new THREE.CylinderGeometry(.018, .02, .025, 12), BLK, -.1, .47, -.205); kb.rotation.x = Math.PI / 2;   // regulator knob
+    for (const gx of [-.17, -.03]) { const qc = tmesh(g, new THREE.CylinderGeometry(.009, .011, .03, 10), STD({ color: 0xc9a84a, metalness: .8, roughness: .3 }), gx, .43, -.2); qc.rotation.x = Math.PI / 2; }   // brass quick couplers
+    tmesh(g, new THREE.CylinderGeometry(.006, .006, .03, 8), STD({ color: 0xc9a84a, metalness: .8, roughness: .3 }), .05, .055, 0);   // drain cock under the tank
+    box(g, .12, .07, .002, STD({ roughness: .6, map: can(64, 40, (c, w, h) => { c.fillStyle = '#f0ede4'; c.fillRect(0, 0, w, h); c.fillStyle = '#111'; c.fillRect(0, 0, w, 9); c.fillStyle = '#444'; for (let i = 0; i < 4; i++) c.fillRect(5, 14 + i * 6, 26 + (i * 11) % 24, 2); c.fillStyle = '#c0221b'; c.fillRect(46, 18, 12, 12); }) }), .02, .24, .191);   // rating sticker on the tank side
+    const coil = grp(g, .05, 0, .42); for (let i = 0; i < 5; i++) { const t = tmesh(coil, new THREE.TorusGeometry(.13 + (i % 2) * .012, .009, 6, 32), STD({ color: 0x2a5aa8, roughness: .55 }), (i - 2) * .006, .01 + i * .016, (i % 3) * .008); t.rotation.x = Math.PI / 2; }   // airline: a loose coil of blue hose
+    const lead = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(-.03, .43, -.215), new THREE.Vector3(-.02, .36, -.26), new THREE.Vector3(.0, .12, -.25), new THREE.Vector3(.03, .02, .0), new THREE.Vector3(.1, .03, .3)]), 24, .009, 6), STD({ color: 0x2a5aa8, roughness: .55 })); lead.castShadow = true; g.add(lead);   // hose from the coupler down to the coil
+    return g; };
+  const bvice = (p, x, y, z, ry = 0) => { const g = grp(p, x, y, z, ry);   // engineer's bench vice, jaws opening along +x: swivel base bolted down, fixed jaw flush with the bench front, sliding jaw on its slide, screw, tommy bar with ball ends, anvil on the back
+    const VB = STD({ color: 0x2f5f8f, metalness: .4, roughness: .45 }), JP = STD({ color: 0x3a3d40, metalness: .7, roughness: .5 });
+    cyl(g, .07, .02, VB, -.1, .01, 0, 'y', 24); box(g, .2, .012, .15, VB, -.1, 0, 0); for (const sx of [-1, 1]) for (const sz of [-1, 1]) { cyl(g, .009, .012, BRIGHT, -.1 + sx * .075, .012, sz * .058, 'y', 6); }   // base plate, swivel turntable, four bolts
+    cyl(g, .012, .02, BRIGHT, -.03, .025, .085, 'z', 8); tmesh(g, new THREE.CylinderGeometry(.004, .004, .05, 6), BRIGHT, -.03, .025, .1).rotation.x = Math.PI / 2;   // swivel lock and its lever
+    box(g, .17, .075, .085, VB, -.1, .02, 0);   // body
+    box(g, .04, .13, .14, VB, -.02, .02, 0); box(g, .07, .025, .065, STD({ color: 0x8d949a, metalness: .7, roughness: .35 }), -.15, .095, 0);   // fixed jaw block, anvil (worn bright)
+    const jaw = (jx, s) => { box(g, .006, .045, .14, JP, jx, .105, 0); for (let i = 0; i < 6; i++) box(g, .002, .002, .14, BLK, jx + s * .003, .11 + i * .007, 0); };   // hardened jaw plates, cross-hatched
+    jaw(.003, 1); box(g, .055, .06, .055, VB, .03, .045, 0);   // the slide between the jaws
+    box(g, .04, .13, .14, VB, .078, .02, 0); jaw(.055, -1);   // sliding jaw, 5 cm open
+    box(g, .1, .05, .05, VB, .13, .045, 0);   // slide out the front, under the screw
+    cyl(g, .011, .09, BRIGHT, .14, .095, 0, 'x', 10); const bs = cyl(g, .025, .035, VB, .195, .095, 0, 'x', 14);   // screw and its boss
+    tmesh(g, new THREE.CylinderGeometry(.006, .006, .22, 8), BRIGHT, .205, .06, 0); for (const yy of [-.05, .17]) tmesh(g, new THREE.SphereGeometry(.012, 10, 8), BRIGHT, .205, yy, 0);   // tommy bar hanging through it, ball ends
+    return g; };
   // --- 1. front wall bench, under the window-less front, with shelves over its left end (scan: top ≈ 1.0–1.1 m, a shelf ≈ 2.0 m at x 0.75–2.0)
   { const g = grp(P), b = bench(g, 3.2, -2.78, 5.4, .62, 1.0, 0, { doors: false });
     const s = shelving(g, 1.4, -2.68, 1.7, .4, 1.3, 0, [.55, 1.0]); s.position.y = 1.0; for (let i = 0; i < 5; i++) tin(s, -.7 + i * .17, .57, 0, .065, .14, [0xd9dde0, 0x2f5f8f, 0xb8231d, 0xe8e2d0, 0x3b6b3a][i]);
@@ -1258,7 +1321,7 @@ function WSHOP(P) {
     T2(g, 'Bench (front wall)', 'A timber bench right along the front wall: ply top, a shelf underneath, tins, drills and tool cases on it, a slotted-angle shelf unit over its left end with paint tins and yellow tool cases.', '≈ 5.4 × 0.6 m · top ≈ 1.0 m (scan)'); }
   // --- 2. left wall bench in the front, and a yellow banner on the wall above it (scan: ≈ 0.9–1.3 m at x 0.75–1.25; yellow 1.3–2.4 m at z −3.5…−4.6)
   { const g = grp(P), b = bench(g, .82, -4.4, 2.6, .7, .95, Math.PI / 2, { doors: true });
-    const t = grp(g, .82, .95, -4.4); const vice = grp(t, 0, 0, .9); box(vice, .2, .12, .14, STD({ color: 0x2f5f8f, metalness: .4, roughness: .4 }), 0, 0, 0); box(vice, .2, .1, .04, STEEL, 0, .12, .08); cyl(vice, .01, .3, STEEL, 0, .08, .2, 'z', 8);
+    const t = grp(g, .82, .95, -4.4); bvice(t, .35, 0, .9);   // 06:xx: a real bench vice, jaws flush with the bench front (it was blue blocks facing along the bench)
     for (let i = 0; i < 3; i++) cbox(t, wf(-.15, .1), i * .2, -.8 + i * .02, .5, .2, .4);
     const ban = sheet(1.05, 1.0, STD({ roughness: .6, map: can(256, 256, (x, w, h) => { x.fillStyle = '#e4e83a'; x.fillRect(0, 0, w, h); specks(x, w, h, 900, .08); x.strokeStyle = '#141414'; x.lineCap = 'round';
       for (let k = 0; k < 9; k++) { x.lineWidth = wf(5, 10); x.beginPath(); let px = 60 + k * 18, py = 110 + wf(-20, 30); x.moveTo(px, py); for (let s = 0; s < 4; s++) x.lineTo(px += wf(-8, 14), py += wf(-22, 22)); x.stroke(); }
@@ -1273,7 +1336,7 @@ function WSHOP(P) {
     T2(g, 'Centre table', 'A big timber table in the middle of the front, about waist height, with a piece of sheet laid out on it, tools, and boxes stored underneath.', '≈ 1.4 × 1.35 m · top ≈ 1.05 m (scan)'); }
   // --- 4. bench under the soffit edge, facing the back (scan: ≈ 1.0–1.1 m at x 2.75–4.0, z −6.45…−6.95)
   { const g = grp(P), b = bench(g, 3.4, -6.7, 1.5, .55, 1.05, 0); const t = grp(g, 3.4, 1.05, -6.7);
-    const saw = grp(t, -.2, 0, 0); box(saw, .45, .08, .35, DARK, 0, 0, 0); cyl(saw, .13, .02, STEEL, 0, .25, 0, 'x', 24); box(saw, .3, .12, .1, YEL, .05, .3, .05); box(saw, .04, .25, .04, DARK, -.15, .05, 0);   // a mitre saw
+    mitreSaw(t, -.2, 0, 0);   // 06:xx: a real mitre saw (base, turntable, fence, hood, motor, handle, dust bag), operator on the open-floor side
     for (let i = 0; i < 2; i++) tub(t, .45, i * .2, 0, .4, .18, .3, [0x2a5aa8, 0xb8231d][i]);
     T2(g, 'Bench with mitre saw', 'A short bench at the edge of the low ceiling with a mitre saw on it and two plastic boxes of fixings.', '≈ 1.5 × 0.55 m · top ≈ 1.05 m (scan)'); }
   // --- 5. the long bench down the aisle wall, cupboards under it, shelves over the far half (scan: top ≈ 0.9–1.1 m at x 5.25–5.8 the whole length; stock to ≈ 1.7 m and 2.6 m over z −9…−12.7)
@@ -1315,10 +1378,8 @@ function WSHOP(P) {
     T2(g, 'Tool wall (far wall)', 'The far wall: a bench with a pegboard tool wall over it (hammers, spanners, hand saws, F-clamps, levels), a shelf of boxes and fixings tubs on top, a grey roll cabinet of drawers at the left end and the fire extinguisher by the corner.', 'bench ≈ 2.9 × 0.65 m · tool wall to ≈ 2.5 m (scan)'); }
   // --- 8. on the floor: compressor (scan: ≈ 0.65 m at x 4.0–4.5, z −11.0…−11.5, orange on top), a bin (≈ 0.7 m at x 3.0–3.5, z −8.2…−8.7), offcuts and sheet stock leaning on the left lining
   { const g = grp(P);
-    const cp = grp(g, 4.25, 0, -11.2, .3); cyl(cp, .19, .62, ORA, 0, .26, 0, 'x', 20); for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(.19, 16, 8), ORA); e.scale.x = .35; e.position.set(s * .31, .26, 0); cp.add(e); }
-    box(cp, .3, .2, .22, BLK, -.05, .45, 0); cyl(cp, .05, .05, STEEL, .2, .5, 0); for (const s of [-1, 1]) cyl(cp, .06, .04, BLK, .25, .06, s * .14, 'z', 12); box(cp, .04, .07, .04, BLK, -.3, 0, 0);
-    const hs = new THREE.Mesh(new THREE.TorusGeometry(.13, .012, 6, 24), STD({ color: 0x2a5aa8 })); hs.rotation.x = Math.PI / 2; hs.position.set(.1, .02, .35); cp.add(hs);
-    T2(cp, 'Compressor', 'An orange air compressor on wheels with a blue airline coiled beside it.', '≈ 0.7 × 0.4 × 0.65 m (scan)');
+    const cp = compressor(g, 4.25, -11.2, .3);   // 06:xx: real shape (tank with welds, wheels, handle, finned pump, motor, gauges, couplers, hose coil)
+    T2(cp, 'Compressor', 'An orange wheeled air compressor: pump and motor on top of the tank, two gauges and a regulator, a blue airline coiled beside it.', '≈ 0.7 × 0.4 × 0.65 m (scan)');
     const bn = offBin(g, 3.25, -8.45);   // 05:xx: ribbed bin, rim, side handles, offcuts stood up in it
     for (let i = 0; i < 18; i++) wr();   // the old offcuts took 18 layout draws: keep taking them so nothing after this moves
     for (const [x, z, r, c] of [[2.4, -9.5, .2, 0x2a5aa8], [1.97, -9.95, .16, 0xe8e2d0]]) { const bk = grp(g, x, 0, z); const bm2 = new THREE.Mesh(new THREE.CylinderGeometry(r, r * .85, r * 1.7, 18, 1, true), STD({ color: c, roughness: .5, side: THREE.DoubleSide })); bm2.position.y = r * .85; bk.add(bm2); const rim = new THREE.Mesh(new THREE.TorusGeometry(r, .012, 6, 20), STD({ color: c })); rim.rotation.x = Math.PI / 2; rim.position.y = r * 1.7; bk.add(rim); T2(bk, 'Bucket', 'A plastic bucket on the floor (the scan shows an open ring here).', '≈ ' + (r * 2).toFixed(1) + ' m across'); }   // scan: two rings ≈ 0.4 m at x 2.2–2.6, z −9.3…−9.7 and x 1.6–2.0, z −9.7…−10.1

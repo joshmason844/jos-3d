@@ -5,7 +5,7 @@ Every page in the challenge, its latest score from a fresh-eyes review, and the 
 | Page               | Start (14 Oct) | Latest | Target | At standard? |
 |--------------------|----------------|--------|--------|--------------|
 | People in 3D       | 6.3            | 6.3    | 8      | no           |
-| WW (workshop warehouse) | 6.3            | 5.9 (reviewer, 23 Oct 03:xx blind W5c review: workshop inside 5.5 → 5.85 on phone vs 17 Oct, better in all 5 views; the night's self-scores of 6.3–6.5 ran about 0.6 high; left-side wrap still the weakest, 4.0–5.3; 23 Oct 04:xx self-scored, review due: workshop tool wall and bench tools 5.8 → 6.0; 23 Oct 05:xx self-scored, review due: tool wall, roll cabinet, bin 6.0 → 6.2) | 8      | no           |
+| WW (workshop warehouse) | 6.3            | 5.9 (reviewer, 23 Oct 03:xx blind W5c review: workshop inside 5.5 → 5.85 on phone vs 17 Oct, better in all 5 views; the night's self-scores of 6.3–6.5 ran about 0.6 high; left-side wrap still the weakest, 4.0–5.3; 23 Oct 04:xx self-scored, review due: workshop tool wall and bench tools 5.8 → 6.0; 23 Oct 05:xx self-scored, review due: tool wall, roll cabinet, bin 6.0 → 6.2; 23 Oct 06:xx self-scored, review due: mitre saw, compressor, vice 5.6 → 6.0) | 8      | no           |
 | Sections 1–5       | 7.0            | 7.0    | 8      | no           |
 
 Pages: 0 of 3 at standard.
