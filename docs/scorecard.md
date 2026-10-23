@@ -402,3 +402,14 @@ One row per build, so each run gets measurably better.
 - Published: yes (version 38, keycaps block carried over from the live page; publish copy in work/ only).
 - Score (self, on the reviewer's scale, half a point already knocked off each line per the 03:xx note): workshop tool close-ups (6 views, phone) Shape 6.5 · Detail 6.5 · Surface 7 · Light 6 · Truth 5 · Works 6 = 6.2 (BEFORE: the reviewer's 5.7 at 07:xx). Page row stays 5.9 until a reviewer scores it.
 
+
+
+## 2026-10-24 00:xx · WW: the area list folds into one "areas" button (Josh's request: workshop inside, more detail) · run 2 of the night
+- Meeting: top open Josh's request is still the workshop inside; three reviews running have flagged the zone list covering a third of every phone view (and the top right of the desktop tool wall), which caps Works on every close-up, so that before more kit. Not a review run (run 2; next is run 5 or the 07:xx summary). Huddle: no team change. Shortcut: a page-level fix lifts every close-up at once instead of one item at a time.
+- Team: Opus 5.5 (boss + builder) changed template.html, wrote `test_areas.js` (headless: taps the button, picks an area, goes back to walk in, counts visible buttons), shot BEFORE/AFTER (phone: door, wsin, wstool, wsvice, wscomp; desktop: door, wstool, wsvice). Haiku checker PASS. No researcher. Self-scored, review due.
+- Changed (template.html): the 8 area buttons sit under one green "areas ▾" button. Phones: always folded; tap to open, picking an area folds it again and the button shows the area ("▸ Workshop (inside)"). Desktop: open at the overview, folds once you're in an area or a close-up, opens again on walk in / far end / from above. `__zone` and the "on" highlight now select `.zb` buttons only.
+- Better: the vice, compressor and tool-wall close-ups on phone are no longer a third covered; on desktop the sign over the doorway and the hall beyond show again. Still weak: the title card's blurb still covers the top quarter on phone; the AREAS button is small on phone and flush under the code tab on desktop.
+- Feature test (test_areas.js): phone PASS (start 1 · after tap 9 · in an area 1 "▸ Workshop (inside)" · back 1); desktop PASS (9 · 9 · 1 · 9); page errors [].
+- Checker (Haiku): PASS, no problems; notes: AREAS button touches the code tab on desktop, count includes the header button, only two screen sizes checked.
+- Published: yes (version 39, keycaps block carried over from the live page; publish copy in work/ only).
+- Score (self, on the reviewer's scale, half a point off per the 03:xx note): workshop close-ups (phone) Shape 6.5 · Detail 6.5 · Surface 7 · Light 6 · Truth 5 · Works 6.5 = 6.3 → 6.4 (BEFORE same eye: Works 5.5 → 6.2). Page row stays 5.9 until a reviewer scores it.
