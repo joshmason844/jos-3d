@@ -91,7 +91,7 @@ __KIT__
 const noise = speckle;
 __HALL3__
 const { g: shedG, roofG } = shed(); layout();
-const [before, after] = bake(); console.log('baked', before, '->', after);
+const [before, after] = bake(); console.log('baked', before, '->', after); console.log('workshop light gate on', wsLightGate(scene), 'materials');
 const camera = new THREE.PerspectiveCamera(55, 1, .05, 300);
 const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.autoRotateSpeed = .5; controls.maxDistance = 80; controls.maxPolarAngle = Math.PI * .495;
 const composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera)); const gtao = new GTAOPass(scene, camera, innerWidth, innerHeight); gtao.updateGtaoMaterial({ radius: .6, distanceExponent: 1.5, thickness: 1, scale: 1.2 }); gtao.blendIntensity = .9; composer.addPass(gtao); composer.addPass(new OutputPass());

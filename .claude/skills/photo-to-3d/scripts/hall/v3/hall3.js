@@ -1358,3 +1358,27 @@ function bake(root) {
     for (const [mat, geos] of buckets) { const g = merge(geos, false); if (!g) continue; const m = new THREE.Mesh(g, mat); m.castShadow = m.receiveShadow = true; item.add(m); after++; } }
   return [before, after];
 }
+// W5 lighting (23 Oct 02:xx): the workshop is a closed OSB box, but the hall's sky fill, room-environment light and its high-bay / door spots
+// (no shadows) lit it straight through its walls and ceiling, so the room came out evenly over-lit and every baked shadow read faint.
+// Every lit material gets a world-position gate: a fragment inside the workshop box keeps a little of the hall's fill and spill and the
+// full light of the lamps hung inside it; outside, nothing changes. One function, patched once after bake(), no new render pass.
+const WS_BOX = [.38, 6.02, -12.98, -2.42, 3.9], WS_FILL = .3, WS_IBL = .35, WS_SPILL = .08;
+function wsLightGate(root) {
+  const head = `mat4 wsInvV; float wsFrag;
+float wsIn(vec3 w) { return step(${WS_BOX[0]}, w.x) * step(w.x, ${WS_BOX[1]}) * step(${WS_BOX[2]}, w.z) * step(w.z, ${WS_BOX[3]}) * step(w.y, ${WS_BOX[4]}); }
+float wsG(vec3 lv) { return mix(1., mix(${WS_SPILL.toFixed(3)}, 1., wsIn((wsInvV * vec4(lv, 1.)).xyz)), wsFrag); }
+`;
+  const done = new Set();
+  root.traverse(o => { for (const m of [].concat(o.material || [])) { if (!m || done.has(m) || !(m.isMeshStandardMaterial || m.isMeshPhysicalMaterial || m.isMeshLambertMaterial || m.isMeshPhongMaterial)) continue; done.add(m);
+    const prev = m.onBeforeCompile, prevKey = m.customProgramCacheKey;
+    m.onBeforeCompile = (sh, r) => { if (prev) prev.call(m, sh, r); let f = sh.fragmentShader; if (!f.includes('#include <lights_fragment_begin>')) return;
+      f = f.replace('#include <common>', '#include <common>\n' + head)
+        .replace('#include <lights_fragment_begin>', 'wsInvV = inverse(viewMatrix); wsFrag = wsIn((wsInvV * vec4(-vViewPosition, 1.)).xyz);\n' + THREE.ShaderChunk.lights_fragment_begin
+          .replace('getPointLightInfo( pointLight, geometryPosition, directLight );', 'getPointLightInfo( pointLight, geometryPosition, directLight ); directLight.color *= wsG( pointLight.position );')
+          .replace('getSpotLightInfo( spotLight, geometryPosition, directLight );', 'getSpotLightInfo( spotLight, geometryPosition, directLight ); directLight.color *= wsG( spotLight.position );')
+          .replace('irradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], geometryNormal );', `irradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], geometryNormal ) * mix(1., ${WS_FILL.toFixed(3)}, wsFrag);`))
+        .replace('#include <lights_fragment_end>', `#if defined( RE_IndirectDiffuse )\n iblIrradiance *= mix(1., ${WS_IBL.toFixed(3)}, wsFrag);\n#endif\n#if defined( RE_IndirectSpecular )\n radiance *= mix(1., ${WS_IBL.toFixed(3)}, wsFrag);\n#endif\n#include <lights_fragment_end>`);
+      sh.fragmentShader = f; };
+    m.customProgramCacheKey = () => (prevKey ? prevKey.call(m) : '') + '|wsGate'; m.needsUpdate = true; } });
+  return done.size;
+}
