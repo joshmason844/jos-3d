@@ -95,6 +95,7 @@ const [before, after] = bake(); console.log('baked', before, '->', after);
 const camera = new THREE.PerspectiveCamera(55, 1, .05, 300);
 const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.autoRotateSpeed = .5; controls.maxDistance = 80; controls.maxPolarAngle = Math.PI * .495;
 const composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera)); const gtao = new GTAOPass(scene, camera, innerWidth, innerHeight); gtao.updateGtaoMaterial({ radius: .6, distanceExponent: 1.5, thickness: 1, scale: 1.2 }); gtao.blendIntensity = .9; composer.addPass(gtao); composer.addPass(new OutputPass());
+{ const ov = gtao._overrideVisibility.bind(gtao); gtao._overrideVisibility = () => { ov(); scene.traverse(o => { if (o.userData.noAO && o.visible) { o.visible = false; gtao._visibilityCache.push(o); } }); }; }   // W5b: light patches and the window's light shaft are see-through; keep them out of the AO depth pass or GTAO paints them as black slabs
 let HQ = !/Mobi|Android/i.test(navigator.userAgent); $('hq').classList.toggle('on', HQ); $('hq').onclick = () => { HQ = !HQ; $('hq').classList.toggle('on', HQ); };
 const VIEWS = { door: [[9.6, 1.7, 3.5], [9.6, 1.6, -14]], far: [[10.5, 2.4, -30.5], [10, 1.6, -10]], top: [[-12, 34, 12], [10, 0, -19.5]] };
 let fly = null;
