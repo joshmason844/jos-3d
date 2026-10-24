@@ -2,6 +2,13 @@ import re
 import os as _os
 ROOT = next(str(p) for p in __import__('pathlib').Path(__file__).resolve().parents if (p / '.claude' / 'skills').is_dir())   # repo root, wherever it's cloned
 kit = open('kit.js').read()
+# 24 Oct: syntax-check the sources first (seconds) instead of finding out from a shoot that dies 4 min in with 'Unexpected end of input'
+import subprocess as _sp, shutil as _sh, tempfile as _tf
+if _sh.which('node'):
+    for _f in ['hall3.js', 'kit.js']:
+        _t = _tf.NamedTemporaryFile('w', suffix='.mjs', delete=False); _t.write(open(_f).read()); _t.close()
+        _r = _sp.run(['node', '--check', _t.name], capture_output=True, text=True); _os.unlink(_t.name)
+        if _r.returncode: raise SystemExit(f'{_f}: syntax error\n' + _r.stderr.replace(_t.name, _f))
 for f in ['trellis', 'forklift']:
     src = open(ROOT + f'/.claude/skills/3d-models/scripts/{f}.js').read().replace("import * as THREE from 'three';\n", '')
     kit += '\n' + re.sub(r'^export ', '', src, flags=re.M)
