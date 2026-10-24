@@ -448,3 +448,14 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS, no problems; notes: gaps read as shadow lines on phone and desktop, chips softer, neighbouring wspeg view unchanged (76 px of render noise), 0.34 MB, page errors [].
 - Published: yes (version 42, keycaps block carried over from the live page; publish copy in work/ only).
 - Score (reviewer): workshop close-ups 6.05 (from 5.1 at the last reviewed build); my own wscab BEFORE → AFTER tonight 6.5 → 6.7 self-scored, inside the reviewer's 6.0 for wscab (self-scores still run ≈ .5 high). Page row 5.9 → 6.0.
+
+
+## 2026-10-24 05:xx · WW: the pegboard spanners are real combination spanners (Josh's request: workshop inside, more detail) · run 6 of the night
+- Meeting: top open Josh's request is still the workshop inside; the 04:xx reviewer's first named problem was "spanners read as wire keys", a small, visible geometry fix in line with its "spend the next runs on geometry" note. Not a review run (run 6; next is the 07:xx summary). Huddle: no team change. Shortcut: a dedicated `wsspan` close-up in shoot.js, so one 40 cm camera shows the whole row instead of judging it from the pegboard view.
+- Team: Opus 5.5 (boss + builder) rewrote `spanner()`, shot BEFORE/AFTER (phone + desktop: wsspan, wspeg), two fix rounds of my own (bright stubs over every ring: `box()` takes the bottom y, so the shaft's recessed strip stuck out above it; the plain hook rod read as a stick, so it got an upturned tip). Haiku checker PASS. No researcher. Self-scored, review due.
+- Changed (hall3.js): `spanner()`: extruded 12-point ring end, open jaw at 15° with a round throat, tapered shaft with a duller recessed centre each side, bevelled edges; each hangs by its ring on a pegboard hook (14 mm proud, upturned tip). The eight hang from one hook line, small to big (rings level, jaws stepping down), instead of a rising diagonal. shoot.js: `wsspan` view.
+- Better: from the pegboard view they read as a set of spanners at a glance; up close the ring, jaw and hook read. Still weak: steel use-wear makes long vertical grime streaks on the shafts (smeared, not chrome); rings and jaws all flat to the board with no crank and no stamped size; the pegboard behind is still a flat plane.
+- Checker (Haiku): PASS, no problems; notes: hooks stick up a little over each ring (intended), tag clear of the hooks, leftmost spanner cropped on phone in both, 0.34 MB, page errors [].
+- Published: yes (version 43, keycaps block carried over from the live page; publish copy in work/ only).
+- Score (self, on the reviewer's scale, half a point off): wspeg close-up (phone) Shape 6.5 · Detail 6.5 · Surface 6 · Light 6 · Truth 6 · Works 6.5 = 6.25 (BEFORE same eye, using the reviewer's 5.8 for wspeg: Shape 5 → 6.5, Detail 5.5 → 6.5). Page row stays 6.0 until a reviewer scores it.
+

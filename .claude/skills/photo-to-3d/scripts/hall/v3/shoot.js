@@ -56,6 +56,7 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   wsfrontin: [[2.0, 2.0, -7.9], [3.0, 1.0, -2.8], true],      // under the low ceiling: front bench, centre table, vice bench, banner
   wstool: [[3.3, 1.6, -9.6], [3.0, 1.35, -12.9], true],      // the far wall: tool wall, roll cabinet, extinguisher, way out
   wspeg:    [[3.45, 1.62, -11.75], [3.35, 1.5, -12.9], true],   // close on the pegboard: hammers, spanners, hand saws, clamps (23 Oct)
+  wsspan:   [[3.08, 1.62, -12.45], [3.08, 1.6, -12.88], true],   // close on the spanner row on the pegboard (24 Oct 05:xx)
   wscab:    [[2.45, 1.45, -11.3], [1.45, .8, -12.6], true],     // close on the roll cabinet and the low cupboard, far left corner (23 Oct 05:xx)
   wsbin:    [[3.95, 1.35, -7.55], [3.25, .35, -8.45], true],     // close on the offcuts bin (23 Oct 05:xx)
   wsclamp:  [[4.05, 1.6, -11.95], [4.15, 1.5, -12.9], true],     // close on the pegboard's right half: F-clamps, saws (23 Oct 05:xx)

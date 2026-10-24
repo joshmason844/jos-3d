@@ -1179,11 +1179,19 @@ function WSHOP(P) {
     box(g, .03, .036, .028, DARK, 0, .277, 0);   // eye block
     for (const sz of [-1, 1]) { const c = box(g, .07, .012, .009, DARK, -.04, .286, sz * .007); c.rotation.z = -.45; }   // split claw, curving down
     return g; };
-  const spanner = (p, x, y, z, L) => { const g = grp(p, x, y, z);
-    box(g, .012, L * .78, .004, BRIGHT, 0, L * .11, 0);   // shaft
-    const ring = tmesh(g, new THREE.TorusGeometry(.011 + L * .02, .0045, 6, 14), BRIGHT, 0, L * .9, 0); ring.scale.z = .8;   // ring end
-    for (const sx of [-1, 1]) box(g, .008, .028, .004, BRIGHT, sx * (.008 + L * .015), 0, 0);   // open-end jaws
-    box(g, .03 + L * .03, .01, .004, BRIGHT, 0, -.004, 0);
+  const spanner = (p, x, y, z, L) => { const g = grp(p, x, y, z);   // 24 Oct 05:xx: a real combination spanner (was a bar with a torus and two jaw stubs): 12-point ring at the top, open jaw at 15° at the bottom, tapered I-section shaft; hung by its ring on a hook
+    const s = .006 + L * .045, Ro = s * 1.08, Rr = s * .98, yr = L * .9, ex = (sh, d, bv) => { const e = new THREE.ExtrudeGeometry(sh, { depth: d, bevelEnabled: true, bevelSize: bv, bevelThickness: bv, bevelSegments: 2, curveSegments: 18 }); e.translate(0, 0, -d / 2); return e; };
+    const ring = new THREE.Shape(); ring.absarc(0, 0, Rr, 0, Math.PI * 2, false);
+    const hole = new THREE.Path(); for (let i = 0; i <= 24; i++) { const a = i / 24 * Math.PI * 2, r = s * (i % 2 ? .5 : .57); i ? hole.lineTo(Math.cos(a) * r, Math.sin(a) * r) : hole.moveTo(r, 0); } ring.holes.push(hole);
+    tmesh(g, ex(ring, .0055, .0012), BRIGHT, 0, yr, 0);
+    const jaw = new THREE.Shape(), a0 = -Math.PI / 2 + Math.asin(s / 2 / Ro), yt = s * .1;   // jaw opening points down, cut s wide with a round throat
+    jaw.moveTo(Math.cos(a0) * Ro, Math.sin(a0) * Ro); jaw.absarc(0, 0, Ro, a0, -Math.PI / 2 - Math.asin(s / 2 / Ro) + Math.PI * 2, false);
+    jaw.lineTo(-s / 2, yt); jaw.absarc(0, yt, s / 2, Math.PI, 0, true); jaw.lineTo(s / 2, Math.sin(a0) * Ro);
+    const jm = tmesh(g, ex(jaw, .005, .0012), BRIGHT, 0, 0, 0); jm.rotation.z = .26;   // the 15° offset
+    const sh = new THREE.Shape(), y0 = Ro * .55, y1 = yr - Rr * .6, w0 = s * .55, w1 = s * .48; sh.moveTo(-w0, y0); sh.lineTo(w0, y0); sh.lineTo(w1, y1); sh.lineTo(-w1, y1); sh.lineTo(-w0, y0);
+    tmesh(g, ex(sh, .0034, .001), BRIGHT, 0, 0, 0);
+    for (const sz of [-1, 1]) box(g, w0 * .9, (y1 - y0) * .8, .0008, STD({ color: 0x8c9196, metalness: .85, roughness: .4 }), 0, y0 + (y1 - y0) * .1, sz * .0026);   // the shaft's recessed centre (box() takes the BOTTOM y), a shade duller
+    { const hy = yr + s * .5 - .0029; peg(g, 0, hy, -.024, .034); tmesh(g, new THREE.CylinderGeometry(.0026, .0026, .012, 6), BRIGHT, 0, hy + .006, .0095); }   // the hook through the ring (touching the top of the hole), 14 mm proud with an upturned tip so it reads as a hook, not a rod
     return g; };
   const saw = (p, x, y, z) => { const g = grp(p, x, y, z), sh = new THREE.Shape(); sh.moveTo(-.06, .02);   // hand saw hung by its handle: blade tapers to the toe, teeth down the front edge
     const n = 34; for (let i = 0; i <= n; i++) { const t = i / n, ex = .06 - .05 * t, ey = .02 - .47 * t; sh.lineTo(ex + (i % 2 ? .005 : 0), ey); }
@@ -1370,7 +1378,7 @@ function WSHOP(P) {
   { const g = grp(P), b = bench(g, 3.25, -12.6, 2.9, .65, .95, 0); const t = grp(g, 0, .95, 0);
     const pb = sheet(3.0, 1.15, PEG, 3.25, 1.15, -12.88, 0); P.remove(pb); g.add(pb);
     const hm = grp(g); for (let i = 0; i < 5; i++) { hammer(hm, 2.02 + i * .165, 1.48, -12.86, 0); for (const hx of [-.022, .022]) peg(hm, 2.02 + i * .165 + hx, 1.755, -12.875, .05); }   // 05:xx: hung straight, heads up, on pairs of hooks (they overlapped in crossed pairs)
-    const sp = grp(g); for (let i = 0; i < 8; i++) spanner(sp, 2.9 + i * .05, 1.45 + i * .008, -12.86, .14 + i * .02);
+    const sp = grp(g); for (let i = 0; i < 8; i++) { const L = .14 + i * .02; spanner(sp, 2.88 + i * .052, 1.72 - L * .9, -12.86, L); }   // 05:xx 24 Oct: rings all on one hook rail, small to big
     const hs = grp(g); for (let i = 0; i < 3; i++) saw(hs, 3.5 + i * .2, 1.9, -12.865);   // hand saws
     const fc = grp(g); for (let i = 0; i < 4; i++) fclamp(fc, 4.22 + i * .13, 1.76 - (i % 2) * .02, -12.855, .45 - (i % 2) * .1, .1 - (i % 2) * .015);   // F-clamps (05:xx: bar, cast jaws, spindle, handle)
     sLevel(g, 2.4, 1.27, -12.86, .6, 0xf2b705); sLevel(g, 2.5, 2.0, -12.86, .6, 0x2a5aa8);
