@@ -1107,8 +1107,7 @@ function WSHOP(P) {
     else if (k === 1) { x.fillStyle = '#1a1a1a'; x.font = 'bold 15px Arial'; x.fillText('FIXINGS', 72, 100); x.fillText('M8', 80, 116); }
     else { x.strokeStyle = 'rgba(40,40,40,.8)'; x.lineWidth = 2; x.beginPath(); x.moveTo(20, 40); x.lineTo(20, 22); x.moveTo(14, 28); x.lineTo(20, 22); x.lineTo(26, 28); x.moveTo(36, 40); x.lineTo(36, 22); x.moveTo(30, 28); x.lineTo(36, 22); x.lineTo(42, 28); x.stroke(); x.fillStyle = '#2a2a2a'; x.fillRect(74, 84, 40, 4); x.fillRect(74, 92, 30, 3); } }) }));
   const CARD = CARDS[0]; let cardN = 0;
-  const PEG = STD({ roughness: .8, map: can(512, 256, (x, w, h) => { x.fillStyle = '#a07a52'; x.fillRect(0, 0, w, h); specks(x, w, h, 3000, .08); x.fillStyle = 'rgba(30,20,12,.85)'; for (let j = 8; j < h; j += 16) for (let i = 8; i < w; i += 16) { x.beginPath(); x.arc(i, j, 2.4, 0, 7); x.fill(); }
-    x.strokeStyle = 'rgba(40,30,20,.35)'; x.lineWidth = 2; for (let i = 0; i < 12; i++) { const a = wr() * w, b = wr() * h; x.strokeRect(a, b, wf(20, 70), wf(30, 90)); } }) });   // tool outlines drawn on the board
+  burn(18048);   // 24 Oct 06:xx: the old flat PEG canvas drew 18 048 times from wr() (3000 specks × 6 + 12 outlines × 4); burn them so the layout stays put. The board is pegBoard() below
   burn(22500);
   const OSBIN = STD({ roughness: .86, map: can(512, 1024, (x, w, h) => { x.fillStyle = '#b38c5c'; x.fillRect(0, 0, w, h);   // one 1.22 x 2.44 m sheet at ~420 px/m: many small strands close in tone (the 17 Oct big blotchy ones read as camouflage)
     for (let i = 0; i < 5200; i++) { const t = qf(-32, 32), y0 = [0, 1, -1][i % 3] * 8; x.save(); x.translate(qr() * w, qr() * h); x.rotate(Math.PI / 2 + qf(-.5, .5)); x.fillStyle = `rgb(${179 + t + y0},${140 + t * .9},${92 + t * .7})`; const L = qf(26, 60), Wd = qf(7, 14); x.fillRect(-L / 2, -Wd / 2, L, Wd); x.restore(); }
@@ -1216,6 +1215,44 @@ function WSHOP(P) {
     tmesh(g, new THREE.CylinderGeometry(.008, .008, .006, 10), BRIGHT, R - .01, sy + .083, 0);   // swivel pad
     tmesh(g, new THREE.CylinderGeometry(.011, .013, .08, 10), WOODH, R - .01, sy - .045, 0); tmesh(g, new THREE.CylinderGeometry(.0135, .0135, .008, 10), BRIGHT, R - .01, sy - .004, 0);   // wooden handle and ferrule
     peg(p, x + .01, y + .012, z - .02, .04); return g; };
+  // 24 Oct 06:xx: a real pegboard instead of a flat plane with soft blurred holes: 6 mm tempered hardboard (box, dark core on its edges) on 16 mm battens
+  // off the wall (a dark gap behind, seen through the holes and round the edges), 6 mm holes at a 25 mm pitch (a small repeating tile: crisp on a phone
+  // too, where big canvases get shrunk), screws with washers, and a soft drop shadow under every hung part baked onto the board.
+  function pegBoard(p, cx, y0, zf, W, H) {
+    let sp = 7717; const pr = () => (sp = (sp * 16807) % 2147483647) / 2147483647, pf = (a, b) => a + (b - a) * pr();   // its own RNG
+    const T = 64, hc = document.createElement('canvas'); hc.width = hc.height = T; const hx = hc.getContext('2d');   // one hole per tile (25 mm)
+    hx.fillStyle = '#fff'; hx.fillRect(0, 0, T, T); const r = T * 3 / 25 + .4;   // 6 mm hole
+    hx.fillStyle = 'rgb(214,214,214)'; hx.beginPath(); hx.arc(T / 2, T / 2, r + 2.2, 0, 7); hx.fill();   // a pressed-in chamfer round each hole
+    const gd = hx.createRadialGradient(T / 2, T / 2 + 2, 0, T / 2, T / 2, r); gd.addColorStop(0, 'rgb(14,11,9)'); gd.addColorStop(.75, 'rgb(22,17,13)'); gd.addColorStop(1, 'rgb(48,38,30)');
+    hx.fillStyle = gd; hx.beginPath(); hx.arc(T / 2, T / 2, r, 0, 7); hx.fill();
+    const hole = new THREE.CanvasTexture(hc); hole.wrapS = hole.wrapT = THREE.RepeatWrapping; hole.repeat.set(W / .025, H / .025); hole.anisotropy = 8;
+    const PX = 1024, PY = Math.round(PX * H / W), mc = document.createElement('canvas'); mc.width = PX; mc.height = PY; const x = mc.getContext('2d'), k = PX / W;   // the board's face, 1:1
+    x.fillStyle = '#93704c'; x.fillRect(0, 0, PX, PY);
+    for (let i = 0; i < 900; i++) { const t = pf(-14, 14); x.fillStyle = `rgba(${147 + t},${112 + t * .8},${76 + t * .6},${pf(.25, .5)})`; x.beginPath(); x.ellipse(pr() * PX, pr() * PY, pf(6, 26), pf(4, 14), pr() * 3, 0, 7); x.fill(); }   // hardboard's soft mottle
+    for (let i = 0; i < 2600; i++) { x.fillStyle = `rgba(${pr() > .5 ? '255,240,220' : '40,25,12'},${pf(.02, .09)})`; x.fillRect(pr() * PX, pr() * PY, 1 + pr() * 2, 1 + pr() * 2); }
+    const eg = x.createLinearGradient(0, 0, 0, PY); eg.addColorStop(0, 'rgba(50,35,20,.18)'); eg.addColorStop(.08, 'rgba(50,35,20,0)'); eg.addColorStop(.9, 'rgba(50,35,20,0)'); eg.addColorStop(1, 'rgba(50,35,20,.22)'); x.fillStyle = eg; x.fillRect(0, 0, PX, PY);   // grubby top and bottom edges
+    const F = STD({ roughness: .78, bumpMap: hole, bumpScale: 3 }), E = STD({ color: 0x4a3524, roughness: .9 });
+    F.onBeforeCompile = sh => { sh.uniforms.pegHole = { value: hole }; sh.fragmentShader = 'uniform sampler2D pegHole;\n' + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n diffuseColor.rgb *= texture2D( pegHole, vBumpMapUv ).rgb;'); };
+    F.customProgramCacheKey = () => 'pegHole';
+    const g = grp(p), D = .006, B = .016;
+    const bd = new THREE.Mesh(new THREE.BoxGeometry(W, H, D), [E, E, E, E, F, E]); bd.position.set(cx, y0 + H / 2, zf - D / 2); bd.castShadow = bd.receiveShadow = true; g.add(bd);
+    const BAT = STD({ color: 0x6e5236, roughness: .85 });
+    for (const yy of [.03, H / 2, H - .03]) box(g, W - .02, .045, B, BAT, cx, y0 + yy - .0225, zf - D - B / 2);   // battens behind (16 mm stand-off)
+    for (const xx of [-W / 2 + .03, 0, W / 2 - .03]) box(g, .045, H - .02, B, BAT, cx + xx, y0 + .01, zf - D - B / 2);
+    const gap = new THREE.Mesh(new THREE.PlaneGeometry(W + .02, H + .02), STD({ color: 0x1a140f, roughness: 1 })); gap.position.set(cx, y0 + H / 2, zf - D - B + .002); g.add(gap);   // the dark gap behind
+    const SC = STD({ color: 0xb9bcbf, metalness: .7, roughness: .4 });
+    for (const yy of [.03, H / 2, H - .03]) for (let xx = -W / 2 + .0375; xx <= W / 2; xx += .375) { if (Math.abs(xx) > W / 2 - .03) continue;
+      const w = new THREE.Mesh(new THREE.CylinderGeometry(.009, .009, .0015, 12), SC); w.rotation.x = Math.PI / 2; w.position.set(cx + xx, y0 + yy, zf + .0008); g.add(w);
+      const hd = new THREE.Mesh(new THREE.SphereGeometry(.0055, 10, 6, 0, 7, 0, Math.PI / 2), SC); hd.rotation.x = Math.PI / 2; hd.position.set(cx + xx, y0 + yy, zf + .0015); hd.scale.z = .5; g.add(hd); }
+    // call once the tools hang on it: a soft drop shadow under every part, offset down by how far it stands off
+    g.userData.bake = sets => { g.updateWorldMatrix(true, true); for (const s of sets) s.updateWorldMatrix(true, true);   /* setFromObject only updates the mesh itself, not its parents */ const bb = new THREE.Box3(), v = new THREE.Vector3(), o = bd.getWorldPosition(new THREE.Vector3());
+      const toPx = (wx, wy) => [(wx - o.x + W / 2) * k, (o.y + H / 2 - wy) * k];
+      x.save();   // (06:xx: marker outlines per part were tried: overlapping boxes read as a glitchy grid, so shadows only)
+      for (const s of sets) s.traverse(m => { if (!m.isMesh) return; bb.setFromObject(m); const off = Math.max(.004, bb.max.z - zf), [a, b] = toPx(bb.min.x, bb.max.y), [c, d] = toPx(bb.max.x, bb.min.y);
+        x.shadowColor = `rgba(20,12,6,${Math.min(.72, .42 + off * 8)})`; x.shadowBlur = 3 + off * k * .8; x.shadowOffsetX = 10000; x.shadowOffsetY = off * k * 1.5;   // light from the strip lights above and in front
+        x.fillStyle = '#000'; const ww = Math.max(2, c - a), hh = Math.max(2, d - b); x.beginPath(); x.roundRect(a - 10000, b, ww, hh, Math.min(ww, hh) * .45); x.fill(); });   // rounded, so a ring's shadow isn't a square
+      x.restore(); const map = new THREE.CanvasTexture(mc); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 8; F.map = map; F.needsUpdate = true; };   // texture made AFTER drawing: on phones CT() copies a shrunk canvas, so later draws wouldn't reach it
+    return g; }
   const sLevel = (p, x, y, z, L, col) => { const g = grp(p, x, y, z);   // spirit level hung flat on two hooks: painted box section, dark rubber end caps, a centre vial in a window and a plumb vial near one end
     const C = STD({ color: col, roughness: .45, metalness: .25 });
     box(g, L - .04, .055, .025, C, 0, 0, 0); box(g, L - .04, .006, .027, ALU, 0, -.003, 0); box(g, L - .04, .006, .027, ALU, 0, .052, 0);   // body, machined top and bottom faces
@@ -1376,12 +1413,12 @@ function WSHOP(P) {
     T2(g, 'Tall shelving (left wall)', 'Floor-to-2.4 m slotted-angle shelving down the left wall, packed: cardboard boxes, plastic boxes with coloured lids, yellow tool cases, paint tins and coils of rope; a lower unit of boxes after it.', '≈ 4.1 × 0.85 m · ≈ 2.45 m tall (scan)'); }
   // --- 7. the far wall: bench with a pegboard tool wall over it, a roll cabinet, the fire extinguisher (scan: bench ≈ 1.2–1.3 m deep in clutter at z −12.2…−12.95, shelving to 2.5 m above; a grey drawer stack ≈ 1.4 m at x ≈ 1.6; red at x ≈ 0.8, 1.3 m)
   { const g = grp(P), b = bench(g, 3.25, -12.6, 2.9, .65, .95, 0); const t = grp(g, 0, .95, 0);
-    const pb = sheet(3.0, 1.15, PEG, 3.25, 1.15, -12.88, 0); P.remove(pb); g.add(pb);
+    const pb = pegBoard(g, 3.25, 1.15, -12.877, 3.0, 1.15);   // 24 Oct 06:xx: 6 mm board on battens, crisp 25 mm-pitch holes (was a flat plane at z −12.88)
     const hm = grp(g); for (let i = 0; i < 5; i++) { hammer(hm, 2.02 + i * .165, 1.48, -12.86, 0); for (const hx of [-.022, .022]) peg(hm, 2.02 + i * .165 + hx, 1.755, -12.875, .05); }   // 05:xx: hung straight, heads up, on pairs of hooks (they overlapped in crossed pairs)
     const sp = grp(g); for (let i = 0; i < 8; i++) { const L = .14 + i * .02; spanner(sp, 2.88 + i * .052, 1.72 - L * .9, -12.86, L); }   // 05:xx 24 Oct: rings all on one hook rail, small to big
     const hs = grp(g); for (let i = 0; i < 3; i++) saw(hs, 3.5 + i * .2, 1.9, -12.865);   // hand saws
     const fc = grp(g); for (let i = 0; i < 4; i++) fclamp(fc, 4.22 + i * .13, 1.76 - (i % 2) * .02, -12.855, .45 - (i % 2) * .1, .1 - (i % 2) * .015);   // F-clamps (05:xx: bar, cast jaws, spindle, handle)
-    sLevel(g, 2.4, 1.27, -12.86, .6, 0xf2b705); sLevel(g, 2.5, 2.0, -12.86, .6, 0x2a5aa8);
+    const lv = grp(g); sLevel(lv, 2.4, 1.27, -12.86, .6, 0xf2b705); sLevel(lv, 2.5, 2.0, -12.86, .6, 0x2a5aa8); pb.userData.bake([hm, sp, hs, fc, lv]);   // outlines + drop shadows on the board
     { const W = ' on the pegboard. The scan only shows clutter on the wall here, so which tools hang where is a guess (typical workshop kit).';   // 24 Oct: each set gets its own tag + label
       T2(hm, 'Hammers', 'Five hammers hung heads up on pairs of hooks' + W, '≈ 0.33 m'); T2(sp, 'Spanners', 'A row of combination spanners, small to big' + W, '0.14–0.28 m'); T2(hs, 'Hand saws', 'Three hand saws hung by their handles' + W, '≈ 0.55 m'); T2(fc, 'F-clamps', 'Four F-clamps hung by their fixed jaws' + W, '0.35–0.45 m'); }   // spirit levels (05:xx: box section, end caps, vials)
     const sh = shelving(g, 3.25, -12.78, 2.9, .3, .55, 0, [.35]); sh.position.y = 2.0; for (let i = 0; i < 6; i++) (i % 2 ? tub : (p, x, y, z, w, h, d) => cbox(p, x, y, z, w, h, d))(sh, -1.2 + i * .48, .37, 0, .4, .18, .26, 0x2a5aa8);
