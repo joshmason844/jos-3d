@@ -35,7 +35,10 @@ html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 
 #c{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
 #labels{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
 .lb{position:absolute;transform:translate(-50%,-100%);font:500 .58rem/1 'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);background:rgba(5,11,22,.72);border:1px solid rgba(22,180,255,.45);padding:4px 6px;white-space:nowrap;pointer-events:auto;cursor:pointer}
+.tag.mini{padding:6px 10px}.tag.mini h1{font-size:.95rem}.tag.mini p{display:none}
 .lb.ns{border-color:rgba(226,183,102,.7)}
+.lb.ns::after{content:'not sure';margin-left:6px;padding:1px 4px;background:#e2a03a;color:#1a1206;font-weight:700;letter-spacing:.04em}
+.lb.near{font-size:.52rem;padding:3px 5px;background:rgba(5,11,22,.6)}
 #card .meta{margin-top:6px;font:500 .64rem 'IBM Plex Mono',monospace;color:var(--mute)}
 #card .meta b{color:var(--brass);font-weight:500}
 #thumbs{display:flex;gap:6px;margin-top:8px;overflow-x:auto}
@@ -101,7 +104,8 @@ const composer = new EffectComposer(renderer); composer.addPass(new RenderPass(s
 let HQ = !/Mobi|Android/i.test(navigator.userAgent); $('hq').classList.toggle('on', HQ); $('hq').onclick = () => { HQ = !HQ; $('hq').classList.toggle('on', HQ); };
 const VIEWS = { door: [[9.6, 1.7, 3.5], [9.6, 1.6, -14]], far: [[10.5, 2.4, -30.5], [10, 1.6, -10]], top: [[-12, 34, 12], [10, 0, -19.5]] };
 let fly = null;
-function go(p, t, roof = true) { fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: new THREE.Vector3(...p), t1: new THREE.Vector3(...t), start: performance.now() }; roofG.visible = roof; }
+function mini() { if (PHONE.matches) document.querySelector('.top .tag').classList.add('mini'); }   // 24 Oct: on a phone the title's blurb folds away once you move, so it stops covering the top quarter
+function go(p, t, roof = true) { mini(); fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1: new THREE.Vector3(...p), t1: new THREE.Vector3(...t), start: performance.now() }; roofG.visible = roof; }
 function view(k) { go(...VIEWS[k], k !== 'top'); for (const id of ['vDoor', 'vFar', 'vTop']) $(id).classList.toggle('on', id === { door: 'vDoor', far: 'vFar', top: 'vTop' }[k]); document.querySelectorAll('#secs .zb').forEach(b => b.classList.remove('on')); zoneName = ''; secs(!PHONE.matches); }
 $('vDoor').onclick = () => view('door'); $('vFar').onclick = () => view('far'); $('vTop').onclick = () => view('top');
 // the area list folds into one 'areas' button once you're in an area (and always on phones), so it stops covering a third of the view (24 Oct)
@@ -114,13 +118,13 @@ let liftWant = 0, lift = 0; $('inside').onclick = () => { liftWant = liftWant ? 
 $('spin').onclick = () => { controls.autoRotate = !controls.autoRotate; $('spin').classList.toggle('on', controls.autoRotate); };
 const PICK = INFO.filter(o => !o.userData.noPick); let labelsOn = false; $('labels').style.display = 'none';
 const labels = PICK.map(o => { const d = document.createElement('div'); d.className = 'lb' + (o.userData.info.sure === 'not sure' ? ' ns' : ''); d.textContent = o.userData.info.name; d.onclick = () => select(o); $('labels').appendChild(d); const b = new THREE.Box3().setFromObject(o); return { d, o, a: new THREE.Vector3((b.min.x + b.max.x) / 2, b.max.y + .12, (b.min.z + b.max.z) / 2) }; });
-$('vLab').onclick = () => { labelsOn = !labelsOn; $('labels').style.display = labelsOn ? '' : 'none'; $('vLab').classList.toggle('on', labelsOn); };
+$('vLab').onclick = () => { labelsOn = !labelsOn; $('vLab').classList.toggle('on', labelsOn); };
 const selBox = new THREE.Box3Helper(new THREE.Box3(), 0x3dff8a); selBox.visible = false; selBox.material.depthTest = false; selBox.renderOrder = 9; scene.add(selBox); let selO = null;
 function select(o) { selO = o; if (!o) { $('card').hidden = true; selBox.visible = false; return; } const i = o.userData.info;
   $('cName').textContent = i.name; $('cWhat').textContent = i.what; $('cMeta').innerHTML = `${i.size ? i.size + ' · ' : ''}<b>${i.sure}</b>`; $('card').hidden = false; selBox.box.setFromObject(o); selBox.visible = true; }
 $('cardX').onclick = () => select(null);
 const ray = new THREE.Raycaster(); let down;
-renderer.domElement.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; controls.autoRotate = false; $('spin').classList.remove('on'); fly = null; });
+renderer.domElement.addEventListener('pointerdown', e => { mini(); down = [e.clientX, e.clientY]; controls.autoRotate = false; $('spin').classList.remove('on'); fly = null; });
 renderer.domElement.addEventListener('pointerup', e => { if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
   ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1), camera);
   let o = null; for (const h of ray.intersectObjects(scene.children, true)) { if (!h.object.visible || h.object === selBox) continue; o = h.object; while (o && !o.userData.info) o = o.parent; if (o && o.userData.noPick) o = null; if (o) break; } select(o); });
@@ -133,8 +137,20 @@ renderer.setAnimationLoop(now => { const dt = Math.min(.05, (now - t0) / 1000); 
   if (fly) { const k = Math.min(1, (now - fly.start) / 1400), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; camera.position.lerpVectors(fly.p0, fly.p1, e); controls.target.lerpVectors(fly.t0, fly.t1, e); if (k >= 1) fly = null; }
   const was = lift; lift += (liftWant - lift) * Math.min(1, dt * 4); if (Math.abs(lift - was) > 1e-4) { CRATES.forEach(c => c.userData.lift(lift)); ONTOP.forEach(u => { u.o.position.y = u.y0 + u.level * lift * (u.h + .5); }); }
   controls.update(); if (HQ) composer.render(); else renderer.render(scene, camera); if (selO) selBox.box.setFromObject(selO);
-  if (labelsOn) for (const l of labels) { v.copy(l.a).project(camera); const on = v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05 && camera.position.distanceTo(l.a) < 14; l.d.style.display = on ? '' : 'none'; if (on) { l.d.style.left = ((v.x + 1) / 2 * innerWidth) + 'px'; l.d.style.top = ((1 - v.y) / 2 * innerHeight) + 'px'; } } });
-window.__view = view; window.__zone = i => document.querySelectorAll('#secs .zb')[i].click(); window.__pick = n => select(PICK.find(o => o.userData.info.name.startsWith(n)) || null); window.__inside = () => $('inside').click(); window.__hq = on => { HQ = on; }; window.__cam = (p, t, roof = true) => { fly = null; secs(false); camera.position.fromArray(p); controls.target.fromArray(t); roofG.visible = roof; controls.update(); }; window.__labels = () => $('vLab').click(); window.__boxes = () => INFO.map(o => { const b = new THREE.Box3().setFromObject(o); return [o.userData.info.name, ...b.min.toArray().map(v => +v.toFixed(2)), ...b.max.toArray().map(v => +v.toFixed(2))]; }); window.__ready = true;   // footprints of every tagged item, for bin/ww_boxes.js (scan vs model)
+  placeLabels(); });
+// labels (24 Oct): nearest first, and one that would overlap a label already placed is skipped. Close up (within NEAR m) the labels show
+// even with 'labels' off, at most NEAR_MAX, so every guessed tool in a close-up carries its orange NOT SURE chip.
+const NEAR = 2.6, NEAR_MAX = 4;
+function placeLabels() { const near = !labelsOn, cand = [];
+  for (const l of labels) { const d = camera.position.distanceTo(l.a); v.copy(l.a).project(camera);
+    if (v.z < 1 && Math.abs(v.x) < .96 && v.y > -.96 && v.y < (near ? 1.25 : .96) && d < (near ? NEAR : 14))   // close up, a tool whose top is just off the top edge still gets its label, pulled down into view
+    cand.push([d, l, (v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]); else l.d.style.display = 'none'; }
+  const inC = new Set(cand.map(c => c[1].o)); for (let i = cand.length; i--;) { const o = cand[i][1].o; if (cand.some(c => c[1].o !== o && inC.has(c[1].o) && (() => { for (let q = c[1].o.parent; q; q = q.parent) if (q === o) return true; })())) cand.splice(i, 1); }   // a bench's label gives way to the tools tagged on it
+  $('labels').style.display = cand.length ? '' : 'none'; cand.sort((a, b) => a[0] - b[0]); const placed = [], R = e => { const b = e.getBoundingClientRect(); return [b.left, b.top, b.right, b.bottom]; }, card = R(document.querySelector('.top .tag')), keep = [...document.querySelectorAll('.bar, #secs > button, #card:not([hidden])')].map(R).filter(q => q[2] > q[0]);   // keep-outs: the title card (labels slide below it), the bars, the open card
+  for (let [, l, x, y] of cand) { const w = l.d.offsetWidth || l.d.textContent.length * 6.5 + (l.d.classList.contains('ns') ? 62 : 14), h = l.d.offsetHeight || 17; x = Math.min(Math.max(x, w / 2 + 6), innerWidth - w / 2 - 6); y = Math.max(y, h + 44); if (x - w / 2 < card[2] && x + w / 2 > card[0] && y - h < card[3]) y = card[3] + h + 6; const r = [x - w / 2 - 3, y - h - 3, x + w / 2 + 3, y + 3];
+    const hit = (near && placed.length >= NEAR_MAX) || keep.some(q => r[0] < q[2] && r[2] > q[0] && r[1] < q[3] && r[3] > q[1]) || placed.some(q => r[0] < q[2] && r[2] > q[0] && r[1] < q[3] && r[3] > q[1]);
+    l.d.classList.toggle('near', near); if (hit) { l.d.style.display = 'none'; continue; } placed.push(r); l.d.style.display = ''; l.d.style.left = x + 'px'; l.d.style.top = y + 'px'; } }
+window.__view = view; window.__zone = i => document.querySelectorAll('#secs .zb')[i].click(); window.__pick = n => select(PICK.find(o => o.userData.info.name.startsWith(n)) || null); window.__inside = () => $('inside').click(); window.__hq = on => { HQ = on; }; window.__cam = (p, t, roof = true) => { mini(); fly = null; secs(false); camera.position.fromArray(p); controls.target.fromArray(t); roofG.visible = roof; controls.update(); camera.updateMatrixWorld(); placeLabels(); }; window.__labels = () => $('vLab').click(); window.__boxes = () => INFO.map(o => { const b = new THREE.Box3().setFromObject(o); return [o.userData.info.name, ...b.min.toArray().map(v => +v.toFixed(2)), ...b.max.toArray().map(v => +v.toFixed(2))]; }); window.__ready = true;   // footprints of every tagged item, for bin/ww_boxes.js (scan vs model)
 </script>
 </body>
 </html>

@@ -1317,12 +1317,12 @@ function WSHOP(P) {
   { const g = grp(P), b = bench(g, 3.2, -2.78, 5.4, .62, 1.0, 0, { doors: false });
     const s = shelving(g, 1.4, -2.68, 1.7, .4, 1.3, 0, [.55, 1.0]); s.position.y = 1.0; for (let i = 0; i < 5; i++) tin(s, -.7 + i * .17, .57, 0, .065, .14, [0xd9dde0, 0x2f5f8f, 0xb8231d, 0xe8e2d0, 0x3b6b3a][i]);
     for (let i = 0; i < 3; i++) caseY(s, .15 + i * .28, 1.02, 0, .26, .12 + i * .01, .32); cbox(s, -.55, 1.02, 0, .4, .26, .3);
-    const t = grp(g, 0, 1.0, 0); drill(t, 1.6, 0, -2.78, .4); drill(t, 1.95, 0, -2.7, -.3, 0x2a5aa8); caseY(t, 2.6, 0, -2.85, .5, .14, .36); for (let i = 0; i < 4; i++) tin(t, 4.4 + i * .14, 0, -2.9, .055, .12, [0xe8e2d0, 0xe0661c, 0x2f5f8f, 0xe8e2d0][i]);
+    const t = grp(g, 0, 1.0, 0); for (const d of [drill(t, 1.6, 0, -2.78, .4), drill(t, 1.95, 0, -2.7, -.3, 0x2a5aa8)]) T2(d, 'Cordless drill', 'A cordless drill left on the bench. The scan shows small yellow and blue shapes on the bench top; which tools they are is a guess.', '≈ 0.25 m long'); caseY(t, 2.6, 0, -2.85, .5, .14, .36); for (let i = 0; i < 4; i++) tin(t, 4.4 + i * .14, 0, -2.9, .055, .12, [0xe8e2d0, 0xe0661c, 0x2f5f8f, 0xe8e2d0][i]);
     box(t, .3, .1, .2, STD({ color: 0x3c6e9e, roughness: .4 }), 3.6, 0, -2.85); hammer(t, 3.2, 0, -2.66, 0).rotation.z = Math.PI / 2; for (let i = 0; i < 3; i++) cbox(t, 5.15, i * .2, -2.85, .38, .2, .34, wf(-.1, .1));
     T2(g, 'Bench (front wall)', 'A timber bench right along the front wall: ply top, a shelf underneath, tins, drills and tool cases on it, a slotted-angle shelf unit over its left end with paint tins and yellow tool cases.', '≈ 5.4 × 0.6 m · top ≈ 1.0 m (scan)'); }
   // --- 2. left wall bench in the front, and a yellow banner on the wall above it (scan: ≈ 0.9–1.3 m at x 0.75–1.25; yellow 1.3–2.4 m at z −3.5…−4.6)
   { const g = grp(P), b = bench(g, .82, -4.4, 2.6, .7, .95, Math.PI / 2, { doors: true });
-    const t = grp(g, .82, .95, -4.4); bvice(t, .35, 0, .9);   // 06:xx: a real bench vice, jaws flush with the bench front (it was blue blocks facing along the bench)
+    const t = grp(g, .82, .95, -4.4); T2(bvice(t, .35, 0, .9), 'Bench vice', 'A blue engineer\'s bench vice bolted to the end of the bench, swivel base, jaws to the front. The scan shows a blue lump here about the right size; make and jaw width are a guess.', 'jaws ≈ 14 cm');   // 24 Oct: own tag + label. 06:xx: a real bench vice, jaws flush with the bench front (it was blue blocks facing along the bench)
     for (let i = 0; i < 3; i++) cbox(t, wf(-.15, .1), i * .2, -.8 + i * .02, .5, .2, .4);
     const ban = sheet(1.05, 1.0, STD({ roughness: .6, map: can(256, 256, (x, w, h) => { x.fillStyle = '#e4e83a'; x.fillRect(0, 0, w, h); specks(x, w, h, 900, .08); x.strokeStyle = '#141414'; x.lineCap = 'round';
       for (let k = 0; k < 9; k++) { x.lineWidth = wf(5, 10); x.beginPath(); let px = 60 + k * 18, py = 110 + wf(-20, 30); x.moveTo(px, py); for (let s = 0; s < 4; s++) x.lineTo(px += wf(-8, 14), py += wf(-22, 22)); x.stroke(); }
@@ -1337,7 +1337,7 @@ function WSHOP(P) {
     T2(g, 'Centre table', 'A big timber table in the middle of the front, about waist height, with a piece of sheet laid out on it, tools, and boxes stored underneath.', '≈ 1.4 × 1.35 m · top ≈ 1.05 m (scan)'); }
   // --- 4. bench under the soffit edge, facing the back (scan: ≈ 1.0–1.1 m at x 2.75–4.0, z −6.45…−6.95)
   { const g = grp(P), b = bench(g, 3.4, -6.7, 1.5, .55, 1.05, 0); const t = grp(g, 3.4, 1.05, -6.7);
-    mitreSaw(t, -.2, 0, 0);   // 06:xx: a real mitre saw (base, turntable, fence, hood, motor, handle, dust bag), operator on the open-floor side
+    T2(mitreSaw(t, -.2, 0, 0), 'Mitre saw', 'A chop/mitre saw on the short bench. The scan shows a dark lump about 0.5 m across and 0.4 m tall here; the make and blade size are a guess.', '≈ 0.5 × 0.45 m · blade ≈ 250 mm');   // 06:xx: a real mitre saw (base, turntable, fence, hood, motor, handle, dust bag), operator on the open-floor side
     for (let i = 0; i < 2; i++) tub(t, .45, i * .2, 0, .4, .18, .3, [0x2a5aa8, 0xb8231d][i]);
     T2(g, 'Bench with mitre saw', 'A short bench at the edge of the low ceiling with a mitre saw on it and two plastic boxes of fixings.', '≈ 1.5 × 0.55 m · top ≈ 1.05 m (scan)'); }
   // --- 5. the long bench down the aisle wall, cupboards under it, shelves over the far half (scan: top ≈ 0.9–1.1 m at x 5.25–5.8 the whole length; stock to ≈ 1.7 m and 2.6 m over z −9…−12.7)
@@ -1366,16 +1366,19 @@ function WSHOP(P) {
   // --- 7. the far wall: bench with a pegboard tool wall over it, a roll cabinet, the fire extinguisher (scan: bench ≈ 1.2–1.3 m deep in clutter at z −12.2…−12.95, shelving to 2.5 m above; a grey drawer stack ≈ 1.4 m at x ≈ 1.6; red at x ≈ 0.8, 1.3 m)
   { const g = grp(P), b = bench(g, 3.25, -12.6, 2.9, .65, .95, 0); const t = grp(g, 0, .95, 0);
     const pb = sheet(3.0, 1.15, PEG, 3.25, 1.15, -12.88, 0); P.remove(pb); g.add(pb);
-    for (let i = 0; i < 5; i++) { hammer(g, 2.02 + i * .165, 1.48, -12.86, 0); for (const hx of [-.022, .022]) peg(g, 2.02 + i * .165 + hx, 1.755, -12.875, .05); }   // 05:xx: hung straight, heads up, on pairs of hooks (they overlapped in crossed pairs)
-    for (let i = 0; i < 8; i++) spanner(g, 2.9 + i * .05, 1.45 + i * .008, -12.86, .14 + i * .02);
-    for (let i = 0; i < 3; i++) saw(g, 3.5 + i * .2, 1.9, -12.865);   // hand saws
-    for (let i = 0; i < 4; i++) fclamp(g, 4.22 + i * .13, 1.76 - (i % 2) * .02, -12.855, .45 - (i % 2) * .1, .1 - (i % 2) * .015);   // F-clamps (05:xx: bar, cast jaws, spindle, handle)
-    sLevel(g, 2.4, 1.27, -12.86, .6, 0xf2b705); sLevel(g, 2.5, 2.0, -12.86, .6, 0x2a5aa8);   // spirit levels (05:xx: box section, end caps, vials)
+    const hm = grp(g); for (let i = 0; i < 5; i++) { hammer(hm, 2.02 + i * .165, 1.48, -12.86, 0); for (const hx of [-.022, .022]) peg(hm, 2.02 + i * .165 + hx, 1.755, -12.875, .05); }   // 05:xx: hung straight, heads up, on pairs of hooks (they overlapped in crossed pairs)
+    const sp = grp(g); for (let i = 0; i < 8; i++) spanner(sp, 2.9 + i * .05, 1.45 + i * .008, -12.86, .14 + i * .02);
+    const hs = grp(g); for (let i = 0; i < 3; i++) saw(hs, 3.5 + i * .2, 1.9, -12.865);   // hand saws
+    const fc = grp(g); for (let i = 0; i < 4; i++) fclamp(fc, 4.22 + i * .13, 1.76 - (i % 2) * .02, -12.855, .45 - (i % 2) * .1, .1 - (i % 2) * .015);   // F-clamps (05:xx: bar, cast jaws, spindle, handle)
+    sLevel(g, 2.4, 1.27, -12.86, .6, 0xf2b705); sLevel(g, 2.5, 2.0, -12.86, .6, 0x2a5aa8);
+    { const W = ' on the pegboard. The scan only shows clutter on the wall here, so which tools hang where is a guess (typical workshop kit).';   // 24 Oct: each set gets its own tag + label
+      T2(hm, 'Hammers', 'Five hammers hung heads up on pairs of hooks' + W, '≈ 0.33 m'); T2(sp, 'Spanners', 'A row of combination spanners, small to big' + W, '0.14–0.28 m'); T2(hs, 'Hand saws', 'Three hand saws hung by their handles' + W, '≈ 0.55 m'); T2(fc, 'F-clamps', 'Four F-clamps hung by their fixed jaws' + W, '0.35–0.45 m'); }   // spirit levels (05:xx: box section, end caps, vials)
     const sh = shelving(g, 3.25, -12.78, 2.9, .3, .55, 0, [.35]); sh.position.y = 2.0; for (let i = 0; i < 6; i++) (i % 2 ? tub : (p, x, y, z, w, h, d) => cbox(p, x, y, z, w, h, d))(sh, -1.2 + i * .48, .37, 0, .4, .18, .26, 0x2a5aa8);
     drill(t, 2.4, 0, -12.5, .5); caseY(t, 3.0, 0, -12.6, .45, .14, .35); for (let i = 0; i < 3; i++) tub(t, 3.6 + i * .3, 0, -12.65, .26, .12, .2, [0xb8231d, 0x2a5aa8, 0x3b6b3a][i]);
-    rollCab(g, 1.45, -12.6);   // roll cabinet (05:xx: castors, drawers with pull bars and labels, lift-lid top chest, side handle)
+    T2(rollCab(g, 1.45, -12.6), 'Roll cabinet', 'A grey steel tool chest on castors: a drawer base with a lift-lid chest on top. The scan shows a grey drawer stack about 1.4 m tall here.', '≈ 0.7 × 0.45 × 1.4 m (scan)');   // roll cabinet (05:xx: castors, drawers with pull bars and labels, lift-lid top chest, side handle)
     const fe = grp(g, .75, 0, -12.85); cyl(fe, .075, .5, RED, 0, 1.15, 0); cyl(fe, .03, .06, BLK, 0, 1.43, 0); box(fe, .03, .08, .06, BLK, .05, 1.45, 0); const hose = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(.04, 1.43, 0), new THREE.Vector3(.1, 1.3, .03), new THREE.Vector3(.08, 1.0, .05)]), 10, .01, 6), BLK); fe.add(hose);
     box(fe, .2, .28, .005, STD({ roughness: .5, map: can(100, 140, (x, w, h) => { x.fillStyle = '#c8201b'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.fillRect(4, 4, w - 8, 2); x.beginPath(); x.roundRect(40, 26, 22, 56, 6); x.fill(); x.fillRect(46, 18, 10, 9); x.fillRect(56, 20, 14, 4); x.font = 'bold 12px Arial'; x.textAlign = 'center'; x.fillText('FIRE', w / 2, 104); x.fillText('EXTINGUISHER', w / 2, 120); }) }), 0, 1.72, .07);   // its sign (W5b: a real red sign, was a plain white card)
+    T2(fe, 'Fire extinguisher', 'A red extinguisher on the wall by the corner with its sign above. The scan shows something red about 1.3 m up here; the type (CO2 or foam) isn\'t known.', '≈ 0.5 m tall');
     T2(g, 'Tool wall (far wall)', 'The far wall: a bench with a pegboard tool wall over it (hammers, spanners, hand saws, F-clamps, levels), a shelf of boxes and fixings tubs on top, a grey roll cabinet of drawers at the left end and the fire extinguisher by the corner.', 'bench ≈ 2.9 × 0.65 m · tool wall to ≈ 2.5 m (scan)'); }
   // --- 8. on the floor: compressor (scan: ≈ 0.65 m at x 4.0–4.5, z −11.0…−11.5, orange on top), a bin (≈ 0.7 m at x 3.0–3.5, z −8.2…−8.7), offcuts and sheet stock leaning on the left lining
   { const g = grp(P);
@@ -1545,7 +1548,7 @@ function WSHOP(P) {
 function bake(root) {
   const merge = THREE_ADDONS.mergeGeometries; let before = 0, after = 0;
   for (const item of INFO) { if (item.userData.noPick) continue; const buckets = new Map(), kill = []; item.updateMatrixWorld(true); const inv = new THREE.Matrix4().copy(item.matrixWorld).invert();
-    item.traverse(o => { if (o === item) return; if (o.userData.keep || o.userData.lift) { o.traverse(c => { c.userData._skip = true; }); return; } });
+    item.traverse(o => { if (o === item) return; if (o.userData.keep || o.userData.lift || o.userData.info) { o.traverse(c => { c.userData._skip = true; }); return; } });
     item.traverse(o => { if (!o.isMesh || o.isInstancedMesh || o.userData._skip || Array.isArray(o.material) || o.material.wireframe || o.material.transparent) return; before++;
       const geo = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone(); geo.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld));
       for (const k of Object.keys(geo.attributes)) if (!['position', 'normal', 'uv'].includes(k)) geo.deleteAttribute(k); if (!geo.attributes.uv) geo.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(geo.attributes.position.count * 2), 2));
