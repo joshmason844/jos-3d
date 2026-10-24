@@ -143,7 +143,7 @@ renderer.setAnimationLoop(now => { const dt = Math.min(.05, (now - t0) / 1000); 
 const NEAR = 2.6, NEAR_MAX = 4;
 function placeLabels() { const near = !labelsOn, cand = [];
   for (const l of labels) { const d = camera.position.distanceTo(l.a); v.copy(l.a).project(camera);
-    if (v.z < 1 && Math.abs(v.x) < .96 && v.y > -.96 && v.y < (near ? 1.25 : .96) && d < (near ? NEAR : 14))   // close up, a tool whose top is just off the top edge still gets its label, pulled down into view
+    if (v.z < 1 && Math.abs(v.x) < .96 && v.y > -.96 && v.y < (near ? 1.32 : .96) && d < (near ? NEAR : 14))   // close up, a tool whose top is just off the top edge still gets its label, pulled down into view
     cand.push([d, l, (v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]); else l.d.style.display = 'none'; }
   const inC = new Set(cand.map(c => c[1].o)); for (let i = cand.length; i--;) { const o = cand[i][1].o; if (cand.some(c => c[1].o !== o && inC.has(c[1].o) && (() => { for (let q = c[1].o.parent; q; q = q.parent) if (q === o) return true; })())) cand.splice(i, 1); }   // a bench's label gives way to the tools tagged on it
   $('labels').style.display = cand.length ? '' : 'none'; cand.sort((a, b) => a[0] - b[0]); const placed = [], R = e => { const b = e.getBoundingClientRect(); return [b.left, b.top, b.right, b.bottom]; }, card = R(document.querySelector('.top .tag')), keep = [...document.querySelectorAll('.bar, #secs > button, #card:not([hidden])')].map(R).filter(q => q[2] > q[0]);   // keep-outs: the title card (labels slide below it), the bars, the open card

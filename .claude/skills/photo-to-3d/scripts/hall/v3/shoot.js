@@ -4,6 +4,7 @@
 // One browser, one page load per size, all views shot from it (a load is the slow part, ~30 s under SwiftShader).
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs');
 const C = process.env.HOME + '/.cache/jos3d/';
+const TMO = +process.env.SHOT_TIMEOUT || 300000;   // 24 Oct 23:xx: on a 2-core container one desktop HQ frame can take > 300 s; SHOT_TIMEOUT=900000 for desk shots
 const [page, pre, only, sizeOnly] = [process.argv[2], process.argv[3] || 'shot', process.argv[4], process.argv[5]];
 const sizes = [['phone', 390, 844], ['desk', 1200, 800]].filter(s => !sizeOnly || s[0] === sizeOnly);
 const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the camera: OrbitControls' maxPolarAngle (.495π) lifts a camera that looks up to the target's height
@@ -94,7 +95,7 @@ const want = only ? only.split(',') : ['door', 'up', 'roofclose', 'far'];
       if (typeof V === 'string') { await p.evaluate(k => window.__view(k), V); await p.waitForTimeout(1800); }
       else await p.evaluate(a => window.__cam(...a), V);
       await p.waitForTimeout(700);
-      await p.screenshot({ path: `${pre}-${n}-${v}.png`, timeout: 300000 });
+      await p.screenshot({ path: `${pre}-${n}-${v}.png`, timeout: TMO });
     }
     await p.close();
   }

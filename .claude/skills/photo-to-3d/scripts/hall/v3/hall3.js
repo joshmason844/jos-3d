@@ -1192,15 +1192,40 @@ function WSHOP(P) {
     for (const sz of [-1, 1]) box(g, w0 * .9, (y1 - y0) * .8, .0008, STD({ color: 0x8c9196, metalness: .85, roughness: .4 }), 0, y0 + (y1 - y0) * .1, sz * .0026);   // the shaft's recessed centre (box() takes the BOTTOM y), a shade duller
     { const hy = yr + s * .5 - .0029; peg(g, 0, hy, -.024, .034); tmesh(g, new THREE.CylinderGeometry(.0026, .0026, .012, 6), BRIGHT, 0, hy + .006, .0095); }   // the hook through the ring (touching the top of the hole), 14 mm proud with an upturned tip so it reads as a hook, not a rod
     return g; };
+  // 24 Oct 23:xx: hand saws rebuilt (07:xx review: "blades flat slabs with a blown highlight and no teeth; handles a plain arch block").
+  // Blade: 0.9 mm steel plate, 110 fine teeth down the front edge, its own small canvas (satin grey, brushed along the length, faint small smudges,
+  // a ground bright strip with alternating tooth ticks along the toothed edge, a faint etched mark at the heel) so the use-wear pass leaves it alone.
+  // Handle: a pistol grip with a horn, a D-shaped hand hole (top kept at .095, so the hook stays put) and a black soft-grip pad on the back bar.
+  let SAWTEX = null; const sawTex = () => { if (SAWTEX) return SAWTEX; let ss = 7717; const sr = () => (ss = (ss * 16807) % 2147483647) / 2147483647;
+    const c = document.createElement('canvas'), W = 128, H = 512; c.width = W; c.height = H; const x = c.getContext('2d');
+    const U = u => (u + .065) / .13 * W, V = y => (1 - (y + .455) / .48) * H;   // blade metres → canvas px (same mapping as the blade's UVs)
+    const g = x.createLinearGradient(0, 0, W, 0); g.addColorStop(0, '#80878c'); g.addColorStop(.6, '#949a9f'); g.addColorStop(1, '#8a9095'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 160; i++) { x.fillStyle = `rgba(${sr() < .5 ? '255,255,255' : '60,62,66'},${.03 + sr() * .06})`; x.fillRect(sr() * W, 0, .6 + sr() * 1.2, H); }   // brushed along the length
+    for (let i = 0; i < 40; i++) { const cx = sr() * W, cy = sr() * H, r = 2 + sr() * 6, rg = x.createRadialGradient(cx, cy, 0, cx, cy, r); rg.addColorStop(0, `rgba(40,36,32,${.05 + sr() * .09})`); rg.addColorStop(1, 'rgba(40,36,32,0)'); x.fillStyle = rg; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }   // small faint finger smudges
+    for (let i = 0; i < 14; i++) { x.fillStyle = `rgba(120,64,30,${.2 + sr() * .3})`; x.fillRect(sr() * W, sr() * H, 1, 1); }   // a few rust pin-pricks
+    const ax = U(.06), ay = V(.02), bx = U(.01), by = V(-.45), L = Math.hypot(bx - ax, by - ay), dx = (bx - ax) / L, dy = (by - ay) / L, nx = -dy, ny = dx;   // the toothed edge; n points into the blade (−x)
+    const strip = (off, w, col) => { x.strokeStyle = col; x.lineWidth = w; x.beginPath(); x.moveTo(ax - nx * off, ay - ny * off); x.lineTo(bx - nx * off, by - ny * off); x.stroke(); };
+    strip(3.2, 3.2, 'rgba(232,236,238,.95)'); strip(5.4, 1.4, 'rgba(70,74,78,.55)');   // ground bright edge, a thin dark line where the set starts
+    const n = 110; x.lineWidth = 1.6; for (let i = 0; i < n; i++) { const t = (i + .5) / n * L, px = ax + dx * t, py = ay + dy * t; x.strokeStyle = i % 2 ? 'rgba(40,44,48,.7)' : 'rgba(255,255,255,.8)';
+      x.beginPath(); x.moveTo(px - nx * .5, py - ny * .5); x.lineTo(px - nx * 3.5, py - ny * 3.5); x.stroke(); }   // alternate tooth ticks (set left/right catches the light)
+    x.save(); x.translate(U(-.02), V(-.05)); x.rotate(-Math.PI / 2); x.fillStyle = 'rgba(40,44,50,.35)'; x.fillRect(-2, -9, 64, 13); x.fillStyle = 'rgba(200,205,210,.45)'; x.font = 'bold 9px Arial'; x.fillText('HARDPOINT 8', 1, 1); x.restore();   // faint etched mark at the heel
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return SAWTEX = STD({ map: t, metalness: .6, roughness: .52, side: THREE.DoubleSide }); };   // satin, not mirror: at .8/.32 the room light blew it out white
+  const SAWH = STD({ color: 0xa8321f, roughness: .5 });
   const saw = (p, x, y, z) => { const g = grp(p, x, y, z), sh = new THREE.Shape(); sh.moveTo(-.06, .02);   // hand saw hung by its handle: blade tapers to the toe, teeth down the front edge
-    const n = 34; for (let i = 0; i <= n; i++) { const t = i / n, ex = .06 - .05 * t, ey = .02 - .47 * t; sh.lineTo(ex + (i % 2 ? .005 : 0), ey); }
+    const n = 110; for (let i = 0; i <= n; i++) { const t = i / n; sh.lineTo(.06 - .05 * t + (i % 2 ? .0032 : 0), .02 - .47 * t); }
     sh.lineTo(-.06, -.45); sh.lineTo(-.06, .02);
-    const bl = tmesh(g, new THREE.ShapeGeometry(sh), STD({ color: 0xaeb3b7, metalness: .8, roughness: .32, side: THREE.DoubleSide }), 0, 0, .001);
-    const hs = new THREE.Shape(); hs.moveTo(-.07, 0); hs.lineTo(.07, 0); hs.lineTo(.065, .07); hs.quadraticCurveTo(.06, .13, .0, .13); hs.quadraticCurveTo(-.07, .13, -.07, .07); hs.lineTo(-.07, 0);
-    const hole = new THREE.Path(); hole.moveTo(-.035, .03); hole.lineTo(.035, .03); hole.quadraticCurveTo(.04, .095, .0, .095); hole.quadraticCurveTo(-.04, .095, -.035, .03); hs.holes.push(hole);
-    const hg = new THREE.ExtrudeGeometry(hs, { depth: .022, bevelEnabled: true, bevelSize: .004, bevelThickness: .004, bevelSegments: 2 }); hg.translate(0, 0, -.011);
-    tmesh(g, hg, STD({ color: 0x8a3a24, roughness: .55 }), 0, -.01, .005);
-    for (const sx of [-.035, .035]) { const r = tmesh(g, new THREE.CylinderGeometry(.006, .006, .03, 8), BRIGHT, sx, .01, 0); r.rotation.x = Math.PI / 2; }   // brass-ish rivets
+    const bg = new THREE.ExtrudeGeometry(sh, { depth: .0009, bevelEnabled: false }); bg.translate(0, 0, -.00045);
+    { const pa = bg.attributes.position, uv = bg.attributes.uv; for (let i = 0; i < pa.count; i++) uv.setXY(i, (pa.getX(i) + .065) / .13, (pa.getY(i) + .455) / .48); uv.needsUpdate = true; }
+    tmesh(g, bg, sawTex(), 0, 0, .001);
+    const hs = new THREE.Shape(); hs.moveTo(-.075, 0); hs.lineTo(.07, 0); hs.lineTo(.072, .05); hs.quadraticCurveTo(.092, .075, .086, .112);   // front edge up to the horn
+    hs.quadraticCurveTo(.06, .148, .0, .142); hs.quadraticCurveTo(-.06, .138, -.08, .118); hs.quadraticCurveTo(-.094, .085, -.085, .05); hs.lineTo(-.075, 0);   // round top, sloping back
+    const hole = new THREE.Path(); hole.moveTo(-.04, .03); hole.lineTo(.035, .03); hole.quadraticCurveTo(.045, .1, .0, .095); hole.quadraticCurveTo(-.05, .1, -.04, .03); hs.holes.push(hole);
+    const hg = new THREE.ExtrudeGeometry(hs, { depth: .022, bevelEnabled: true, bevelSize: .004, bevelThickness: .004, bevelSegments: 3, curveSegments: 14 }); hg.translate(0, 0, -.011);
+    tmesh(g, hg, SAWH, 0, -.01, .005);
+    const gp = new THREE.Shape(); gp.moveTo(-.079, .012); gp.lineTo(-.05, .03); gp.quadraticCurveTo(-.052, .07, -.05, .095); gp.quadraticCurveTo(-.062, .118, -.078, .112); gp.quadraticCurveTo(-.088, .08, -.081, .045); gp.lineTo(-.079, .012);   // soft-grip pad on the back bar, proud of both faces
+    const gg = new THREE.ExtrudeGeometry(gp, { depth: .028, bevelEnabled: true, bevelSize: .002, bevelThickness: .002, bevelSegments: 2, curveSegments: 10 }); gg.translate(0, 0, -.014);
+    tmesh(g, gg, GRIP, 0, -.01, .005);
+    for (const sx of [-.035, .035]) { const r = tmesh(g, new THREE.CylinderGeometry(.006, .006, .03, 10), BRIGHT, sx, .01, .005); r.rotation.x = Math.PI / 2; }   // brass-ish screws through handle and blade
     peg(g, 0, SAWHOOK, -.017, .045);   /* 24 Oct 07:xx: the hook it hangs on, through the top of the handle's hole (it hung on nothing) */
     return g; };
   const SAWHOOK = .079;   // the saw's hook height above its origin: top of the handle hole (−.01 + .095) less the hook's radius and a little
