@@ -469,3 +469,13 @@ One row per build, so each run gets measurably better.
 - Published: yes (version 44, keycaps block carried over from the live page; publish copy in work/ only; went through on the third identical send, as the trap says).
 - Score (self, on the reviewer's scale, half a point off): wspeg/wsspan close-ups (phone) Shape 6.5 · Detail 7 · Surface 6.5 · Light 6.5 · Truth 6 · Works 6.5 = 6.5 (BEFORE same eye: Detail 6.5, Surface 6, Light 6 = 6.25). Page row stays 6.0 until a reviewer scores it.
 
+
+
+## 2026-10-24 07:xx · WW: every pegboard hook comes out of a real hole; spanners level on one row; saws hang on hooks; blind review of the 05:xx–07:xx builds (Josh's request: workshop inside, more detail) · run 8 of the night (review run: 07:xx summary)
+- Meeting: top open Josh's request is still the workshop inside; smallest visible open item from 06:xx was hooks off the new 25 mm hole grid (and the saws hung on nothing). 07:xx run, so the reviewer scores everything since the last review (f1f1daf) before the summary. Huddle: no team change. Shortcut: a `wshook` close-up in shoot.js; desktop shoots strictly one at a time (two in parallel timed out again, twice).
+- Team: Opus 5.5 (boss + builder) built, shot BEFORE/AFTER (phone wspeg, wsspan, wshook, wsclamp; desktop wspeg) and the review set, one fix round of my own (first AFTER snapped each spanner's hook to its nearest row, so rings stepped up and down and spacing went uneven: now one hole row for all eight, two holes apart). Haiku checker PASS. Fresh Opus reviewer, blind (X/Y shuffled per view): reviewer-scored. No researcher.
+- Changed (hall3.js): tool wall: hole grid x 1.7625 + n·.025, y 1.1625 + m·.025; hammers, spanners, saws, F-clamps and spirit levels each moved ≤ 12.5 mm so their hooks sit in holes; hammer hook pairs ±25 mm, level hooks ±175 mm; `saw()` gets a hook through the top of its handle hole (`SAWHOOK`). shoot.js: `wshook`.
+- Review (fresh Opus, blind, phone, f1f1daf → now): wsspan 4.7 → 6.3, wspeg 5.3 → 6.1, wstool 5.6 → 6.2, wshook 5.1 → 5.8, wsclamp 5.3 → 5.8; better in all 5, mean 5.2 → 6.0. No reverts. Worst left: saw blades flat slabs with a blown highlight and no teeth; clamps flat boxes, hammers thin sticks; clamps and hammers carry no NOT SURE chip.
+- Checker (Haiku): PASS; notes: spanner hooks level two holes apart, each saw on a hook, HAND SAWS label still over the middle saw's handle on desktop (old), 0.34 MB, page errors [].
+- Published: yes (version 45, keycaps block carried over from the live page; publish copy in work/ only; third identical send went through).
+- Score (reviewer): tool-wall close-ups 6.0 (from 5.2 at the last reviewed build). Page row stays 6.0.

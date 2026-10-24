@@ -1201,7 +1201,9 @@ function WSHOP(P) {
     const hg = new THREE.ExtrudeGeometry(hs, { depth: .022, bevelEnabled: true, bevelSize: .004, bevelThickness: .004, bevelSegments: 2 }); hg.translate(0, 0, -.011);
     tmesh(g, hg, STD({ color: 0x8a3a24, roughness: .55 }), 0, -.01, .005);
     for (const sx of [-.035, .035]) { const r = tmesh(g, new THREE.CylinderGeometry(.006, .006, .03, 8), BRIGHT, sx, .01, 0); r.rotation.x = Math.PI / 2; }   // brass-ish rivets
+    peg(g, 0, SAWHOOK, -.017, .045);   /* 24 Oct 07:xx: the hook it hangs on, through the top of the handle's hole (it hung on nothing) */
     return g; };
+  const SAWHOOK = .079;   // the saw's hook height above its origin: top of the handle hole (−.01 + .095) less the hook's radius and a little
   // 23 Oct 05:xx: the last plain blocks on the far wall and floor get real shapes (F-clamps, spirit levels, roll cabinet, offcuts bin, bench cable reel). No RNG draws, so nothing else moves
   const CLR = STD({ color: 0xc0221b, roughness: .42, metalness: .25 }), ALU = STD({ color: 0xc3c7ca, metalness: .75, roughness: .38 });
   const peg = (p, x, y, z, L = .05) => { const k = tmesh(p, new THREE.CylinderGeometry(.0028, .0028, L, 6), BRIGHT, x, y, z + L / 2); k.rotation.x = Math.PI / 2; return k; };   // a pegboard hook sticking out of the board
@@ -1259,7 +1261,7 @@ function WSHOP(P) {
     for (const s of [-1, 1]) box(g, .02, .06, .03, GRIP, s * (L / 2 - .01), -.0025, 0);
     const vial = (vx, vert) => { box(g, .055, .035, .028, BLK, vx, .01, 0); const v = tmesh(g, new THREE.CylinderGeometry(.006, .006, .036, 8), STD({ color: 0xc8e04a, emissive: 0x2a3a08, roughness: .2 }), vx, .0275, .0145); if (!vert) v.rotation.z = Math.PI / 2; box(g, .002, .02, .001, BLK, vx - .005, .0175, .0151); box(g, .002, .02, .001, BLK, vx + .005, .0175, .0151); };
     vial(0, false); vial(-L / 2 + .12, true);
-    for (const s of [-.3, .3]) peg(p, x + s * L, y - .006, z - .02, .04);
+    for (const s of [-1, 1]) peg(p, x + s * Math.round(.3 * L / .025) * .025, y - .006, z - .02, .04);   // 24 Oct 07:xx: hooks a whole number of 25 mm holes apart
     return g; };
   const rollCab = (p, x, z) => { const g = grp(p, x, 0, z);   // grey steel roll cabinet: castors, a seven-drawer base with pull bars and label slots, a lift-lid top chest, side handle, rubber mat on top
     const GC = STD({ color: 0x858c92, metalness: .12, roughness: .48 }), GE = STD({ color: 0x5d6368, metalness: .12, roughness: .55 }), LBL = STD({ color: 0xe9e6dc, roughness: .7 }), PULL = STD({ color: 0xd2d6da, metalness: .35, roughness: .3 });   // 24 Oct 03:xx: powder-coated grey, not bare metal (at .55 metalness it read near-black on a phone under the workshop's gated light)
@@ -1414,11 +1416,14 @@ function WSHOP(P) {
   // --- 7. the far wall: bench with a pegboard tool wall over it, a roll cabinet, the fire extinguisher (scan: bench ≈ 1.2–1.3 m deep in clutter at z −12.2…−12.95, shelving to 2.5 m above; a grey drawer stack ≈ 1.4 m at x ≈ 1.6; red at x ≈ 0.8, 1.3 m)
   { const g = grp(P), b = bench(g, 3.25, -12.6, 2.9, .65, .95, 0); const t = grp(g, 0, .95, 0);
     const pb = pegBoard(g, 3.25, 1.15, -12.877, 3.0, 1.15);   // 24 Oct 06:xx: 6 mm board on battens, crisp 25 mm-pitch holes (was a flat plane at z −12.88)
-    const hm = grp(g); for (let i = 0; i < 5; i++) { hammer(hm, 2.02 + i * .165, 1.48, -12.86, 0); for (const hx of [-.022, .022]) peg(hm, 2.02 + i * .165 + hx, 1.755, -12.875, .05); }   // 05:xx: hung straight, heads up, on pairs of hooks (they overlapped in crossed pairs)
-    const sp = grp(g); for (let i = 0; i < 8; i++) { const L = .14 + i * .02; spanner(sp, 2.88 + i * .052, 1.72 - L * .9, -12.86, L); }   // 05:xx 24 Oct: rings all on one hook rail, small to big
-    const hs = grp(g); for (let i = 0; i < 3; i++) saw(hs, 3.5 + i * .2, 1.9, -12.865);   // hand saws
-    const fc = grp(g); for (let i = 0; i < 4; i++) fclamp(fc, 4.22 + i * .13, 1.76 - (i % 2) * .02, -12.855, .45 - (i % 2) * .1, .1 - (i % 2) * .015);   // F-clamps (05:xx: bar, cast jaws, spindle, handle)
-    const lv = grp(g); sLevel(lv, 2.4, 1.27, -12.86, .6, 0xf2b705); sLevel(lv, 2.5, 2.0, -12.86, .6, 0x2a5aa8); pb.userData.bake([hm, sp, hs, fc, lv]);   // outlines + drop shadows on the board
+    // 24 Oct 07:xx: every hook comes out of a real hole: holes sit at x 1.7625 + n·.025, y 1.1625 + m·.025 (board 1.75–4.75 × 1.15–2.30, 25 mm pitch, hole mid-tile).
+    // Each tool moves with its hook (≤ 12.5 mm); hook pairs are a whole number of holes apart
+    const HX = 1.7625, HY = 1.1625, gx = v => HX + Math.round((v - HX) / .025) * .025, gy = v => HY + Math.round((v - HY) / .025) * .025;
+    const hm = grp(g); for (let i = 0; i < 5; i++) { const hx0 = gx(2.02 + i * .165), dy = gy(1.755) - 1.755; hammer(hm, hx0, 1.48 + dy, -12.86, 0); for (const hx of [-.025, .025]) peg(hm, hx0 + hx, 1.755 + dy, -12.875, .05); }   // 05:xx: hung straight, heads up, on pairs of hooks (they overlapped in crossed pairs)
+    const sp = grp(g), sr = gy(1.725); for (let i = 0; i < 8; i++) { const L = .14 + i * .02; spanner(sp, gx(2.88) + i * .05, sr - (.006 + L * .045) * .5 + .0029 - L * .9, -12.86, L); }   /* all eight on one row of holes, two holes apart; spanner() puts its hook at y + L·.9 + s/2 − .0029 */   // 05:xx 24 Oct: rings all on one hook rail, small to big
+    const hs = grp(g); for (let i = 0; i < 3; i++) saw(hs, gx(3.5 + i * .2), gy(1.9 + SAWHOOK) - SAWHOOK, -12.865);   // hand saws
+    const fc = grp(g); for (let i = 0; i < 4; i++) { const y = 1.76 - (i % 2) * .02; fclamp(fc, gx(4.22 + i * .13 + .01) - .01, gy(y + .012) - .012, -12.855, .45 - (i % 2) * .1, .1 - (i % 2) * .015); }   /* its hook is at (x + .01, y + .012) */   // F-clamps (05:xx: bar, cast jaws, spindle, handle)
+    const lv = grp(g); sLevel(lv, gx(2.4), gy(1.27 - .006) + .006, -12.86, .6, 0xf2b705); sLevel(lv, gx(2.5), gy(2.0 - .006) + .006, -12.86, .6, 0x2a5aa8); pb.userData.bake([hm, sp, hs, fc, lv]);   // outlines + drop shadows on the board
     { const W = ' on the pegboard. The scan only shows clutter on the wall here, so which tools hang where is a guess (typical workshop kit).';   // 24 Oct: each set gets its own tag + label
       T2(hm, 'Hammers', 'Five hammers hung heads up on pairs of hooks' + W, '≈ 0.33 m'); T2(sp, 'Spanners', 'A row of combination spanners, small to big' + W, '0.14–0.28 m'); T2(hs, 'Hand saws', 'Three hand saws hung by their handles' + W, '≈ 0.55 m'); T2(fc, 'F-clamps', 'Four F-clamps hung by their fixed jaws' + W, '0.35–0.45 m'); }   // spirit levels (05:xx: box section, end caps, vials)
     const sh = shelving(g, 3.25, -12.78, 2.9, .3, .55, 0, [.35]); sh.position.y = 2.0; for (let i = 0; i < 6; i++) (i % 2 ? tub : (p, x, y, z, w, h, d) => cbox(p, x, y, z, w, h, d))(sh, -1.2 + i * .48, .37, 0, .4, .18, .26, 0x2a5aa8);
