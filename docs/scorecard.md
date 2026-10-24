@@ -433,3 +433,9 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS, no problems; notes: kick strip cut off by the frame and bar in these crops, D-pulls read as flat bars at this size, 0.33 MB.
 - Published: yes (version 41, keycaps block carried over from the live page; publish copy in work/ only).
 - Score (self, on the reviewer's scale, half a point off per the 03:xx note): wscab close-up (phone) Shape 6.5 · Detail 6.5 · Surface 6.5 · Light 6.5 · Truth 6 · Works 7 = 6.5 (BEFORE same eye: Surface 5.5, Light 5.5, Detail 6 = 6.1); workshop close-ups overall 6.6 → 6.7. Page row stays 5.9 until a reviewer scores it.
+
+
+## 2026-10-24 02:xx · WW: duplicate build, NOT shipped (overlapped with another run) · run 3 of the night (not counted)
+- Meeting: started 02:04 on the same top items (NOT SURE tags on guessed tools, phone blurb) before the 9adb5ac run had pushed; built orange "?" pins and the same nested-tag bake fix; checker PASS and test_pins.js PASS after one fix round (the test waited fixed times and read stale SwiftShader frames).
+- Team: Opus 5.5 built and shot BEFORE/AFTER; Haiku checker PASS. Not shipped: the publish was refused because 9adb5ac/0960942 had already put the same fix live (NOT SURE chips on near labels, blurb folding, bake fix), so the build was dropped rather than overwrite a newer page. No score change.
+- Kept for later (in backlog): bench-sized NOT SURE groups pin/label on whatever sits 72 % up their box (banner, table top); the long bench's and tool-wall bench's drills and cases are still untagged.
