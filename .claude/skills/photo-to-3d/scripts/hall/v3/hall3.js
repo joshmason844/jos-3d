@@ -1171,12 +1171,26 @@ function WSHOP(P) {
     box(h, .046, .135, .044, GRIP, 0, 0, 0); box(h, .02, .13, .046, C, .02, 0, 0); box(h, .016, .03, .02, BLK, .03, .1, 0);   // grip, coloured front, trigger
     box(g, .115, .022, .082, C, -.045, .03, 0); box(g, .12, .032, .086, BLK, -.045, 0, 0); box(g, .012, .006, .03, STD({ color: 0x3fd26a, emissive: 0x0c3a1a }), -.095, .054, 0);   // battery: coloured top, black pack, charge lights
     return g; };
-  const hammer = (p, x, y, z, ry) => { const g = grp(p, x, y, z, ry);
-    tmesh(g, new THREE.CylinderGeometry(.012, .015, .3, 10), WOODH, 0, .15, 0); tmesh(g, new THREE.CylinderGeometry(.0165, .0175, .11, 10), GRIP, 0, .055, 0);   // ash shaft, rubber grip
-    const fc = tmesh(g, new THREE.CylinderGeometry(.015, .015, .045, 14), DARK, .035, .295, 0); fc.rotation.z = Math.PI / 2;   // striking face side
-    const fr = tmesh(g, new THREE.CylinderGeometry(.0165, .0165, .006, 14), BRIGHT, .06, .295, 0); fr.rotation.z = Math.PI / 2;   // polished face
-    box(g, .03, .036, .028, DARK, 0, .277, 0);   // eye block
-    for (const sz of [-1, 1]) { const c = box(g, .07, .012, .009, DARK, -.04, .286, sz * .007); c.rotation.z = -.45; }   // split claw, curving down
+  // 25 Oct 00:xx: claw hammer rebuilt (07:xx review: "hammers read as thin sticks"): forged head as one extruded side profile (round-cornered eye, cheek, a claw that
+  // curves back and down, split in two with a V gap), a round neck flaring to a bevelled face with a polished disc; an oval ash handle ≈ 34 × 25 mm with a
+  // fat moulded rubber grip and a flared butt; wedge end showing through the top of the eye. Same origin, same height (head centre .295), so the hooks don't move
+  const HEADM = STD({ color: 0x2e3236, roughness: .5, metalness: .55 });
+  const ex2 = (sh, d, bv, seg = 2) => { const e = new THREE.ExtrudeGeometry(sh, { depth: d, bevelEnabled: true, bevelSize: bv, bevelThickness: bv, bevelSegments: seg, curveSegments: 12 }); e.translate(0, 0, -d / 2); return e; };
+  const hammer = (p, x, y, z, ry) => { const g = grp(p, x, y, z, ry), hy = .295;
+    const hd = tmesh(g, new THREE.CylinderGeometry(.0125, .015, .3, 14), WOODH, 0, .15, 0); hd.scale.set(1.35, 1, 1);   // oval ash handle, thicker at the bottom
+    const gr = tmesh(g, new THREE.CylinderGeometry(.0185, .0205, .12, 16), GRIP, 0, .062, 0); gr.scale.set(1.25, 1, 1);   // moulded rubber grip
+    const bt = tmesh(g, new THREE.CylinderGeometry(.0225, .02, .014, 16), GRIP, 0, .007, 0); bt.scale.set(1.25, 1, 1);   // flared butt
+    for (let i = 0; i < 4; i++) { const r = tmesh(g, new THREE.TorusGeometry(.0198, .0016, 4, 18), BLK, 0, .03 + i * .024, 0); r.rotation.x = Math.PI / 2; r.scale.set(1.25, 1, 1); }   // grip rings
+    const ey = new THREE.Shape(); ey.moveTo(-.018, -.021); ey.lineTo(.016, -.021); ey.quadraticCurveTo(.022, -.021, .022, -.014); ey.lineTo(.022, .014); ey.quadraticCurveTo(.022, .02, .016, .02);
+    ey.lineTo(-.018, .02); ey.quadraticCurveTo(-.023, .02, -.023, .014); ey.lineTo(-.023, -.014); ey.quadraticCurveTo(-.023, -.021, -.018, -.021);
+    tmesh(g, ex2(ey, .022, .003), HEADM, 0, hy, 0);   // eye block / cheeks
+    const nk = tmesh(g, new THREE.CylinderGeometry(.0175, .0125, .036, 16), HEADM, .04, hy, 0); nk.rotation.z = -Math.PI / 2;   // neck flaring out to the face
+    const fc = tmesh(g, new THREE.CylinderGeometry(.0168, .0178, .012, 18), HEADM, .064, hy, 0); fc.rotation.z = -Math.PI / 2;   // face ring, bevelled
+    const fr = tmesh(g, new THREE.CylinderGeometry(.0148, .0162, .003, 18), BRIGHT, .0715, hy, 0); fr.rotation.z = -Math.PI / 2;   // polished striking face
+    const cl = new THREE.Shape(); cl.moveTo(-.02, .016); cl.quadraticCurveTo(-.07, .02, -.104, -.026); cl.lineTo(-.098, -.032); cl.quadraticCurveTo(-.07, -.004, -.02, -.012); cl.lineTo(-.02, .016);
+    for (const sz of [-1, 1]) tmesh(g, ex2(cl, .0075, .0015, 1), HEADM, 0, hy, sz * .0062);   // split claw, curving back and down
+    const wd = tmesh(g, new THREE.CylinderGeometry(.009, .009, .004, 12), WOODH, 0, hy + .0225, 0); wd.scale.set(1.35, 1, 1);   // handle end through the eye
+    box(g, .016, .002, .0025, BRIGHT, 0, hy + .0245, 0);   // steel wedge
     return g; };
   const spanner = (p, x, y, z, L) => { const g = grp(p, x, y, z);   // 24 Oct 05:xx: a real combination spanner (was a bar with a torus and two jaw stubs): 12-point ring at the top, open jaw at 15° at the bottom, tapered I-section shaft; hung by its ring on a hook
     const s = .006 + L * .045, Ro = s * 1.08, Rr = s * .98, yr = L * .9, ex = (sh, d, bv) => { const e = new THREE.ExtrudeGeometry(sh, { depth: d, bevelEnabled: true, bevelSize: bv, bevelThickness: bv, bevelSegments: 2, curveSegments: 18 }); e.translate(0, 0, -d / 2); return e; };
@@ -1232,15 +1246,27 @@ function WSHOP(P) {
   // 23 Oct 05:xx: the last plain blocks on the far wall and floor get real shapes (F-clamps, spirit levels, roll cabinet, offcuts bin, bench cable reel). No RNG draws, so nothing else moves
   const CLR = STD({ color: 0xc0221b, roughness: .42, metalness: .25 }), ALU = STD({ color: 0xc3c7ca, metalness: .75, roughness: .38 });
   const peg = (p, x, y, z, L = .05) => { const k = tmesh(p, new THREE.CylinderGeometry(.0028, .0028, L, 6), BRIGHT, x, y, z + L / 2); k.rotation.x = Math.PI / 2; return k; };   // a pegboard hook sticking out of the board
-  const fclamp = (p, x, y, z, L = .45, R = .1) => { const g = grp(p, x, y, z);   // F-clamp hung by its fixed jaw: flat steel bar, cast red jaws, a sliding jaw part way down, a threaded spindle with a wooden handle and a swivel pad
-    box(g, .02, L, .006, BRIGHT, 0, -L, 0); for (let i = 0; i < 12; i++) box(g, .022, .002, .007, DARK, 0, -L + .02 + i * L / 13, 0);   // the bar and its notches
-    const jaw = (yy, len, top) => { const sh = new THREE.Shape(); sh.moveTo(-.015, 0); sh.lineTo(len, top ? -.004 : .004); sh.lineTo(len, top ? -.026 : .026); sh.lineTo(.02, top ? -.034 : .034); sh.lineTo(-.015, top ? -.03 : .03); sh.lineTo(-.015, 0);
-      const ge = new THREE.ExtrudeGeometry(sh, { depth: .014, bevelEnabled: true, bevelSize: .002, bevelThickness: .002, bevelSegments: 1 }); ge.translate(0, 0, -.007); return tmesh(g, ge, CLR, 0, yy, 0); };
-    jaw(0, R, true); box(g, .022, .012, .016, BRIGHT, R - .008, -.038, 0);   // fixed jaw at the top and its pad
+  // 25 Oct 00:xx: F-clamp rebuilt (07:xx review: "clamps read as flat boxes"): a 25 × 8 mm bar with its notches, cast jaws with a rounded back and
+  // an I-beam web (a darker recessed panel inside a raised rim on both faces), a jaw pad and swivel pad, a thicker threaded spindle and a fat
+  // two-tone handle. Hook and footprint unchanged
+  const CLRD = STD({ color: 0x8e1712, roughness: .55, metalness: .2, side: THREE.DoubleSide });
+  const fclamp = (p, x, y, z, L = .45, R = .1) => { const g = grp(p, x, y, z); R *= .88;   // jaws a touch shorter so neighbours 13 cm apart don't touch
+    box(g, .025, L, .008, BRIGHT, 0, -L, 0); for (let i = 0; i < 14; i++) box(g, .0265, .0022, .009, DARK, 0, -L + .02 + i * L / 15, 0);   // the bar and its notches
+    const jaw = (yy, len, top) => { const k = top ? -1 : 1, sh = new THREE.Shape();   // side profile: thick at the bar, a rounded back curving out to the pad end
+      sh.moveTo(-.016, 0); sh.lineTo(len + .004, k * .003); sh.quadraticCurveTo(len + .01, k * .004, len + .01, k * .014); sh.lineTo(len + .006, k * .026);
+      sh.quadraticCurveTo(len * .55, k * .028, .028, k * .044); sh.quadraticCurveTo(-.012, k * .05, -.018, k * .036); sh.lineTo(-.016, 0);
+      tmesh(g, ex2(sh, .016, .003, 2), CLR, 0, yy, 0);
+      const w = new THREE.Shape(); w.moveTo(.004, k * .008); w.lineTo(len - .006, k * .009); w.lineTo(len - .006, k * .02); w.quadraticCurveTo(len * .55, k * .022, .03, k * .034); w.lineTo(.004, k * .034); w.lineTo(.004, k * .008);
+      for (const sz of [-1, 1]) tmesh(g, new THREE.ShapeGeometry(w), CLRD, 0, yy, sz * .0111);   // recessed web, both faces
+      for (const sz of [-1, 1]) { const rim = box(g, len - .01, .003, .002, CLR, len / 2 - .002, yy + k * .005 - .0015, sz * .0118); } };
+    jaw(0, R, true); box(g, .026, .007, .02, BRIGHT, R - .006, -.033, 0);   // fixed jaw at the top and its pad
     const sy = -L * .62; jaw(sy, R, false);   // sliding jaw
-    const sp = tmesh(g, new THREE.CylinderGeometry(.005, .005, .12, 8), BRIGHT, R - .01, sy + .02, 0);   // spindle up through the sliding jaw
-    tmesh(g, new THREE.CylinderGeometry(.008, .008, .006, 10), BRIGHT, R - .01, sy + .083, 0);   // swivel pad
-    tmesh(g, new THREE.CylinderGeometry(.011, .013, .08, 10), WOODH, R - .01, sy - .045, 0); tmesh(g, new THREE.CylinderGeometry(.0135, .0135, .008, 10), BRIGHT, R - .01, sy - .004, 0);   // wooden handle and ferrule
+    tmesh(g, new THREE.CylinderGeometry(.0065, .0065, .12, 10), BRIGHT, R - .006, sy + .03, 0);   // spindle up through the sliding jaw
+    for (let i = 0; i < 9; i++) { const t = tmesh(g, new THREE.TorusGeometry(.0065, .0011, 3, 10), DARK, R - .006, sy + .04 + i * .007, 0); t.rotation.x = Math.PI / 2; }   // thread
+    tmesh(g, new THREE.CylinderGeometry(.012, .012, .006, 14), BRIGHT, R - .006, sy + .09, 0);   // swivel pad
+    const hn = tmesh(g, new THREE.CylinderGeometry(.0155, .0175, .085, 14), WOODH, R - .006, sy - .052, 0);   // handle
+    for (const t of [-.02, .005]) { const r = tmesh(g, new THREE.TorusGeometry(.0166, .0012, 4, 16), DARK, R - .006, sy - .052 + t, 0); r.rotation.x = Math.PI / 2; }   // turned grooves
+    tmesh(g, new THREE.CylinderGeometry(.0105, .0125, .012, 12), BRIGHT, R - .006, sy - .004, 0);   // ferrule
     peg(p, x + .01, y + .012, z - .02, .04); return g; };
   // 24 Oct 06:xx: a real pegboard instead of a flat plane with soft blurred holes: 6 mm tempered hardboard (box, dark core on its edges) on 16 mm battens
   // off the wall (a dark gap behind, seen through the holes and round the edges), 6 mm holes at a 25 mm pitch (a small repeating tile: crisp on a phone
@@ -1447,7 +1473,7 @@ function WSHOP(P) {
     const hm = grp(g); for (let i = 0; i < 5; i++) { const hx0 = gx(2.02 + i * .165), dy = gy(1.755) - 1.755; hammer(hm, hx0, 1.48 + dy, -12.86, 0); for (const hx of [-.025, .025]) peg(hm, hx0 + hx, 1.755 + dy, -12.875, .05); }   // 05:xx: hung straight, heads up, on pairs of hooks (they overlapped in crossed pairs)
     const sp = grp(g), sr = gy(1.725); for (let i = 0; i < 8; i++) { const L = .14 + i * .02; spanner(sp, gx(2.88) + i * .05, sr - (.006 + L * .045) * .5 + .0029 - L * .9, -12.86, L); }   /* all eight on one row of holes, two holes apart; spanner() puts its hook at y + L·.9 + s/2 − .0029 */   // 05:xx 24 Oct: rings all on one hook rail, small to big
     const hs = grp(g); for (let i = 0; i < 3; i++) saw(hs, gx(3.5 + i * .2), gy(1.9 + SAWHOOK) - SAWHOOK, -12.865);   // hand saws
-    const fc = grp(g); for (let i = 0; i < 4; i++) { const y = 1.76 - (i % 2) * .02; fclamp(fc, gx(4.22 + i * .13 + .01) - .01, gy(y + .012) - .012, -12.855, .45 - (i % 2) * .1, .1 - (i % 2) * .015); }   /* its hook is at (x + .01, y + .012) */   // F-clamps (05:xx: bar, cast jaws, spindle, handle)
+    const fc = grp(g); for (let i = 0; i < 4; i++) { const y = 1.76 - (i % 2) * .05;   /* 25 Oct: stagger 2 → 5 cm so the fatter top jaws clear each other */ fclamp(fc, gx(4.22 + i * .13 + .01) - .01, gy(y + .012) - .012, -12.855, .45 - (i % 2) * .1, .1 - (i % 2) * .015); }   /* its hook is at (x + .01, y + .012) */   // F-clamps (05:xx: bar, cast jaws, spindle, handle)
     const lv = grp(g); sLevel(lv, gx(2.4), gy(1.27 - .006) + .006, -12.86, .6, 0xf2b705); sLevel(lv, gx(2.5), gy(2.0 - .006) + .006, -12.86, .6, 0x2a5aa8); pb.userData.bake([hm, sp, hs, fc, lv]);   // outlines + drop shadows on the board
     { const W = ' on the pegboard. The scan only shows clutter on the wall here, so which tools hang where is a guess (typical workshop kit).';   // 24 Oct: each set gets its own tag + label
       T2(hm, 'Hammers', 'Five hammers hung heads up on pairs of hooks' + W, '≈ 0.33 m'); T2(sp, 'Spanners', 'A row of combination spanners, small to big' + W, '0.14–0.28 m'); T2(hs, 'Hand saws', 'Three hand saws hung by their handles' + W, '≈ 0.55 m'); T2(fc, 'F-clamps', 'Four F-clamps hung by their fixed jaws' + W, '0.35–0.45 m'); }   // spirit levels (05:xx: box section, end caps, vials)

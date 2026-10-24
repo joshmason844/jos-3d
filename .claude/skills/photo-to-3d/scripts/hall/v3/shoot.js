@@ -61,6 +61,7 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   wscab:    [[2.45, 1.45, -11.3], [1.45, .8, -12.6], true],     // close on the roll cabinet and the low cupboard, far left corner (23 Oct 05:xx)
   wsbin:    [[3.95, 1.35, -7.55], [3.25, .35, -8.45], true],     // close on the offcuts bin (23 Oct 05:xx)
   wshook:   [[3.62, 1.92, -12.5], [3.68, 1.86, -12.88], true],    // close on the hand-saw handles and their hooks (24 Oct 07:xx: hooks on the hole grid)
+  wsham:    [[2.35, 1.72, -12.38], [2.35, 1.64, -12.88], true],    // close on the five hammers (25 Oct 00:xx)
   wsclamp:  [[4.05, 1.6, -11.95], [4.15, 1.5, -12.9], true],     // close on the pegboard's right half: F-clamps, saws (23 Oct 05:xx)
   wssaw:    [[3.75, 1.6, -7.45], [3.2, 1.15, -6.7], true],      // close on the mitre-saw bench (23 Oct 06:xx)
   wscomp:   [[4.95, 1.05, -10.35], [4.25, .3, -11.2], true],    // close on the compressor (23 Oct 06:xx)
