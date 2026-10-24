@@ -1219,11 +1219,14 @@ function WSHOP(P) {
   const rollCab = (p, x, z) => { const g = grp(p, x, 0, z);   // grey steel roll cabinet: castors, a seven-drawer base with pull bars and label slots, a lift-lid top chest, side handle, rubber mat on top
     const GC = STD({ color: 0x858c92, metalness: .12, roughness: .48 }), GE = STD({ color: 0x5d6368, metalness: .12, roughness: .55 }), LBL = STD({ color: 0xe9e6dc, roughness: .7 }), PULL = STD({ color: 0xd2d6da, metalness: .35, roughness: .3 });   // 24 Oct 03:xx: powder-coated grey, not bare metal (at .55 metalness it read near-black on a phone under the workshop's gated light)
     box(g, .7, .03, .5, GE, 0, .1, 0); box(g, .02, .97, .5, GC, -.34, .13, 0); box(g, .02, .97, .5, GC, .34, .13, 0); box(g, .7, .97, .02, GC, 0, .13, -.24); box(g, .7, .025, .5, GE, 0, 1.075, 0);   // carcass
+    const DK = STD({ color: 0x17181a, roughness: .97 });   // 24 Oct 04:xx: a dark panel behind the drawer fronts, so every gap (now 16 mm) reads as a shadow line and the drawers count (they ran together on a phone)
+    box(g, .655, .955, .006, DK, 0, .135, .231);
     const hs = [.1, .1, .1, .12, .14, .16, .2]; let yy = .135;
-    for (const h of hs) { box(g, .655, h - .008, .02, GC, 0, yy, .245); box(g, .6, .022, .022, PULL, 0, yy + h - .032, .272); for (const s of [-1, 1]) box(g, .018, .026, .042, PULL, s * .29, yy + h - .034, .262);   // drawer front, aluminium pull bar on two posts (03:xx: thicker, lighter, stands 3 cm proud)
+    for (const h of hs) { box(g, .655, h - .016, .02, GC, 0, yy + .004, .245); box(g, .6, .022, .022, PULL, 0, yy + h - .032, .272); for (const s of [-1, 1]) box(g, .018, .026, .042, PULL, s * .29, yy + h - .034, .262);   // drawer front, aluminium pull bar on two posts (03:xx: thicker, lighter, stands 3 cm proud)
       box(g, .06, .022, .003, LBL, -.22, yy + h * .35, .256); yy += h; }
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const c = grp(g, sx * .29, 0, sz * .19); box(c, .045, .006, .045, GE, 0, .093, 0); box(c, .006, .045, .03, GE, -.016, .045, 0); box(c, .006, .045, .03, GE, .016, .045, 0); cyl(c, .035, .025, GRIP, 0, .035, 0, 'x', 14); cyl(c, .012, .028, BRIGHT, 0, .035, 0, 'x', 8); }   // swivel castors
     const tc = grp(g, 0, 1.1, 0); box(tc, .72, .3, .48, GC, 0, 0, 0); box(tc, .73, .1, .49, GC, 0, .3, 0); box(tc, .73, .006, .49, GE, 0, .3, 0);   // top chest and its lid, hinge line
+    box(tc, .63, .28, .004, DK, 0, .01, .2445);   // the same shadow lines between the top chest's drawers
     for (let i = 0; i < 3; i++) { box(tc, .62, .075, .015, GC, 0, .02 + i * .093, .24); box(tc, .5, .018, .02, PULL, 0, .07 + i * .093, .262); for (const s of [-1, 1]) box(tc, .016, .022, .03, PULL, s * .24, .07 + i * .093, .253); }
     box(tc, .7, .008, .47, STD({ color: 0x2a2b2d, roughness: .95 }), 0, .4, 0);   // rubber mat on the lid
     cyl(tc, .012, .012, BRIGHT, .3, .3, .248, 'z', 10);   // key lock
@@ -1507,8 +1510,8 @@ function WSHOP(P) {
     const cv = (draw, srgb) => { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); draw(x, 256, 256); const t = new CT(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
     const blot = (x, cx, cy, r, rgba) => { const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, rgba); g.addColorStop(1, rgba.replace(/[\d.]+\)$/, '0)')); x.fillStyle = g; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); };
     const edges = (x, w, h, col, a, d) => { for (const [x0, y0, x1, y1, rx, ry, rw, rh, k] of [[0, 0, 0, d, 0, 0, w, d, 1], [0, h, 0, h - d, 0, h - d, w, d, 1], [0, 0, d, 0, 0, 0, d, h, .45], [w, 0, w - d, 0, w - d, 0, d, h, .45]]) { const g = x.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, `rgba(${col},${a * k})`); g.addColorStop(1, `rgba(${col},0)`); x.fillStyle = g; x.fillRect(rx, ry, rw, rh); } };   // face edges = the part's real edges (box faces, cylinder ends); the u seam weaker
-    const chips = (x, w, h, n, col, edgeOnly) => { for (let i = 0; i < n; i++) { const e = ur() < .7 || edgeOnly; const px = e && ur() < .5 ? (ur() < .5 ? uf(0, 10) : w - uf(0, 10)) : uf(0, w), py = e ? (ur() < .5 ? uf(0, 14) : h - uf(0, 14)) : uf(0, h);
-      x.fillStyle = `rgba(${col},${uf(.45, .9)})`; x.beginPath(); x.moveTo(px, py); for (let k = 0; k < 6; k++) { const a = k / 6 * 6.28 + uf(-.4, .4), r = uf(1.5, 7); x.lineTo(px + Math.cos(a) * r, py + Math.sin(a) * r * uf(.5, 1)); } x.fill(); } };
+    const chips = (x, w, h, n, col, edgeOnly, aM = 1) => { for (let i = 0; i < n; i++) { const e = ur() < .7 || edgeOnly; const px = e && ur() < .5 ? (ur() < .5 ? uf(0, 10) : w - uf(0, 10)) : uf(0, w), py = e ? (ur() < .5 ? uf(0, 14) : h - uf(0, 14)) : uf(0, h);
+      x.fillStyle = `rgba(${col},${uf(.45, .9) * aM})`; x.beginPath(); x.moveTo(px, py); for (let k = 0; k < 6; k++) { const a = k / 6 * 6.28 + uf(-.4, .4), r = uf(1.5, 7); x.lineTo(px + Math.cos(a) * r, py + Math.sin(a) * r * uf(.5, 1)); } x.fill(); } };
     const scratches = (x, w, h, n, col, len) => { for (let i = 0; i < n; i++) { x.strokeStyle = `rgba(${col},${uf(.15, .5)})`; x.lineWidth = uf(.5, 1.4); x.beginPath(); const a = uf(0, w), b = uf(0, h), t = uf(0, 6.28), L = uf(len * .3, len); x.moveTo(a, b); x.quadraticCurveTo(a + Math.cos(t) * L * .5 + uf(-4, 4), b + Math.sin(t) * L * .5 + uf(-4, 4), a + Math.cos(t) * L, b + Math.sin(t) * L); x.stroke(); } };
     const K = {};
     K.paint = { map: cv((x, w, h) => { x.fillStyle = '#efefef'; x.fillRect(0, 0, w, h);
@@ -1534,8 +1537,14 @@ function WSHOP(P) {
         chips(x, w, h, 20, '60,38,20', true); }, true),
       rough: cv((x, w, h) => { x.fillStyle = '#e0e0e0'; x.fillRect(0, 0, w, h); for (let i = 0; i < 70; i++) { x.strokeStyle = `rgba(110,110,110,${uf(.2, .5)})`; x.lineWidth = uf(.6, 2); x.beginPath(); let a = uf(0, w); x.moveTo(a, 0); for (let k = 1; k <= 8; k++) x.lineTo(a += uf(-2, 2), k * h / 8); x.stroke(); }
         const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(.3, 'rgba(120,120,120,0)'); g.addColorStop(.5, 'rgba(120,120,120,.5)'); g.addColorStop(.7, 'rgba(120,120,120,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); }), bump: .5 };   // polished where held
+    K.paintL = { map: cv((x, w, h) => { x.fillStyle = '#f2f2f2'; x.fillRect(0, 0, w, h);   // 24 Oct 04:xx: light paint (grey cabinet, pulls, white kit): the dark chips read as black flecks on it, so worn-through chips go mid-grey and faint, edge grime lighter
+        for (let i = 0; i < 22; i++) blot(x, uf(0, w), uf(0, h), uf(12, 50), `rgba(70,58,44,${uf(.04, .1)})`);
+        edges(x, w, h, '70,60,50', .14, 16); chips(x, w, h, 50, '150,146,140', false, .7); chips(x, w, h, 14, '95,88,80', true, .35);
+        scratches(x, w, h, 50, '255,255,255', 40); scratches(x, w, h, 20, '90,80,70', 24);
+        for (let i = 0; i < 2000; i++) { x.fillStyle = `rgba(${ur() > .4 ? '120,105,85' : '255,255,255'},${uf(.03, .1)})`; x.fillRect(uf(0, w), uf(0, h), uf(.6, 1.8), uf(.6, 1.8)); } }, true),
+      rough: K.paint.rough, bump: .45 };
     const kind = m => { if (m.metalness >= .5) return 'steel'; const hsl = {}; m.color.getHSL(hsl, THREE.SRGBColorSpace);   // sRGB hue: in linear, yellow paint (45°) reads as wood (32°)
-      if (hsl.l < .2 && m.roughness >= .7) return 'rubber'; if (hsl.h > .07 && hsl.h < .11 && hsl.s > .25 && hsl.l > .2 && hsl.l < .45 && m.roughness < .75) return 'wood'; return 'paint'; };
+      if (hsl.l < .2 && m.roughness >= .7) return 'rubber'; if (hsl.h > .07 && hsl.h < .11 && hsl.s > .25 && hsl.l > .2 && hsl.l < .45 && m.roughness < .75) return 'wood'; return hsl.l > .45 && hsl.s < .25 ? 'paintL' : 'paint'; };   // light greys and whites only: yellow or red tools keep their dark chips
     const uvDone = new Set(), uvFix = g => { if (uvDone.has(g)) return; uvDone.add(g); if (!/Extrude|Shape/.test(g.type) || !g.attributes.uv) return; const u = g.attributes.uv; for (let i = 0; i < u.count; i++) u.setXY(i, u.getX(i) * 6, u.getY(i) * 6); u.needsUpdate = true; };   // extrude/shape UVs are in metres: one tile per ~17 cm, or a 3 cm chip blows up to fill a saw hood
     const worn = new Map(), bb = new THREE.Box3(), sz = new THREE.Vector3(); let nw = 0; P.updateMatrixWorld(true);
     for (let i = n0; i < P.children.length; i++) P.children[i].traverse(o => { const m = o.material; if (!o.isMesh || !m || !m.isMeshStandardMaterial || Array.isArray(m) || m.map || m.transparent || m.roughness >= .95 || (m.emissive && m.emissive.getHex())) return;
