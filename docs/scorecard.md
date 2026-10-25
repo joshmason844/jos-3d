@@ -562,3 +562,14 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS; notes: vice in every AFTER vice shot with its label clear, page errors [] phone and desktop, one old "Failed to load resource" and a GPU-stall warning (in BEFORE too), 0.39 MB.
 - Published: yes (version 54, keycaps block carried over from the live page; live diff showed only the vice lines; publish copy in work/ only). Before/after picture sent to Josh (vice).
 - Score (reviewer): wsvicec Shape 7 · Detail 6 · Surface 7 · Light 6 · Truth 6 · Works 7 = 6.5 (from 6.33). Workshop close-ups 6.48, level with the 03:xx build on this reviewer's scale. Page row 6.5.
+
+## 2026-10-25 23:xx · WW: reverts of the 05:xx tank sheet and 06:xx opaque mitre guard (Josh's request: workshop inside; reverts due from the 07:xx blind review) · run 1 of the night
+- Meeting: top open item under Josh's requests was the reverts the 07:xx reviewer queued; done first as asked. Forklift in Blender still blocked (`pip download bpy`: no matching distribution, no `blender`), Josh not pinged again. Not a review run (run 1). Huddle: no team change (team.md logged). Shortcut: spliced old lines back by anchor from `git show 1bd304d`, kept the later vice build intact; BEFORE/AFTER phone and desk queued in one background script.
+- Team: Opus 5.5 (boss + builder) did the reverts and shot BEFORE/AFTER (phone: wsmitre, wssaw, wscomp, wscompc; desktop: wsmitre, wscompc). Haiku checker: FAIL on the first pass because my brief called the old tank "glossier" (it's the blotchier shared tile); re-briefed with the correct look and it passed. No researcher. Self-scored, review due.
+- Changed (hall3.js): `mitreSaw()`: lower guard back to the clear see-through sector (no ribs), cast grey back to 0xa9aeb2 / metalness .4 / roughness .5 with no sheet of its own; the tucked detent lever with the red thumb tip stays. `compressor()`: tank barrel back on TK (shared wear tile), the 1024 px painted sheet gone; dark grey motor with lighter fins kept (the AFTER shots show the fins reading, not hurting).
+- Better: the blade's teeth show again under the hood (wsmitre/wssaw); the tank keeps its glossy specular curve on the gauge side (wscompc).
+- Still weak: the clear guard is only a faint haze; the pale cast wears dark dots again; the tank's shared tile repeats its rust blotches.
+- Checker (Haiku): PASS after one re-brief; notes: page errors [] all runs, one old "Failed to load resource" console line in BEFORE and AFTER, 0.36 MB, saw and compressor in all 12 shots, labels clear.
+- Published: yes (version 55, keycaps block carried over from the live page; live diff showed only the revert lines; publish copy in work/ only).
+- Score (self, on the reviewer's scale, half a point off): back to the 03:xx reviewer's levels: wsmitre Shape 6.5 · Detail 6 · Surface 6 · Light 6 · Truth 6 · Works 6.5 = 6.2 (BEFORE same eye 6.0); wscompc 6.8 (BEFORE 6.65). Page row stays 6.5 until a reviewer scores it.
+
