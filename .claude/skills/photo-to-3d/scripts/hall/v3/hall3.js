@@ -1401,18 +1401,35 @@ function WSHOP(P) {
     const coil = grp(g, .05, 0, .42); for (let i = 0; i < 5; i++) { const t = tmesh(coil, new THREE.TorusGeometry(.13 + (i % 2) * .012, .009, 6, 32), STD({ color: 0x2a5aa8, roughness: .55 }), (i - 2) * .006, .01 + i * .016, (i % 3) * .008); t.rotation.x = Math.PI / 2; }   // airline: a loose coil of blue hose
     const lead = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(-.03, .43, -.215), new THREE.Vector3(-.16, .42, -.26), new THREE.Vector3(-.32, .36, -.18), new THREE.Vector3(-.39, .24, .0), new THREE.Vector3(-.34, .1, .2), new THREE.Vector3(-.16, .03, .33), new THREE.Vector3(.0, .02, .38)]), 40, .009, 6), STD({ color: 0x2a5aa8, roughness: .55 })); lead.castShadow = true; g.add(lead);   // hose from the coupler round the pump end of the tank (07:xx: it ran behind the tank out of sight) to the coil
     return g; };
-  const bvice = (p, x, y, z, ry = 0) => { const g = grp(p, x, y, z, ry);   // engineer's bench vice, jaws opening along +x: swivel base bolted down, fixed jaw flush with the bench front, sliding jaw on its slide, screw, tommy bar with ball ends, anvil on the back
-    const VB = STD({ color: 0x2f5f8f, metalness: .4, roughness: .45 }), JP = STD({ color: 0x3a3d40, metalness: .7, roughness: .5 });
-    cyl(g, .07, .02, VB, -.1, .01, 0, 'y', 24); box(g, .2, .012, .15, VB, -.1, 0, 0); for (const sx of [-1, 1]) for (const sz of [-1, 1]) { cyl(g, .009, .012, BRIGHT, -.1 + sx * .075, .012, sz * .058, 'y', 6); }   // base plate, swivel turntable, four bolts
-    cyl(g, .012, .02, BRIGHT, -.03, .025, .085, 'z', 8); tmesh(g, new THREE.CylinderGeometry(.004, .004, .05, 6), BRIGHT, -.03, .025, .1).rotation.x = Math.PI / 2;   // swivel lock and its lever
-    box(g, .17, .075, .085, VB, -.1, .02, 0);   // body
-    box(g, .04, .13, .14, VB, -.02, .02, 0); box(g, .07, .025, .065, STD({ color: 0x8d949a, metalness: .7, roughness: .35 }), -.15, .095, 0);   // fixed jaw block, anvil (worn bright)
-    const jaw = (jx, s) => { box(g, .006, .045, .14, JP, jx, .105, 0); for (let i = 0; i < 6; i++) box(g, .002, .002, .14, BLK, jx + s * .003, .11 + i * .007, 0); };   // hardened jaw plates, cross-hatched
-    jaw(.003, 1); box(g, .055, .06, .055, VB, .03, .045, 0);   // the slide between the jaws
-    box(g, .04, .13, .14, VB, .078, .02, 0); jaw(.055, -1);   // sliding jaw, 5 cm open
-    box(g, .1, .05, .05, VB, .13, .045, 0);   // slide out the front, under the screw
-    cyl(g, .011, .09, BRIGHT, .14, .095, 0, 'x', 10); const bs = cyl(g, .025, .035, VB, .195, .095, 0, 'x', 14);   // screw and its boss
-    tmesh(g, new THREE.CylinderGeometry(.006, .006, .22, 8), BRIGHT, .205, .06, 0); for (const yy of [-.05, .17]) tmesh(g, new THREE.SphereGeometry(.012, 10, 8), BRIGHT, .205, yy, 0);   // tommy bar hanging through it, ball ends
+  const bvice = (p, x, y, z, ry = 0) => { const g = grp(p, x, y, z, ry);   // engineer's bench vice, jaws opening along +x. 25 Oct 01:xx: cast shapes, not blocks (04:xx review: "vice body boxy, no casting curves or screw thread"): rounded base with bolt ears, swivel turntable with a lip, a cast body that sweeps up from the anvil into the fixed jaw, jaw heads with rounded tops, screwed jaw plates, a sliding jaw that flows into its slide beam, a nut boss, a threaded screw and a T-head with the tommy bar through it
+    const VB = STD({ color: 0x2f5f8f, metalness: .15, roughness: .5 }), JP = STD({ color: 0x3a3d40, metalness: .7, roughness: .5 }), DK = STD({ color: 0x1d3a58, metalness: .15, roughness: .6 });
+    const rr = (x0, y0, x1, y1, r) => { const s = new THREE.Shape(); s.moveTo(x0 + r, y0); s.lineTo(x1 - r, y0); s.quadraticCurveTo(x1, y0, x1, y0 + r); s.lineTo(x1, y1 - r); s.quadraticCurveTo(x1, y1, x1 - r, y1); s.lineTo(x0 + r, y1); s.quadraticCurveTo(x0, y1, x0, y1 - r); s.lineTo(x0, y0 + r); s.quadraticCurveTo(x0, y0, x0 + r, y0); return s; };
+    const flat = (sh, d, bv, m, yy) => { const e = ex2(sh, d, bv); e.rotateX(Math.PI / 2); return tmesh(g, e, m, 0, yy, 0); };   // shape in x/z, laid flat, d thick, centred on yy
+    // base plate with four bolt ears, the swivel turntable on it, and the lock lever
+    { const s = rr(-.205, -.075, .005, .075, .03); flat(s, .008, .003, VB, .006);
+      for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const bx = -.1 + sx * .082, bz = sz * .056; cyl(g, .012, .003, JP, bx, .012, bz, 'y', 16); cyl(g, .0085, .007, BRIGHT, bx, .0165, bz, 'y', 6); }   // washers + hex bolt heads
+      cyl(g, .068, .012, VB, -.1, .016, 0, 'y', 40); tmesh(g, new THREE.TorusGeometry(.068, .003, 6, 40), DK, -.1, .022, 0).rotation.x = Math.PI / 2;   // turntable and its lip
+      cyl(g, .012, .022, BRIGHT, -.04, .02, .07, 'z', 10); const lv = tmesh(g, new THREE.CylinderGeometry(.0045, .0045, .06, 8), BRIGHT, -.04, .02, .105); lv.rotation.x = Math.PI / 2; tmesh(g, new THREE.SphereGeometry(.009, 10, 8), BRIGHT, -.04, .02, .135); }   // swivel lock, lever, ball end
+    // the fixed half: one casting from the round-ended anvil up a swept neck into the fixed jaw
+    { const s = new THREE.Shape(); s.moveTo(-.18, .024); s.lineTo(-.012, .024); s.lineTo(-.012, .118); s.quadraticCurveTo(-.05, .1, -.088, .098); s.lineTo(-.178, .098); s.quadraticCurveTo(-.196, .098, -.196, .08); s.lineTo(-.196, .042); s.quadraticCurveTo(-.196, .024, -.18, .024);
+      tmesh(g, ex2(s, .074, .006, 3), VB, 0, 0, 0);
+      const r = new THREE.Shape(); r.moveTo(-.17, .03); r.lineTo(-.09, .03); r.quadraticCurveTo(-.11, .07, -.17, .085); r.lineTo(-.17, .03); for (const sz of [-1, 1]) tmesh(g, ex2(r, .006, .002), VB, 0, 0, sz * .043);   // a cast rib down each side under the anvil
+      for (const sz of [-1, 1]) { const o = new THREE.Shape(); o.absellipse(0, 0, .022, .011, 0, Math.PI * 2); tmesh(g, ex2(o, .002, .0012), DK, -.06, .062, sz * .0435).rotation.z = .05; }   // raised oval maker's badges
+      box(g, .084, .005, .062, STD({ color: 0x8d949a, metalness: .7, roughness: .35 }), -.135, .098, 0);   // anvil face, worn bright
+      tmesh(g, ex2(rr(-.044, .03, -.002, .152, .012), .132, .005, 3), VB, 0, 0, 0); }   // fixed jaw head, rounded top corners
+    const jaw = (jx, s) => { box(g, .006, .045, .134, JP, jx, .102, 0); for (let i = 0; i < 6; i++) box(g, .002, .002, .134, BLK, jx + s * .003, .108 + i * .0065, 0);   // hardened jaw plates, cross-hatched
+      for (const sz of [-.042, .042]) { cyl(g, .0055, .0016, BRIGHT, jx + s * .0035, .125, sz, 'x', 12); box(g, .0018, .0012, .008, BLK, jx + s * .0043, .1244, sz); } };   // two countersunk screws each, slotted
+    jaw(.003, 1);
+    // the slide beam, through the body and out under the sliding jaw to the nut boss
+    { const b = ex2(rr(-.06, -.026, .17, .026, .008), .042, .004); b.rotateX(Math.PI / 2); tmesh(g, b, VB, 0, .058, 0); }
+    // sliding jaw: rounded head flowing down and forward into the beam, 5 cm open
+    { tmesh(g, ex2(rr(.056, .03, .098, .152, .012), .132, .005, 3), VB, 0, 0, 0); jaw(.055, -1);
+      const f = new THREE.Shape(); f.moveTo(.094, .079); f.lineTo(.094, .128); f.quadraticCurveTo(.1, .086, .16, .079); f.lineTo(.094, .079); tmesh(g, ex2(f, .05, .005, 3), VB, 0, 0, 0); }   // the swept web between head and beam
+    // nut boss, threaded screw, T-head and tommy bar
+    { cyl(g, .028, .03, VB, .17, .06, 0, 'x', 28); tmesh(g, new THREE.TorusGeometry(.028, .0025, 6, 28), DK, .185, .06, 0).rotation.y = Math.PI / 2;
+      cyl(g, .0095, .03, BRIGHT, .198, .06, 0, 'x', 14); const TH = STD({ color: 0xa9b0b6, metalness: .75, roughness: .38 }); for (let i = 0; i < 6; i++) tmesh(g, new THREE.TorusGeometry(.0098, .0019, 5, 16), TH, .1875 + i * .0042, .06, 0).rotation.y = Math.PI / 2;   // exposed thread
+      cyl(g, .018, .028, BRIGHT, .222, .06, 0, 'x', 18); cyl(g, .02, .004, BRIGHT, .209, .06, 0, 'x', 18);   // T-head with its collar
+      tmesh(g, new THREE.CylinderGeometry(.0058, .0058, .22, 10), BRIGHT, .222, .03, 0); for (const yy of [-.08, .14]) tmesh(g, new THREE.SphereGeometry(.0115, 12, 9), BRIGHT, .222, yy, 0); }   // tommy bar hanging through it, ball ends
     return g; };
   // --- 1. front wall bench, under the window-less front, with shelves over its left end (scan: top ≈ 1.0–1.1 m, a shelf ≈ 2.0 m at x 0.75–2.0)
   { const g = grp(P), b = bench(g, 3.2, -2.78, 5.4, .62, 1.0, 0, { doors: false });
