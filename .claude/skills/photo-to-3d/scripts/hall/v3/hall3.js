@@ -1521,13 +1521,36 @@ function WSHOP(P) {
     const lead = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(-.03, .43, -.215), new THREE.Vector3(-.16, .42, -.26), new THREE.Vector3(-.32, .36, -.18), new THREE.Vector3(-.39, .24, .0), new THREE.Vector3(-.34, .1, .2), new THREE.Vector3(-.16, .03, .33), new THREE.Vector3(.0, .02, .38)]), 40, .009, 6), STD({ color: 0x2a5aa8, roughness: .55 })); lead.castShadow = true; g.add(lead);   // hose from the coupler round the pump end of the tank (07:xx: it ran behind the tank out of sight) to the coil
     return g; };
   const bvice = (p, x, y, z, ry = 0) => { const g = grp(p, x, y, z, ry);   // engineer's bench vice, jaws opening along +x. 25 Oct 01:xx: cast shapes, not blocks (04:xx review: "vice body boxy, no casting curves or screw thread"): rounded base with bolt ears, swivel turntable with a lip, a cast body that sweeps up from the anvil into the fixed jaw, jaw heads with rounded tops, screwed jaw plates, a sliding jaw that flows into its slide beam, a nut boss, a threaded screw and a T-head with the tommy bar through it
-    const VB = STD({ color: 0x2f5f8f, metalness: .15, roughness: .5 }), JP = STD({ color: 0x3a3d40, metalness: .7, roughness: .5 }), DK = STD({ color: 0x1d3a58, metalness: .15, roughness: .6 });
+    // 25 Oct 07:xx: the blue gets its own hammer-tone enamel sheet (03:xx review: "vice paint an even speckle"): hammered dimples in the bump and a faint light/dark
+    // ripple in the colour, chips through to grey iron (more on the top edges, a few with a rust halo), grime and oil darkening low down; a map means the wear pass skips it
+    const vbTex = bvice.tex || (bvice.tex = (() => { let vr = 7349; const r = () => (vr = (vr * 16807) % 2147483647) / 2147483647, f = (a, b) => a + (b - a) * r(); const N = 512;
+      const mk = (draw, srgb) => { const c = document.createElement('canvas'); c.width = c.height = N; const x = c.getContext('2d'); draw(x); const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
+      const blot = (x, cx, cy, rd, rgba) => { const gr = x.createRadialGradient(cx, cy, 0, cx, cy, rd); gr.addColorStop(0, rgba); gr.addColorStop(1, rgba.replace(/[\d.]+\)$/, '0)')); x.fillStyle = gr; x.fillRect(cx - rd, cy - rd, 2 * rd, 2 * rd); };
+      const dimp = []; for (let i = 0; i < 2600; i++) dimp.push([f(0, N), f(0, N), f(5, 13)]);   // hammer-tone cells
+      const chip = []; for (let i = 0; i < 70; i++) { const top = r() < .55; chip.push([f(0, N), top ? f(0, N * .16) : f(0, N), f(2, top ? 11 : 6), r() < .25]); }   // [x, y, size, rusty]; more along the tile's top band
+      const poly = (x, px, py, rd) => { x.beginPath(); x.moveTo(px + rd, py); for (let k = 1; k < 8; k++) { const a = k / 8 * 6.283 + f(-.35, .35), q = rd * f(.45, 1.1); x.lineTo(px + Math.cos(a) * q, py + Math.sin(a) * q * f(.5, 1)); } x.closePath(); x.fill(); };
+      const wrapDo = (fn) => { for (const ox of [-N, 0, N]) for (const oy of [-N, 0, N]) fn(ox, oy); };   // draw across the edges so the tile repeats seamlessly
+      return {
+        map: mk(x => { x.fillStyle = '#2e5d8c'; x.fillRect(0, 0, N, N);
+          wrapDo((ox, oy) => { for (const [a, b, d] of dimp) { const gr = x.createRadialGradient(a + ox - d * .25, b + oy - d * .25, 0, a + ox, b + oy, d); gr.addColorStop(0, 'rgba(120,170,215,.10)'); gr.addColorStop(.7, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(10,25,45,.12)'); x.fillStyle = gr; x.fillRect(a + ox - d, b + oy - d, 2 * d, 2 * d); } });   // the hammered ripple
+          for (let i = 0; i < 22; i++) blot(x, f(0, N), f(N * .45, N), f(30, 110), `rgba(22,26,30,${f(.08, .2)})`);   // grime and old oil, lower down
+          for (let i = 0; i < 10; i++) blot(x, f(0, N), f(0, N), f(20, 60), `rgba(150,170,185,${f(.04, .09)})`);   // dusty patches
+          for (const [a, b, d, rust] of chip) { if (rust) { x.fillStyle = 'rgba(120,62,28,.45)'; poly(x, a, b, d * 1.7); } x.fillStyle = `rgb(${f(92, 118) | 0},${f(96, 120) | 0},${f(100, 124) | 0})`; poly(x, a, b, d); x.fillStyle = 'rgba(20,40,60,.5)'; x.fillRect(a - d, b + d * .6, d * 2, 1); }   // chips to grey iron, a dark paint lip under each
+          for (let i = 0; i < 26; i++) { x.strokeStyle = `rgba(${r() < .6 ? '150,160,170' : '15,30,45'},${f(.15, .4)})`; x.lineWidth = f(.6, 1.4); const a = f(0, N), b = f(0, N), t = f(0, 6.28), L = f(10, 40); x.beginPath(); x.moveTo(a, b); x.lineTo(a + Math.cos(t) * L, b + Math.sin(t) * L); x.stroke(); } }, true),   // a few scrapes
+        bump: mk(x => { x.fillStyle = '#808080'; x.fillRect(0, 0, N, N);
+          wrapDo((ox, oy) => { for (const [a, b, d] of dimp) { const gr = x.createRadialGradient(a + ox, b + oy, 0, a + ox, b + oy, d); gr.addColorStop(0, 'rgba(0,0,0,.22)'); gr.addColorStop(.75, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(255,255,255,.2)'); x.fillStyle = gr; x.fillRect(a + ox - d, b + oy - d, 2 * d, 2 * d); } });   // dimples with raised rims
+          for (const [a, b, d] of chip) { x.fillStyle = 'rgba(0,0,0,.55)'; poly(x, a, b, d); } }),   // chips sit below the paint
+        rough: mk(x => { x.fillStyle = '#7a7a7a'; x.fillRect(0, 0, N, N); for (let i = 0; i < 22; i++) blot(x, f(0, N), f(N * .45, N), f(30, 110), `rgba(255,255,255,${f(.15, .35)})`);   // grime matt
+          for (const [a, b, d, rust] of chip) { x.fillStyle = rust ? 'rgba(235,235,235,1)' : 'rgba(110,110,110,1)'; poly(x, a, b, d); } }) }; })());   // bare iron a bit shinier, rust matt
+    const vbm = (ru, rv) => { const t = {}; for (const k of ['map', 'bump', 'rough']) { t[k] = vbTex[k].clone(); t[k].needsUpdate = true; t[k].repeat.set(ru, rv); } return STD({ color: 0xffffff, metalness: .12, roughness: 1, map: t.map, roughnessMap: t.rough, bumpMap: t.bump, bumpScale: .35 }); };
+    const VB = vbm(9, 9), VBt = vbm(4.2, .25), VBn = vbm(1.8, .45);   // extrusions (UVs in metres: ≈ 11 cm tile), turntable rim, nut boss
+    const JP = STD({ color: 0x3a3d40, metalness: .7, roughness: .5 }), DK = STD({ color: 0x1d3a58, metalness: .15, roughness: .6 });
     const rr = (x0, y0, x1, y1, r) => { const s = new THREE.Shape(); s.moveTo(x0 + r, y0); s.lineTo(x1 - r, y0); s.quadraticCurveTo(x1, y0, x1, y0 + r); s.lineTo(x1, y1 - r); s.quadraticCurveTo(x1, y1, x1 - r, y1); s.lineTo(x0 + r, y1); s.quadraticCurveTo(x0, y1, x0, y1 - r); s.lineTo(x0, y0 + r); s.quadraticCurveTo(x0, y0, x0 + r, y0); return s; };
     const flat = (sh, d, bv, m, yy) => { const e = ex2(sh, d, bv); e.rotateX(Math.PI / 2); return tmesh(g, e, m, 0, yy, 0); };   // shape in x/z, laid flat, d thick, centred on yy
     // base plate with four bolt ears, the swivel turntable on it, and the lock lever
     { const s = rr(-.205, -.075, .005, .075, .03); flat(s, .008, .003, VB, .006);
       for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const bx = -.1 + sx * .082, bz = sz * .056; cyl(g, .012, .003, JP, bx, .012, bz, 'y', 16); cyl(g, .0085, .007, BRIGHT, bx, .0165, bz, 'y', 6); }   // washers + hex bolt heads
-      cyl(g, .068, .012, VB, -.1, .016, 0, 'y', 40); tmesh(g, new THREE.TorusGeometry(.068, .003, 6, 40), DK, -.1, .022, 0).rotation.x = Math.PI / 2;   // turntable and its lip
+      cyl(g, .068, .012, VBt, -.1, .016, 0, 'y', 40); tmesh(g, new THREE.TorusGeometry(.068, .003, 6, 40), DK, -.1, .022, 0).rotation.x = Math.PI / 2;   // turntable and its lip
       cyl(g, .012, .022, BRIGHT, -.04, .02, .07, 'z', 10); const lv = tmesh(g, new THREE.CylinderGeometry(.0045, .0045, .06, 8), BRIGHT, -.04, .02, .105); lv.rotation.x = Math.PI / 2; tmesh(g, new THREE.SphereGeometry(.009, 10, 8), BRIGHT, -.04, .02, .135); }   // swivel lock, lever, ball end
     // the fixed half: one casting from the round-ended anvil up a swept neck into the fixed jaw
     { const s = new THREE.Shape(); s.moveTo(-.18, .024); s.lineTo(-.012, .024); s.lineTo(-.012, .118); s.quadraticCurveTo(-.05, .1, -.088, .098); s.lineTo(-.178, .098); s.quadraticCurveTo(-.196, .098, -.196, .08); s.lineTo(-.196, .042); s.quadraticCurveTo(-.196, .024, -.18, .024);
@@ -1545,7 +1568,7 @@ function WSHOP(P) {
     { tmesh(g, ex2(rr(.056, .03, .098, .152, .012), .132, .005, 3), VB, 0, 0, 0); jaw(.055, -1);
       const f = new THREE.Shape(); f.moveTo(.094, .079); f.lineTo(.094, .128); f.quadraticCurveTo(.1, .086, .16, .079); f.lineTo(.094, .079); tmesh(g, ex2(f, .05, .005, 3), VB, 0, 0, 0); }   // the swept web between head and beam
     // nut boss, threaded screw, T-head and tommy bar
-    { cyl(g, .028, .03, VB, .17, .06, 0, 'x', 28); tmesh(g, new THREE.TorusGeometry(.028, .0025, 6, 28), DK, .185, .06, 0).rotation.y = Math.PI / 2;
+    { cyl(g, .028, .03, VBn, .17, .06, 0, 'x', 28); tmesh(g, new THREE.TorusGeometry(.028, .0025, 6, 28), DK, .185, .06, 0).rotation.y = Math.PI / 2;
       cyl(g, .0095, .03, BRIGHT, .198, .06, 0, 'x', 14); const TH = STD({ color: 0xa9b0b6, metalness: .75, roughness: .38 }); for (let i = 0; i < 6; i++) tmesh(g, new THREE.TorusGeometry(.0098, .0019, 5, 16), TH, .1875 + i * .0042, .06, 0).rotation.y = Math.PI / 2;   // exposed thread
       cyl(g, .018, .028, BRIGHT, .222, .06, 0, 'x', 18); cyl(g, .02, .004, BRIGHT, .209, .06, 0, 'x', 18);   // T-head with its collar
       tmesh(g, new THREE.CylinderGeometry(.0058, .0058, .22, 10), BRIGHT, .222, .03, 0); for (const yy of [-.08, .14]) tmesh(g, new THREE.SphereGeometry(.0115, 12, 9), BRIGHT, .222, yy, 0); }   // tommy bar hanging through it, ball ends
