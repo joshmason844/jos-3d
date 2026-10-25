@@ -64,6 +64,7 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   wsham:    [[2.35, 1.72, -12.38], [2.35, 1.64, -12.88], true],    // close on the five hammers (25 Oct 00:xx)
   wsclamp:  [[4.05, 1.6, -11.95], [4.15, 1.5, -12.9], true],     // close on the pegboard's right half: F-clamps, saws (23 Oct 05:xx)
   wssaw:    [[3.75, 1.6, -7.45], [3.2, 1.15, -6.7], true],      // close on the mitre-saw bench (23 Oct 06:xx)
+  wsmitre:  [[2.62, 1.42, -7.05], [3.22, 1.15, -6.66], true],    // the mitre saw from its blade side: blade, hood, lower guard, fence, pivot casting (25 Oct 02:xx)
   wscomp:   [[4.95, 1.05, -10.35], [4.25, .3, -11.2], true],    // close on the compressor (23 Oct 06:xx)
   wsvice:   [[1.75, 1.55, -3.0], [.85, 1.0, -3.5], true],       // close on the vice at the front of the left-wall bench (23 Oct 06:xx)
   wsvicec:  [[1.72, 1.36, -2.98], [1.22, 1.0, -3.5], true],      // closer, the whole vice in a phone frame: casting, jaws, screw, tommy bar (25 Oct 01:xx)
