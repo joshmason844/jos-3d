@@ -1298,13 +1298,32 @@ function WSHOP(P) {
       const w = new THREE.Mesh(new THREE.CylinderGeometry(.009, .009, .0015, 12), SC); w.rotation.x = Math.PI / 2; w.position.set(cx + xx, y0 + yy, zf + .0008); g.add(w);
       const hd = new THREE.Mesh(new THREE.SphereGeometry(.0055, 10, 6, 0, 7, 0, Math.PI / 2), SC); hd.rotation.x = Math.PI / 2; hd.position.set(cx + xx, y0 + yy, zf + .0015); hd.scale.z = .5; g.add(hd); }
     // call once the tools hang on it: a soft drop shadow under every part, offset down by how far it stands off
-    g.userData.bake = sets => { g.updateWorldMatrix(true, true); for (const s of sets) s.updateWorldMatrix(true, true);   /* setFromObject only updates the mesh itself, not its parents */ const bb = new THREE.Box3(), v = new THREE.Vector3(), o = bd.getWorldPosition(new THREE.Vector3());
-      const toPx = (wx, wy) => [(wx - o.x + W / 2) * k, (o.y + H / 2 - wy) * k];
-      x.save();   // (06:xx: marker outlines per part were tried: overlapping boxes read as a glitchy grid, so shadows only)
-      for (const s of sets) s.traverse(m => { if (!m.isMesh) return; bb.setFromObject(m); const off = Math.max(.004, bb.max.z - zf), [a, b] = toPx(bb.min.x, bb.max.y), [c, d] = toPx(bb.max.x, bb.min.y);
-        x.shadowColor = `rgba(20,12,6,${Math.min(.72, .42 + off * 8)})`; x.shadowBlur = 3 + off * k * .8; x.shadowOffsetX = 10000; x.shadowOffsetY = off * k * 1.5;   // light from the strip lights above and in front
-        x.fillStyle = '#000'; const ww = Math.max(2, c - a), hh = Math.max(2, d - b); x.beginPath(); x.roundRect(a - 10000, b, ww, hh, Math.min(ww, hh) * .45); x.fill(); });   // rounded, so a ring's shadow isn't a square
-      x.restore(); const map = new THREE.CanvasTexture(mc); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 8; F.map = map; F.needsUpdate = true; };   // texture made AFTER drawing: on phones CT() copies a shrunk canvas, so later draws wouldn't reach it
+    // call once the tools hang on it. 25 Oct 04:xx: the shadows come from the tools' real outlines, not their bounding boxes (rounded rects read as
+    // blobs under a spanner's ring and barely showed under the clamps): every hung part is rendered once, orthographically from the front, into a
+    // render target with a shader that writes how far each pixel stands off the board; the pixels are split into four stand-off bands and each band
+    // is drawn onto the board as a soft shadow, pushed down and blurred more the further it stands off (light from the strip lights above and in front)
+    g.userData.bake = sets => { g.updateWorldMatrix(true, true); for (const s of sets) s.updateWorldMatrix(true, true);   /* render() below must not recompute their world matrices */
+      const o = bd.getWorldPosition(new THREE.Vector3()), S = 2, RW = PX * S, RH = PY * S, MX = .08;   // 2× supersampled; stand-off coded 0–8 cm
+      const cam = new THREE.OrthographicCamera(o.x - W / 2, o.x + W / 2, o.y + H / 2, o.y - H / 2, .01, 2); cam.position.set(0, 0, zf + 1); cam.updateMatrixWorld();
+      const DM = new THREE.ShaderMaterial({ side: THREE.DoubleSide, uniforms: { zf: { value: zf } },
+        vertexShader: 'varying float vz; void main(){ vec4 w = modelMatrix * vec4(position, 1.); vz = w.z; gl_Position = projectionMatrix * viewMatrix * w; }',
+        fragmentShader: `uniform float zf; varying float vz; void main(){ gl_FragColor = vec4(clamp((vz - zf) / ${MX.toFixed(3)}, 0., 1.), 0., 0., 1.); }` });
+      const rt = new THREE.WebGLRenderTarget(RW, RH), px = new Uint8Array(RW * RH * 4), keep = [], cc = new THREE.Color(), ca = renderer.getClearAlpha(); renderer.getClearColor(cc);
+      const prevRT = renderer.getRenderTarget(), prevTM = renderer.toneMapping, prevAC = renderer.autoClear; renderer.toneMapping = THREE.NoToneMapping; renderer.autoClear = false;   // one clear, then every set drawn on top
+      renderer.setRenderTarget(rt); renderer.setClearColor(0, 0); renderer.clear();
+      for (const s of sets) { s.traverse(m => { if (m.isMesh) { keep.push([m, m.material]); m.material = DM; } }); const au = s.matrixWorldAutoUpdate; s.matrixWorldAutoUpdate = false; renderer.render(s, cam); s.matrixWorldAutoUpdate = au; }
+      renderer.readRenderTargetPixels(rt, 0, 0, RW, RH, px); renderer.setRenderTarget(prevRT); renderer.setClearColor(cc, ca); renderer.toneMapping = prevTM; renderer.autoClear = prevAC; for (const [m, mt] of keep) m.material = mt; rt.dispose(); DM.dispose();
+      const BANDS = [[0, .012], [.012, .022], [.022, .035], [.035, 1]], lay = BANDS.map(() => { const c = document.createElement('canvas'); c.width = RW; c.height = RH; return c; });
+      const ims = lay.map(c => c.getContext('2d').createImageData(RW, RH));
+      for (let j = 0; j < RH; j++) for (let i = 0; i < RW; i++) { const q = ((RH - 1 - j) * RW + i) * 4; if (!px[q + 3]) continue;   // GL rows run bottom-up
+        const off = px[q] / 255 * MX; let bi = 0; while (off >= BANDS[bi][1] && bi < 3) bi++; const d = ims[bi].data, r = (j * RW + i) * 4; d[r] = 20; d[r + 1] = 12; d[r + 2] = 6; d[r + 3] = 255; }
+      const sc = document.createElement('canvas'); sc.width = PX * 2; sc.height = PY; const sx = sc.getContext('2d'); let n = 0; ims.forEach(im => { for (let q = 3; q < im.data.length; q += 4) n += im.data[q] > 0; }); window.__pegShadowPx = n;   /* test hook: how many tool pixels cast a shadow */
+      BANDS.forEach(([b0, b1], bi) => { lay[bi].getContext('2d').putImageData(ims[bi], 0, 0); const off = Math.max(.006, Math.min(.05, (b0 + b1) / 2));
+        for (const [al, bl, dy] of [[Math.min(.6, .38 + off * 5), 2 + off * k * .9, 1.9], [Math.min(.6, .42 + off * 4), 1.2 + off * k * .25, 1.3]]) {   // a wide soft shadow, then a tighter darker core nearer the part
+          sx.save(); sx.globalAlpha = al; sx.shadowColor = 'rgba(20,12,6,1)'; sx.shadowBlur = bl; sx.shadowOffsetX = -PX; sx.shadowOffsetY = off * k * dy;   // the image goes in the right half, its shadow lands in the left half
+          sx.drawImage(lay[bi], PX, 0, PX, PY); sx.restore(); } });   // (drawing it fully off-canvas and keeping only the shadow, as the box version did, draws nothing in Chrome: drawImage off the canvas is skipped)
+      x.drawImage(sc, 0, 0, PX, PY, 0, 0, PX, PY);
+      const map = new THREE.CanvasTexture(mc); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 8; F.map = map; F.needsUpdate = true; };   // texture made AFTER drawing: on phones CT() copies a shrunk canvas, so later draws wouldn't reach it
     return g; }
   const sLevel = (p, x, y, z, L, col) => { const g = grp(p, x, y, z);   // spirit level hung flat on two hooks: painted box section, dark rubber end caps, a centre vial in a window and a plumb vial near one end
     const C = STD({ color: col, roughness: .45, metalness: .25 });
