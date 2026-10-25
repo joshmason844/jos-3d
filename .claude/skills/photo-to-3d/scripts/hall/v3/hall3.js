@@ -1393,25 +1393,63 @@ function WSHOP(P) {
     const bag = tmesh(head, new THREE.CapsuleGeometry(.05, .14, 4, 12), STD({ color: 0x5a5d61, roughness: .95 }), 0, .1, .19); bag.rotation.x = -1.75; bag.scale.set(1, 1, .8);   // dust bag on the back
     box(g, .07, .05, .004, STD({ roughness: .6, map: can(64, 48, (c, w, h) => { c.fillStyle = '#111'; c.fillRect(0, 0, w, h); c.fillStyle = '#f2b705'; c.fillRect(3, 3, w - 6, 12); c.fillStyle = '#ddd'; for (let i = 0; i < 4; i++) c.fillRect(6, 22 + i * 6, 30 + (i * 7) % 20, 2); }) }), .16, .05, -.16);   // rating plate on the base front
     return g; };
-  const compressor = (p, x, z, ry) => { const g = grp(p, x, 0, z, ry);   // wheeled site compressor: orange tank with welded end caps, saddle feet, wheels and a pull handle; pump and motor on top with fins, two gauges, regulator, couplers, drain cock
-    const TK = STD({ color: 0xe0661c, roughness: .42, metalness: .2 });
-    cyl(g, .19, .56, TK, 0, .26, 0, 'x', 28); for (const s of [-1, 1]) { const e = tmesh(g, new THREE.SphereGeometry(.19, 24, 12), TK, s * .28, .26, 0); e.scale.x = .32; const w = tmesh(g, new THREE.TorusGeometry(.19, .004, 6, 32), STD({ color: 0xb4501a, roughness: .5 }), s * .28, .26, 0); w.rotation.y = Math.PI / 2; }   // tank, domed ends, weld seams
-    box(g, .34, .006, .002, STD({ color: 0xb4501a }), 0, .449, 0);   // long seam on top
-    for (const sx of [-.2]) { box(g, .05, .1, .3, DARK, sx, 0, 0); box(g, .06, .02, .34, GRIP, sx, 0, 0); }   // rubber foot saddle at the pump end
-    tmesh(g, new THREE.CylinderGeometry(.008, .008, .4, 8), BRIGHT, .25, .07, 0).rotation.x = Math.PI / 2;   // axle
-    for (const s of [-1, 1]) { const wh = tmesh(g, new THREE.CylinderGeometry(.07, .07, .045, 20), GRIP, .25, .07, s * .19); wh.rotation.x = Math.PI / 2; const hb = tmesh(g, new THREE.CylinderGeometry(.035, .035, .05, 14), STD({ color: 0xd8d8d0, roughness: .5 }), .25, .07, s * .19); hb.rotation.x = Math.PI / 2; }   // wheels with grey hubs
+  const compressor = (p, x, z, ry) => { const g = grp(p, x, 0, z, ry);   // wheeled site compressor: orange tank with welded end caps, pressed feet, tyred wheels and a pull handle; a direct-drive pump on a cradle plate: motor with feet, cast fins, end bell and fan cowl, crankcase bolted to it, finned barrel, red head; copper discharge pipe to a check valve, pressure switch with its unloader line, safety valve, two gauges, regulator, couplers, drain cock. 25 Oct 03:xx: parts now join (04:xx review: "head and motor stacked with nothing joining them"). No RNG draws
+    const TK = STD({ color: 0xe0661c, roughness: .42, metalness: .2 }), WLD = STD({ color: 0xb4501a, roughness: .5 }), CU = STD({ color: 0xb8743f, metalness: .75, roughness: .38 }), BR = STD({ color: 0xc9a84a, metalness: .8, roughness: .3 }), CAST = STD({ color: 0x55595e, metalness: .35, roughness: .55 });
+    const side = (sh, t, bv) => { const e = ex2(sh, t, bv); e.rotateY(-Math.PI / 2); return e; };   // profile in z/y (shape x → z), thickness along x
+    cyl(g, .19, .56, TK, 0, .26, 0, 'x', 28); for (const s of [-1, 1]) { const e = tmesh(g, new THREE.SphereGeometry(.19, 24, 12), TK, s * .28, .26, 0); e.scale.x = .32; const w = tmesh(g, new THREE.TorusGeometry(.19, .004, 6, 32), WLD, s * .28, .26, 0); w.rotation.y = Math.PI / 2; }   // tank, domed ends, weld seams
+    box(g, .34, .006, .002, WLD, 0, .449, 0);   // long seam on top
+    // pressed-steel foot at the pump end, curved to the tank's underside and welded on, rubber pads under it
+    { const f = new THREE.Shape(); f.moveTo(-.17, .012); f.lineTo(.17, .012); f.lineTo(.17, .03); f.lineTo(.1, .03); f.lineTo(.06, .08); f.absarc(0, .26, .19, -1.249, -1.893, true); f.lineTo(-.1, .03); f.lineTo(-.17, .03); f.closePath();
+      tmesh(g, side(f, .03, .004), DARK, -.2, 0, 0); for (const s of [-1, 1]) box(g, .045, .012, .05, GRIP, -.2, 0, s * .14); }   // foot and its rubber pads
+    // axle hangers welded under the tank, axle, and tyred wheels
+    for (const s of [-1, 1]) box(g, .045, .09, .006, DARK, .25, .045, s * .14);
+    tmesh(g, new THREE.CylinderGeometry(.008, .008, .42, 8), BRIGHT, .25, .07, 0).rotation.x = Math.PI / 2;   // axle
+    for (const s of [-1, 1]) { const wg = grp(g, .25, .07, s * .19);
+      const ty = tmesh(wg, new THREE.TorusGeometry(.054, .019, 10, 28), GRIP, 0, 0, 0);   // tyre (axis z)
+      for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2, tb = tmesh(wg, new THREE.BoxGeometry(.007, .013, .03), GRIP, Math.cos(a) * .072, Math.sin(a) * .073, 0); tb.rotation.z = a; }   // tread blocks
+      const rm = tmesh(wg, new THREE.CylinderGeometry(.046, .046, .03, 20), STD({ color: 0xd8d8d0, roughness: .5 }), 0, 0, 0); rm.rotation.x = Math.PI / 2;   // grey rim
+      const hb = tmesh(wg, new THREE.CylinderGeometry(.018, .02, .042, 14), STD({ color: 0xbfbfb6, roughness: .45 }), 0, 0, 0); hb.rotation.x = Math.PI / 2;   // hub
+      for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; cyl(wg, .004, .006, BRIGHT, Math.cos(a) * .031, Math.sin(a) * .031, s * .016, 'z', 6); }   // wheel nuts on the outer face
+      const cap = tmesh(wg, new THREE.CylinderGeometry(.009, .009, .05, 8), BRIGHT, 0, 0, 0); cap.rotation.x = Math.PI / 2; }   // axle cap
     const hp = new THREE.CatmullRomCurve3([new THREE.Vector3(.2, .3, -.13), new THREE.Vector3(.36, .55, -.13), new THREE.Vector3(.4, .68, -.1), new THREE.Vector3(.4, .7, 0), new THREE.Vector3(.4, .68, .1), new THREE.Vector3(.36, .55, .13), new THREE.Vector3(.2, .3, .13)]);
     const hn = new THREE.Mesh(new THREE.TubeGeometry(hp, 30, .011, 8), DARK); hn.castShadow = true; g.add(hn); const gr = tmesh(g, new THREE.CylinderGeometry(.016, .016, .14, 10), GRIP, .4, .7, 0); gr.rotation.x = Math.PI / 2;   // pull handle with a grip
     for (const s of [-1, 1]) { const lg = box(g, .055, .045, .012, DARK, .255, .37, s * .13); lg.rotation.z = -.55; const bd = tmesh(g, new THREE.TorusGeometry(.014, .004, 5, 12), DARK, .262, .395, s * .13); bd.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(.54, .84, 0)); cyl(g, .007, .03, BRIGHT, .25, .385, s * .13, 'z', 8); }   // 07:xx: welded lugs where the handle meets the tank, a weld bead round the tube and a bolt through each
-    box(g, .3, .012, .2, DARK, -.03, .44, 0);   // mounting plate on the tank
-    const mo = tmesh(g, new THREE.CylinderGeometry(.075, .075, .17, 20), BLK, .06, .53, .02); mo.rotation.z = Math.PI / 2; for (let i = 0; i < 7; i++) { const f = tmesh(g, new THREE.TorusGeometry(.076, .004, 4, 20), GRIP, -.01 + i * .022, .53, .02); f.rotation.y = Math.PI / 2; }   // motor, ribbed
-    const cy = grp(g, -.1, .45, .0); cyl(cy, .045, .09, STEEL, 0, .09, 0, 'y', 16); for (let i = 0; i < 6; i++) cyl(cy, .062, .006, STEEL, 0, .05 + i * .015, 0, 'y', 16); box(cy, .11, .03, .11, RED, 0, .15, 0); for (const sx of [-1, 1]) for (const sz of [-1, 1]) cyl(cy, .006, .01, BRIGHT, sx * .04, .185, sz * .04);   // finned pump cylinder, red head, bolts
-    const fil = tmesh(g, new THREE.CylinderGeometry(.03, .03, .03, 14), BLK, -.1, .63, .065); fil.rotation.x = Math.PI / 2;   // air filter
-    box(g, .07, .07, .06, STD({ color: 0x2a2b2d, roughness: .5 }), .14, .45, -.12); box(g, .02, .02, .02, RED, .14, .53, -.12);   // pressure switch, on/off button
+    // cradle: two curved brackets welded to the tank carry the pump plate
+    { const c = new THREE.Shape(); c.moveTo(-.1, .44); c.lineTo(.1, .44); c.lineTo(.1, .4216); c.absarc(0, .26, .19, 1.017, 2.124, false); c.closePath();
+      for (const bx of [-.15, .09]) { tmesh(g, side(c, .012, .002), DARK, bx, 0, 0); for (const s of [-1, 1]) box(g, .02, .004, .004, WLD, bx, .42, s * .1); } }
+    box(g, .3, .012, .2, DARK, -.03, .44, 0); for (const px of [-.17, .11]) for (const pz of [-.085, .085]) cyl(g, .007, .006, BRIGHT, px, .455, pz, 'y', 6);   // pump plate and its bolts
+    // motor: body with cast cooling fins, two feet bolted to the plate, rounded end bell, slotted fan cowl, terminal box on top
+    { const mg = grp(g, .06, .53, .02);
+      const mb = tmesh(mg, new THREE.CylinderGeometry(.07, .07, .15, 24), BLK, 0, 0, 0); mb.rotation.z = Math.PI / 2;
+      for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2; if (Math.sin(a) < -.75) continue; const fn = tmesh(mg, new THREE.BoxGeometry(.13, .012, .004), GRIP, 0, Math.sin(a) * .076, Math.cos(a) * .076); fn.rotation.x = Math.PI / 2 - a; }   // fins along the body (none under it, where the feet go)
+      for (const fx of [-.045, .045]) { box(mg, .028, .05, .13, BLK, fx, -.078, 0); box(mg, .028, .006, .16, BLK, fx, -.078, 0); for (const s of [-1, 1]) cyl(mg, .006, .008, BRIGHT, fx, -.074, s * .074, 'y', 6); }   // feet, bolted down
+      const eb = tmesh(mg, new THREE.SphereGeometry(.068, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), BLK, .075, 0, 0); eb.rotation.z = -Math.PI / 2; eb.scale.y = .45;   // rounded end bell at the fan end
+      const fcv = can(64, 64, (c2, w, h) => { c2.fillStyle = '#2a2b2d'; c2.fillRect(0, 0, w, h); c2.fillStyle = '#08090a'; for (let i = 0; i < 7; i++) c2.fillRect(10, 8 + i * 7, 44, 3.2); c2.fillStyle = '#3a3b3e'; c2.beginPath(); c2.arc(32, 32, 7, 0, 7); c2.fill(); });
+      const cw = tmesh(mg, new THREE.CylinderGeometry(.062, .066, .03, 24), STD({ color: 0x2a2b2d, roughness: .5 }), .11, 0, 0); cw.rotation.z = Math.PI / 2; const gface2 = tmesh(mg, new THREE.CircleGeometry(.058, 24), STD({ map: fcv, roughness: .6 }), .1255, 0, 0); gface2.rotation.y = Math.PI / 2;   // fan cowl with its slots
+      box(mg, .06, .035, .05, STD({ color: 0x2a2b2d, roughness: .5 }), -.02, .068, -.01); const gl = tmesh(mg, new THREE.CylinderGeometry(.008, .008, .02, 8), GRIP, -.02, .088, -.045); gl.rotation.x = Math.PI / 2; }   // terminal box, cable gland
+    // crankcase bolted to the motor's drive end (direct drive), the finned barrel on it, the red head with four bolts
+    { const cc = new THREE.Shape(); cc.moveTo(-.065, 0); cc.lineTo(.065, 0); cc.lineTo(.065, .045); cc.quadraticCurveTo(.065, .075, .035, .078); cc.lineTo(-.035, .078); cc.quadraticCurveTo(-.065, .075, -.065, .045); cc.closePath();
+      tmesh(g, side(cc, .13, .008), CAST, -.1, .452, .02);   // crankcase: rounded cast block across the pump
+      const fl = tmesh(g, new THREE.CylinderGeometry(.06, .06, .024, 20), CAST, -.027, .53, .02); fl.rotation.z = Math.PI / 2; for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; cyl(g, .005, .02, BRIGHT, -.03, .53 + Math.sin(a) * .05, .02 + Math.cos(a) * .05, 'x', 6); }   // bolted flange joining it to the motor
+      for (const sz of [-1, 1]) box(g, .14, .006, .008, CAST, -.1, .456, .02 + sz * .061);   // cast foot ribs
+      const sg = tmesh(g, new THREE.CylinderGeometry(.03, .03, .01, 16), STD({ color: 0x8fa0a8, roughness: .2, metalness: .2 }), -.14, .5, -.048); sg.rotation.x = Math.PI / 2;   // oil sight glass
+      const cy = grp(g, -.1, .53, .0); cyl(cy, .045, .07, STEEL, 0, .035, 0, 'y', 16); for (let i = 0; i < 6; i++) cyl(cy, .062, .006, STEEL, 0, .012 + i * .01, 0, 'y', 16);   // finned barrel
+      const hd = new THREE.Shape(); hd.moveTo(-.055, -.055); hd.lineTo(.055, -.055); hd.quadraticCurveTo(.065, -.055, .065, -.045); hd.lineTo(.065, .045); hd.quadraticCurveTo(.065, .055, .055, .055); hd.lineTo(-.055, .055); hd.quadraticCurveTo(-.065, .055, -.065, .045); hd.lineTo(-.065, -.045); hd.quadraticCurveTo(-.065, -.055, -.055, -.055);
+      const he = ex2(hd, .026, .004); he.rotateX(Math.PI / 2); tmesh(cy, he, RED, 0, .085, 0); for (let i = 0; i < 4; i++) { const hf = box(cy, .12, .006, .004, RED, 0, .098, -.04 + i * .027); }   // red head, fins on top
+      for (const sx of [-1, 1]) for (const sz of [-1, 1]) { cyl(cy, .007, .012, BRIGHT, sx * .045, .104, sz * .045, 'y', 6); }   // head bolts
+      const fil = tmesh(g, new THREE.CylinderGeometry(.03, .03, .03, 14), BLK, -.1, .615, .085); fil.rotation.x = Math.PI / 2; cyl(g, .008, .02, BLK, -.1, .615, .064, 'z', 8); }   // air filter on the head's intake
+    // copper discharge pipe from the head down to the check valve on the tank, with cooling fins near the head
+    { const dp = new THREE.CatmullRomCurve3([new THREE.Vector3(-.165, .615, -.01), new THREE.Vector3(-.215, .605, -.03), new THREE.Vector3(-.245, .53, -.07), new THREE.Vector3(-.235, .455, -.09)]); const t = new THREE.Mesh(new THREE.TubeGeometry(dp, 20, .007, 8), CU); t.castShadow = true; g.add(t);
+      for (let i = 1; i < 5; i++) { const u = .1 + i * .1, pt = dp.getPointAt(u), tn = dp.getTangentAt(u), r = tmesh(g, new THREE.TorusGeometry(.011, .0025, 4, 12), CU, pt.x, pt.y, pt.z); r.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tn); }
+      cyl(g, .014, .03, BR, -.235, .44, -.09, 'y', 6); const nt = tmesh(g, new THREE.CylinderGeometry(.011, .011, .012, 6), BR, -.235, .459, -.09); }   // brass check valve, hex nut
+    // pressure switch on a bracket, the unloader line to the check valve, the safety valve with its pull ring
+    box(g, .03, .03, .004, DARK, .14, .425, -.098); box(g, .07, .07, .06, STD({ color: 0x2a2b2d, roughness: .5 }), .14, .45, -.12); box(g, .02, .02, .02, RED, .14, .52, -.12);   // bracket, pressure switch, on/off button
+    { const ul = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(.105, .47, -.13), new THREE.Vector3(0, .445, -.145), new THREE.Vector3(-.15, .44, -.13), new THREE.Vector3(-.222, .45, -.1)]), 20, .0035, 6), STD({ color: 0x1b1c1e, roughness: .4 })); ul.castShadow = true; g.add(ul); }
+    cyl(g, .01, .04, BR, -.17, .495, -.17, 'y', 8); cyl(g, .013, .01, BR, -.17, .52, -.17, 'y', 8); const pr = tmesh(g, new THREE.TorusGeometry(.012, .0025, 5, 14), BRIGHT, -.17, .54, -.17); pr.rotation.y = Math.PI / 2;   // safety valve, pull ring
     const gface = can(64, 64, (c, w, h) => { c.fillStyle = '#f4f2ea'; c.fillRect(0, 0, w, h); c.strokeStyle = '#222'; c.lineWidth = 2; for (let i = 0; i <= 10; i++) { const a = Math.PI * (.75 + i * .15); c.beginPath(); c.moveTo(32 + Math.cos(a) * 24, 32 + Math.sin(a) * 24); c.lineTo(32 + Math.cos(a) * 29, 32 + Math.sin(a) * 29); c.stroke(); }
       c.strokeStyle = '#c0221b'; c.beginPath(); c.arc(32, 32, 27, Math.PI * 1.9, Math.PI * 2.25); c.stroke(); c.strokeStyle = '#111'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(32, 32); c.lineTo(48, 20); c.stroke(); });
     const GF = STD({ map: gface, roughness: .25 });
-    box(g, .16, .025, .025, BRIGHT, -.1, .45, -.17);   // manifold
+    box(g, .16, .025, .025, BRIGHT, -.1, .45, -.17); box(g, .03, .008, .08, DARK, -.1, .444, -.135);   // manifold and the bracket holding it off the pump plate
     for (const gx of [-.15, -.05]) { const gg = grp(g, gx, .5, -.19); const rim = tmesh(gg, new THREE.CylinderGeometry(.03, .03, .018, 20), BRIGHT, 0, 0, 0); rim.rotation.x = Math.PI / 2; const f = tmesh(gg, new THREE.CircleGeometry(.026, 20), GF, 0, 0, -.0095); f.rotation.y = Math.PI; tmesh(gg, new THREE.CylinderGeometry(.006, .006, .04, 8), BRIGHT, 0, -.035, .01); }   // two gauges: tank and line pressure
     const kb = tmesh(g, new THREE.CylinderGeometry(.018, .02, .025, 12), BLK, -.1, .47, -.205); kb.rotation.x = Math.PI / 2;   // regulator knob
     for (const gx of [-.17, -.03]) { const qc = tmesh(g, new THREE.CylinderGeometry(.009, .011, .03, 10), STD({ color: 0xc9a84a, metalness: .8, roughness: .3 }), gx, .43, -.2); qc.rotation.x = Math.PI / 2; }   // brass quick couplers
