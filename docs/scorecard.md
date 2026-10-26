@@ -600,5 +600,5 @@ One row per build, so each run gets measurably better.
 - Better: the switch reads as a pressure switch (moulded cover, lever, cable) instead of a black block with a red cube; the gauge side has one less dead-black lump. Still weak: the motor body itself still near-black from this side, so the grey switch looks lighter than the motor; the cowl's grey barely shows; the lever is a bit chunky.
 - Checker (Haiku): PASS; notes: switch change visible in all three AFTER shots, terminal box lid hard to make out at phone size, old "Failed to load resource" and GPU-stall warning (in BEFORE too), page errors [] phone and desktop, 0.38 MB.
 - Published: yes (version 58, keycaps block carried over from the live page; live diff showed only my compressor lines; third identical send went through; publish copy in work/ only).
-- Score (self, on the reviewer's scale, half a point off): wscompc (phone) Shape 7 · Detail 7 · Surface 6.5 · Light 6.5 · Truth 6.5 · Works 7 = 6.75 → 7.0 on Detail/Shape (BEFORE same eye 6.8 → AFTER 7.0). Page row stays 6.5 until a reviewer scores it.
+- Score (self, on the reviewer's scale, half a point off): wscompc (phone) Shape 7 · Detail 7 · Surface 6.5 · Light 6.5 · Truth 6.5 · Works 7 = 6.75 (BEFORE same eye: Detail 6.5 = 6.65). Page row stays 6.5 until a reviewer scores it.
 
