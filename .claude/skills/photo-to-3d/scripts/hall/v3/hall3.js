@@ -1174,7 +1174,21 @@ function WSHOP(P) {
   // 25 Oct 00:xx: claw hammer rebuilt (07:xx review: "hammers read as thin sticks"): forged head as one extruded side profile (round-cornered eye, cheek, a claw that
   // curves back and down, split in two with a V gap), a round neck flaring to a bevelled face with a polished disc; an oval ash handle ≈ 34 × 25 mm with a
   // fat moulded rubber grip and a flared butt; wedge end showing through the top of the eye. Same origin, same height (head centre .295), so the hooks don't move
-  const HEADM = STD({ color: 0x2e3236, roughness: .5, metalness: .55 });
+  // 26 Oct 00:xx (07:xx review: "hammer heads matte black like plastic, no bright strike face or polished cheeks"): the head is forged steel with its own
+  // small sheet (blue-grey forge scale, darker in the eye's corners, lighter rubs, a few oily smudges), a lighter value and lower metalness so it doesn't go
+  // black inside the workshop's light gate; the face, its bevel and the claw tips are ground bright (POLISH, metalness .5 not .85, same trap as the vice's bar).
+  // Having a map, the head skips the small-kit wear pass. Own RNG, no layout draws.
+  const HEADM = (() => { let hs = 7717; const hr = () => (hs = (hs * 16807) % 2147483647) / 2147483647, hf = (a, b) => a + (b - a) * hr();
+    const mk = (draw, srgb) => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); draw(x, 128); const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(16, 16); t.anisotropy = 4; return t; };
+    const spots = (x, n, r0, r1, rgb, a0, a1) => { for (let i = 0; i < n; i++) { const cx = hf(0, 128), cy = hf(0, 128), r = hf(r0, r1), a = hf(a0, a1); for (const [ox, oy] of [[0, 0], [128, 0], [-128, 0], [0, 128], [0, -128]]) { const g = x.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, r); g.addColorStop(0, `rgba(${rgb},${a})`); g.addColorStop(1, `rgba(${rgb},0)`); x.fillStyle = g; x.fillRect(cx + ox - r, cy + oy - r, 2 * r, 2 * r); } } };
+    const map = mk((x, w) => { x.fillStyle = '#e4e6ea'; x.fillRect(0, 0, w, w); spots(x, 40, 6, 22, '70,78,92', .12, .3); spots(x, 22, 4, 14, '255,255,255', .1, .25); spots(x, 10, 5, 16, '40,34,28', .1, .22);   // forge scale, rubs, oil
+      for (let i = 0; i < 500; i++) { x.fillStyle = `rgba(${hr() < .5 ? '255,255,255' : '60,64,72'},${hf(.05, .18)})`; x.fillRect(hf(0, w), hf(0, w), hf(.6, 1.6), hf(.6, 1.6)); } }, true);
+    const rough = mk((x, w) => { x.fillStyle = '#b0b0b0'; x.fillRect(0, 0, w, w); spots(x, 30, 6, 20, '255,255,255', .12, .3); spots(x, 22, 4, 14, '60,60,60', .15, .35);
+      for (let i = 0; i < 700; i++) { x.fillStyle = `rgba(${hr() < .5 ? '255,255,255' : '40,40,40'},${hf(.08, .25)})`; x.fillRect(hf(0, w), hf(0, w), 1, 1); } });
+    return STD({ color: 0x5d646c, roughness: .6, metalness: .4, map, roughnessMap: rough, bumpMap: rough, bumpScale: .5 }); })();
+  const mUV = (geo, su, sv) => { const u = geo.attributes.uv; for (let i = 0; i < u.count; i++) u.setXY(i, u.getX(i) * su, u.getY(i) * sv); return geo; };   // cylinder UVs (0–1 round it) to metres, like the extrudes, or the 16× tile goes to grain noise and the bump turns the neck black
+  const POLISH = STD({ color: 0xd2d7dc, roughness: .2, metalness: .5 });
+  const quadPts = (a, c, b, t0, t1, n) => { const o = []; for (let i = 0; i <= n; i++) { const t = t0 + (t1 - t0) * i / n, u = 1 - t; o.push(new THREE.Vector2(u * u * a[0] + 2 * u * t * c[0] + t * t * b[0], u * u * a[1] + 2 * u * t * c[1] + t * t * b[1])); } return o; };
   const ex2 = (sh, d, bv, seg = 2) => { const e = new THREE.ExtrudeGeometry(sh, { depth: d, bevelEnabled: true, bevelSize: bv, bevelThickness: bv, bevelSegments: seg, curveSegments: 12 }); e.translate(0, 0, -d / 2); return e; };
   const hammer = (p, x, y, z, ry) => { const g = grp(p, x, y, z, ry), hy = .295;
     const hd = tmesh(g, new THREE.CylinderGeometry(.0125, .015, .3, 14), WOODH, 0, .15, 0); hd.scale.set(1.35, 1, 1);   // oval ash handle, thicker at the bottom
@@ -1184,13 +1198,14 @@ function WSHOP(P) {
     const ey = new THREE.Shape(); ey.moveTo(-.018, -.021); ey.lineTo(.016, -.021); ey.quadraticCurveTo(.022, -.021, .022, -.014); ey.lineTo(.022, .014); ey.quadraticCurveTo(.022, .02, .016, .02);
     ey.lineTo(-.018, .02); ey.quadraticCurveTo(-.023, .02, -.023, .014); ey.lineTo(-.023, -.014); ey.quadraticCurveTo(-.023, -.021, -.018, -.021);
     tmesh(g, ex2(ey, .022, .003), HEADM, 0, hy, 0);   // eye block / cheeks
-    const nk = tmesh(g, new THREE.CylinderGeometry(.0175, .0125, .036, 16), HEADM, .04, hy, 0); nk.rotation.z = -Math.PI / 2;   // neck flaring out to the face
-    const fc = tmesh(g, new THREE.CylinderGeometry(.0168, .0178, .012, 18), HEADM, .064, hy, 0); fc.rotation.z = -Math.PI / 2;   // face ring, bevelled
-    const fr = tmesh(g, new THREE.CylinderGeometry(.0148, .0162, .003, 18), BRIGHT, .0715, hy, 0); fr.rotation.z = -Math.PI / 2;   // polished striking face
-    const cl = new THREE.Shape(); cl.moveTo(-.02, .016); cl.quadraticCurveTo(-.07, .02, -.104, -.026); cl.lineTo(-.098, -.032); cl.quadraticCurveTo(-.07, -.004, -.02, -.012); cl.lineTo(-.02, .016);
-    for (const sz of [-1, 1]) tmesh(g, ex2(cl, .0075, .0015, 1), HEADM, 0, hy, sz * .0062);   // split claw, curving back and down
+    const nk = tmesh(g, mUV(new THREE.CylinderGeometry(.0175, .0125, .036, 16), .1, .036), HEADM, .04, hy, 0); nk.rotation.z = -Math.PI / 2;   // neck flaring out to the face
+    const fc = tmesh(g, mUV(new THREE.CylinderGeometry(.0168, .0178, .012, 18), .11, .012), HEADM, .0625, hy, 0); const fb = tmesh(g, new THREE.CylinderGeometry(.0158, .0174, .004, 18), POLISH, .0697, hy, 0); fb.rotation.z = -Math.PI / 2; fc.rotation.z = -Math.PI / 2;   // face ring, bevelled
+    const fr = tmesh(g, new THREE.CylinderGeometry(.0148, .0162, .003, 18), POLISH, .0725, hy, 0); fr.rotation.z = -Math.PI / 2;   // ground bevel + polished striking face
+    const CO = [[-.02, .016], [-.07, .02], [-.104, -.026]], CI = [[-.098, -.032], [-.07, -.004], [-.02, -.012]], TT = .8;   // claw outer / inner curves; the last 20 % ground bright
+    const cl = new THREE.Shape([...quadPts(...CO, 0, TT, 10), ...quadPts(...CI, 1 - TT, 1, 10)]), ct = new THREE.Shape([...quadPts(...CO, TT, 1, 4), ...quadPts(...CI, 0, 1 - TT, 4)]);
+    for (const sz of [-1, 1]) { tmesh(g, ex2(cl, .0075, .0015, 1), HEADM, 0, hy, sz * .0062); tmesh(g, ex2(ct, .0075, .0015, 1), POLISH, 0, hy, sz * .0062); }   // split claw, curving back and down, bright tips
     const wd = tmesh(g, new THREE.CylinderGeometry(.009, .009, .004, 12), WOODH, 0, hy + .0225, 0); wd.scale.set(1.35, 1, 1);   // handle end through the eye
-    box(g, .016, .002, .0025, BRIGHT, 0, hy + .0245, 0);   // steel wedge
+    box(g, .016, .002, .0025, POLISH, 0, hy + .0245, 0);   // steel wedge
     return g; };
   const spanner = (p, x, y, z, L) => { const g = grp(p, x, y, z);   // 24 Oct 05:xx: a real combination spanner (was a bar with a torus and two jaw stubs): 12-point ring at the top, open jaw at 15° at the bottom, tapered I-section shaft; hung by its ring on a hook
     const s = .006 + L * .045, Ro = s * 1.08, Rr = s * .98, yr = L * .9, ex = (sh, d, bv) => { const e = new THREE.ExtrudeGeometry(sh, { depth: d, bevelEnabled: true, bevelSize: bv, bevelThickness: bv, bevelSegments: 2, curveSegments: 18 }); e.translate(0, 0, -d / 2); return e; };
