@@ -38,7 +38,8 @@ html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 
 .tag.mini{padding:6px 10px}.tag.mini h1{font-size:.95rem}.tag.mini p{display:none}
 .lb.ns{border-color:rgba(226,183,102,.7)}
 .lb.ns::after{content:'not sure';margin-left:6px;padding:1px 4px;background:#e2a03a;color:#1a1206;font-weight:700;letter-spacing:.04em}
-.lb.near{font-size:.52rem;padding:3px 5px;background:rgba(5,11,22,.6)}
+.lb.near{font-size:.6rem;padding:3px 5px;background:rgba(5,11,22,.6)}
+@media (max-width:640px){.lb,.lb.near{font-size:.72rem;letter-spacing:.02em;padding:4px 6px;background:rgba(5,11,22,.78)}.lb.ns::after{margin-left:5px;padding:1px 4px}}   /* 26 Oct 01:xx: labels were ≈ 8 px on a phone (review: unreadable); 11.5 px, tighter tracking so they still fit */
 #card .meta{margin-top:6px;font:500 .64rem 'IBM Plex Mono',monospace;color:var(--mute)}
 #card .meta b{color:var(--brass);font-weight:500}
 #thumbs{display:flex;gap:6px;margin-top:8px;overflow-x:auto}
