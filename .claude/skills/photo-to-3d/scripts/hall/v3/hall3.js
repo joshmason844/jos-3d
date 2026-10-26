@@ -1263,7 +1263,9 @@ function WSHOP(P) {
   // 26 Oct 04:xx: a real bent-wire pegboard hook (03:xx review: "peg tools hang with no hooks showing"; it was a straight 5.6 mm rod hidden behind each tool):
   // one zinc-plated wire that comes out of the hole above, runs down the board face (the bit you see over a hung tool), bends out into the arm and
   // turns up at the tip. Same signature and arm length as before, so every tool keeps its spot; the board's shadow bake picks the new shape up
-  const ZINC = STD({ color: 0xd3d5cc, metalness: .8, roughness: .3 });
+  // 26 Oct 07:xx: zinc read mid-grey inside the workshop (04:xx: "hooks read mid-grey rather than bright zinc"): at metalness .8 almost all its colour comes from
+  // the room environment, which wsLightGate cuts to 35 % in here. Bright zinc plating is a pale, faintly blue-white, so: lighter colour, half the metalness
+  const ZINC = STD({ color: 0xe6eaea, metalness: .4, roughness: .28 });
   const peg = (p, x, y, z, L = .05, tip = .009) => { const r = .0022, b = .0045, V = (a, c, d) => new THREE.Vector3(0, a, d), cp = new THREE.CurvePath();
     const seg = (a, c) => cp.add(new THREE.LineCurve3(a, c)), bend = (a, c, d) => cp.add(new THREE.QuadraticBezierCurve3(a, c, d));
     seg(V(.025, 0, -.005), V(.025, 0, r - b)); bend(V(.025, 0, r - b), V(.025, 0, r), V(.025 - b, 0, r));   // in the hole above, round onto the face
