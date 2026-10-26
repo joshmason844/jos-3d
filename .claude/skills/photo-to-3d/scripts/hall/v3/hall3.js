@@ -1414,7 +1414,19 @@ function WSHOP(P) {
     const bl = new THREE.Shape(), R = .127, n = 48; for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2, b = (i + .55) / n * Math.PI * 2; bl.lineTo(Math.cos(a) * R * .95, Math.sin(a) * R * .95); bl.lineTo(Math.cos(b) * R, Math.sin(b) * R); }   // 48-tooth blade
     const bg = new THREE.ShapeGeometry(bl); bg.rotateY(Math.PI / 2); tmesh(head, bg, STD({ color: 0xaeb3b7, metalness: .85, roughness: .3, side: THREE.DoubleSide }), 0, .05, -.2);
     const fl = tmesh(head, new THREE.CylinderGeometry(.032, .032, .012, 16), BRIGHT, 0, .05, -.2); fl.rotation.z = Math.PI / 2;   // arbor flange
-    tmesh(head, sector(.02, .147, -.25, Math.PI + .5, .06), SY, 0, .05, -.2);   // upper blade guard (hood) over the top half and the back
+    // upper blade guard (hood): 26 Oct 03:xx, was a solid 6 cm sector with flat faces wearing the sponge wear tile (07:xx review: "cheese wheel"). Now a moulded shell: two thin side plates, a thin rim band round the outside, rounded edges (half-round beads), raised moulded ribs on each face (three radial, one arc), all in the saw yellow with its own faint orange-peel sheet so the wear pass skips it. Own RNG, no layout draws
+    { const A0 = -.25, A1 = Math.PI + .5; let hs = 4421; const hr = () => (hs = (hs * 16807) % 2147483647) / 2147483647;
+      const ht = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); x.fillStyle = '#f4f4f4'; x.fillRect(0, 0, 128, 128);
+        for (let i = 0; i < 900; i++) { const v = hr() < .5 ? 255 : 200; x.fillStyle = `rgba(${v},${v},${v},${.08 + hr() * .14})`; x.beginPath(); x.arc(hr() * 128, hr() * 128, .6 + hr() * 1.4, 0, 7); x.fill(); }   // orange peel
+        for (let i = 0; i < 6; i++) { const cx = hr() * 128, cy = hr() * 128, r = 8 + hr() * 14, g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, 'rgba(150,140,120,.16)'); g.addColorStop(1, 'rgba(150,140,120,0)'); x.fillStyle = g; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }   // soft dust/grime smudges
+        const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 6); return t; })();
+      const HOOD = STD({ color: 0xf2b705, roughness: .42, map: ht, bumpMap: ht, bumpScale: .25 });
+      for (const sx of [-1, 1]) tmesh(head, sector(.02, .147, A0, A1, .005), HOOD, sx * .028, .05, -.2);   // side plates
+      tmesh(head, sector(.1405, .147, A0, A1, .056), HOOD, 0, .05, -.2);   // rim band round the outside
+      const bead = (r, t, x) => { const tg = new THREE.TorusGeometry(r, t, 6, 40, A1 - A0); tg.rotateZ(A0); tg.rotateY(Math.PI / 2); return tmesh(head, tg, HOOD, x, .05, -.2); };
+      for (const sx of [-1, 1]) { bead(.1445, .0055, sx * .028);   // rounded edge where plate meets band
+        bead(.098, .0034, sx * .0335);   // moulded arc rib
+        for (const a of [.55, 1.45, 2.35]) { const rm = .101; const rb = box(head, .005, .074, .006, HOOD, sx * .035, 0, 0); rb.position.set(sx * .035, .05 + Math.sin(a) * rm, -.2 - Math.cos(a) * rm); rb.rotation.x = a - Math.PI / 2; } } }   // radial ribs (box() takes the bottom y, so set the centre after)
     const cv = tmesh(head, new THREE.CylinderGeometry(.085, .085, .012, 28), SY, .036, .05, -.2); cv.rotation.z = Math.PI / 2; const ar = tmesh(head, new THREE.TorusGeometry(.105, .003, 4, 20, 1.6), BLK, .033, .05, -.2); ar.rotation.y = Math.PI / 2; ar.rotation.z = .5;   // arbor side cover on the hood, blade-direction arrow
     const LG = STD({ color: 0xb9c2c9, roughness: .15, metalness: .1, transparent: true, opacity: .5, depthWrite: false }); const lg = tmesh(head, sector(.03, .138, Math.PI + .5, 2 * Math.PI - .25, .05), LG, 0, .05, -.2); lg.castShadow = false; lg.userData.noAO = true;   // clear lower guard round the bottom of the blade
     box(head, .006, .006, .11, BLK, .03, .1, -.12).rotation.x = .5;   // guard link rod up to the arm
