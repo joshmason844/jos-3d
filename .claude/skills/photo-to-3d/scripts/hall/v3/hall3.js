@@ -1219,7 +1219,7 @@ function WSHOP(P) {
     const sh = new THREE.Shape(), y0 = Ro * .55, y1 = yr - Rr * .6, w0 = s * .55, w1 = s * .48; sh.moveTo(-w0, y0); sh.lineTo(w0, y0); sh.lineTo(w1, y1); sh.lineTo(-w1, y1); sh.lineTo(-w0, y0);
     tmesh(g, ex(sh, .0034, .001), BRIGHT, 0, 0, 0);
     for (const sz of [-1, 1]) box(g, w0 * .9, (y1 - y0) * .8, .0008, STD({ color: 0x8c9196, metalness: .85, roughness: .4 }), 0, y0 + (y1 - y0) * .1, sz * .0026);   // the shaft's recessed centre (box() takes the BOTTOM y), a shade duller
-    { const hy = yr + s * .5 - .0029; peg(g, 0, hy, -.024, .034); tmesh(g, new THREE.CylinderGeometry(.0026, .0026, .012, 6), BRIGHT, 0, hy + .006, .0095); }   // the hook through the ring (touching the top of the hole), 14 mm proud with an upturned tip so it reads as a hook, not a rod
+    { const hy = yr + s * .5 - .0029; peg(g, 0, hy, -.017, .027, .012); }   // the hook through the ring (touching the top of the hole), 10 mm proud with an upturned tip (26 Oct: the tip is part of the bent-wire hook now)
     return g; };
   // 24 Oct 23:xx: hand saws rebuilt (07:xx review: "blades flat slabs with a blown highlight and no teeth; handles a plain arch block").
   // Blade: 0.9 mm steel plate, 110 fine teeth down the front edge, its own small canvas (satin grey, brushed along the length, faint small smudges,
@@ -1255,12 +1255,21 @@ function WSHOP(P) {
     const gg = new THREE.ExtrudeGeometry(gp, { depth: .028, bevelEnabled: true, bevelSize: .002, bevelThickness: .002, bevelSegments: 2, curveSegments: 10 }); gg.translate(0, 0, -.014);
     tmesh(g, gg, GRIP, 0, -.01, .005);
     for (const sx of [-.035, .035]) { const r = tmesh(g, new THREE.CylinderGeometry(.006, .006, .03, 10), BRIGHT, sx, .01, .005); r.rotation.x = Math.PI / 2; }   // brass-ish screws through handle and blade
-    peg(g, 0, SAWHOOK, -.017, .045);   /* 24 Oct 07:xx: the hook it hangs on, through the top of the handle's hole (it hung on nothing) */
+    peg(g, 0, SAWHOOK, -.012, .04);   /* 24 Oct 07:xx: the hook it hangs on, through the top of the handle's hole (it hung on nothing) */
     return g; };
   const SAWHOOK = .079;   // the saw's hook height above its origin: top of the handle hole (−.01 + .095) less the hook's radius and a little
   // 23 Oct 05:xx: the last plain blocks on the far wall and floor get real shapes (F-clamps, spirit levels, roll cabinet, offcuts bin, bench cable reel). No RNG draws, so nothing else moves
   const CLR = STD({ color: 0xc0221b, roughness: .42, metalness: .25 }), ALU = STD({ color: 0xc3c7ca, metalness: .75, roughness: .38 });
-  const peg = (p, x, y, z, L = .05) => { const k = tmesh(p, new THREE.CylinderGeometry(.0028, .0028, L, 6), BRIGHT, x, y, z + L / 2); k.rotation.x = Math.PI / 2; return k; };   // a pegboard hook sticking out of the board
+  // 26 Oct 04:xx: a real bent-wire pegboard hook (03:xx review: "peg tools hang with no hooks showing"; it was a straight 5.6 mm rod hidden behind each tool):
+  // one zinc-plated wire that comes out of the hole above, runs down the board face (the bit you see over a hung tool), bends out into the arm and
+  // turns up at the tip. Same signature and arm length as before, so every tool keeps its spot; the board's shadow bake picks the new shape up
+  const ZINC = STD({ color: 0xd3d5cc, metalness: .8, roughness: .3 });
+  const peg = (p, x, y, z, L = .05, tip = .009) => { const r = .0022, b = .0045, V = (a, c, d) => new THREE.Vector3(0, a, d), cp = new THREE.CurvePath();
+    const seg = (a, c) => cp.add(new THREE.LineCurve3(a, c)), bend = (a, c, d) => cp.add(new THREE.QuadraticBezierCurve3(a, c, d));
+    seg(V(.025, 0, -.005), V(.025, 0, r - b)); bend(V(.025, 0, r - b), V(.025, 0, r), V(.025 - b, 0, r));   // in the hole above, round onto the face
+    seg(V(.025 - b, 0, r), V(b, 0, r)); bend(V(b, 0, r), V(0, 0, r), V(0, 0, r + b));   // down the face, round into the arm
+    seg(V(0, 0, r + b), V(0, 0, L - b)); bend(V(0, 0, L - b), V(0, 0, L), V(b, 0, L)); seg(V(b, 0, L), V(tip, 0, L));   // the arm, turned up at the tip
+    const k = tmesh(p, new THREE.TubeGeometry(cp, 48, r, 6, false), ZINC, x, y, z); return k; };
   // 25 Oct 00:xx: F-clamp rebuilt (07:xx review: "clamps read as flat boxes"): a 25 × 8 mm bar with its notches, cast jaws with a rounded back and
   // an I-beam web (a darker recessed panel inside a raised rim on both faces), a jaw pad and swivel pad, a thicker threaded spindle and a fat
   // two-tone handle. Hook and footprint unchanged
@@ -1346,7 +1355,7 @@ function WSHOP(P) {
     for (const s of [-1, 1]) box(g, .02, .06, .03, GRIP, s * (L / 2 - .01), -.0025, 0);
     const vial = (vx, vert) => { box(g, .055, .035, .028, BLK, vx, .01, 0); const v = tmesh(g, new THREE.CylinderGeometry(.006, .006, .036, 8), STD({ color: 0xc8e04a, emissive: 0x2a3a08, roughness: .2 }), vx, .0275, .0145); if (!vert) v.rotation.z = Math.PI / 2; box(g, .002, .02, .001, BLK, vx - .005, .0175, .0151); box(g, .002, .02, .001, BLK, vx + .005, .0175, .0151); };
     vial(0, false); vial(-L / 2 + .12, true);
-    for (const s of [-1, 1]) peg(p, x + s * Math.round(.3 * L / .025) * .025, y - .006, z - .02, .04);   // 24 Oct 07:xx: hooks a whole number of 25 mm holes apart
+    for (const s of [-1, 1]) peg(p, x + s * Math.round(.3 * L / .025) * .025, y - .006, z - .017, .037);   // 24 Oct 07:xx: hooks a whole number of 25 mm holes apart
     return g; };
   const rollCab = (p, x, z) => { const g = grp(p, x, 0, z);   // grey steel roll cabinet: castors, a seven-drawer base with pull bars and label slots, a lift-lid top chest, side handle, rubber mat on top
     const GC = STD({ color: 0x858c92, metalness: .12, roughness: .48 }), GE = STD({ color: 0x5d6368, metalness: .12, roughness: .55 }), LBL = STD({ color: 0xe9e6dc, roughness: .7 }), PULL = STD({ color: 0xd2d6da, metalness: .35, roughness: .3 });   // 24 Oct 03:xx: powder-coated grey, not bare metal (at .55 metalness it read near-black on a phone under the workshop's gated light)
