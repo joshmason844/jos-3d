@@ -1434,8 +1434,12 @@ function WSHOP(P) {
       tmesh(head, sector(.1405, .147, A0, A1, .056), HOOD, 0, .05, -.2);   // rim band round the outside
       const bead = (r, t, x) => { const tg = new THREE.TorusGeometry(r, t, 6, 40, A1 - A0); tg.rotateZ(A0); tg.rotateY(Math.PI / 2); return tmesh(head, tg, HOOD, x, .05, -.2); };
       for (const sx of [-1, 1]) { bead(.1445, .0055, sx * .028);   // rounded edge where plate meets band
-        bead(.098, .0034, sx * .0335);   // moulded arc rib
-        for (const a of [.55, 1.45, 2.35]) { const rm = .101; const rb = box(head, .005, .074, .006, HOOD, sx * .035, 0, 0); rb.position.set(sx * .035, .05 + Math.sin(a) * rm, -.2 - Math.cos(a) * rm); rb.rotation.x = a - Math.PI / 2; } } }   // radial ribs (box() takes the bottom y, so set the centre after)
+        bead(.098, .0048, sx * .0335);   // moulded arc rib (26 Oct 06:xx: .0034 → .0048 tube, read as a scratch on phone)
+        for (const a of [.55, 1.45, 2.35]) { const rm = .101; const rb = tmesh(head, new THREE.CapsuleGeometry(.0048, .066, 4, 10), HOOD, sx * .0335, .05 + Math.sin(a) * rm, -.2 - Math.cos(a) * rm); rb.rotation.x = a - Math.PI / 2; } }   // radial ribs: 26 Oct 06:xx rounded 9.6 mm capsules half-sunk in the plate (were 5 × 6 mm boxes that read as scratched lines)
+      // 26 Oct 06:xx: the blade side showed a pac-man notch at the arbor (03:xx review). A domed boss round the arbor on that plate, a dark seam ring at its foot and a bright arbor bolt, so the hood reads as a moulded shell
+      const dm = tmesh(head, new THREE.SphereGeometry(.052, 28, 10, 0, Math.PI * 2, 0, Math.PI / 2), HOOD, -.0325, .05, -.2); dm.rotation.z = Math.PI / 2; dm.scale.set(1, .28, 1);
+      const dr = tmesh(head, new THREE.TorusGeometry(.052, .0016, 6, 36), STD({ color: 0x5c4604, roughness: .6 }), -.0325, .05, -.2); dr.rotation.y = Math.PI / 2;
+      const ab = tmesh(head, new THREE.CylinderGeometry(.011, .011, .007, 6), BRIGHT, -.0475, .05, -.2); ab.rotation.z = Math.PI / 2; }
     const cv = tmesh(head, new THREE.CylinderGeometry(.085, .085, .012, 28), SY, .036, .05, -.2); cv.rotation.z = Math.PI / 2; const ar = tmesh(head, new THREE.TorusGeometry(.105, .003, 4, 20, 1.6), BLK, .033, .05, -.2); ar.rotation.y = Math.PI / 2; ar.rotation.z = .5;   // arbor side cover on the hood, blade-direction arrow
     const LG = STD({ color: 0xb9c2c9, roughness: .15, metalness: .1, transparent: true, opacity: .5, depthWrite: false }); const lg = tmesh(head, sector(.03, .138, Math.PI + .5, 2 * Math.PI - .25, .05), LG, 0, .05, -.2); lg.castShadow = false; lg.userData.noAO = true;   // clear lower guard round the bottom of the blade
     box(head, .006, .006, .11, BLK, .03, .1, -.12).rotation.x = .5;   // guard link rod up to the arm
