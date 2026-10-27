@@ -1372,7 +1372,9 @@ function WSHOP(P) {
       BANDS.forEach(([b0, b1], bi) => { lay[bi].getContext('2d').putImageData(ims[bi], 0, 0); const off = Math.max(.006, Math.min(.05, (b0 + b1) / 2));
         /* 27 Oct 01:xx (review: "dark smear under the hammers"): alpha used to RISE with stand-off, so the hammer heads (5 cm off) threw the darkest, widest
            blobs. Now a part further off throws a lighter, softer shadow, and the tight dark core only comes from parts close to the board */
-        for (const [al, bl, dy] of [[Math.max(.16, .48 - off * 6.5), 2 + off * k * .75, 1.5], [Math.max(0, .5 - off * 16), 1.2 + off * k * .2, 1.1]]) {   // a wide soft shadow, then a tighter darker core nearer the part
+        /* 27 Oct 04:xx (blind review: "no contact shadows, the hammers look stuck on"): meet halfway. Keep the lighter wide pass, but every band gets a
+           tight dark core again (alpha .4–.49, small blur, short drop) so heads and grips sit on the board without the old wide smear */
+        for (const [al, bl, dy] of [[Math.max(.2, .46 - off * 5), 2 + off * k * .8, 1.6], [Math.max(.4, .5 - off * 2), 1 + off * k * .12, .7]]) {   // a wide soft shadow, then a tighter darker core nearer the part
           if (al <= 0) continue;
           sx.save(); sx.globalAlpha = al; sx.shadowColor = 'rgba(20,12,6,1)'; sx.shadowBlur = bl; sx.shadowOffsetX = -PX; sx.shadowOffsetY = off * k * dy;   // the image goes in the right half, its shadow lands in the left half
           sx.drawImage(lay[bi], PX, 0, PX, PY); sx.restore(); } });   // (drawing it fully off-canvas and keeping only the shadow, as the box version did, draws nothing in Chrome: drawImage off the canvas is skipped)
