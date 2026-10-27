@@ -1085,6 +1085,7 @@ function WSHOP(P) {
     for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(${['60,40,25', '40,40,40', '200,190,170', '90,110,140', '160,60,40'][i % 5]},${wf(.12, .4)})`; x.beginPath(); x.ellipse(wr() * w, wr() * h, wf(2, 14), wf(2, 9), wr() * 3, 0, 7); x.fill(); }
     for (let i = 0; i < 14; i++) { x.strokeStyle = `rgba(50,32,18,${wf(.25, .5)})`; x.lineWidth = 1; x.beginPath(); const a = wr() * w, b = wr() * h; x.moveTo(a, b); x.lineTo(a + wf(-60, 60), b + wf(-8, 8)); x.stroke(); }
     specks(x, w, h, 4000, .12); const g = x.createRadialGradient(w / 2, h / 2, h * .2, w / 2, h / 2, w * .6); g.addColorStop(0, 'rgba(70,45,25,.12)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); }) });
+  const BACKB = STD({ color: 0x5e4a34, roughness: .96 }), PLINTH = STD({ color: 0x3e3428, roughness: .96 });   // 27 Oct 05:xx: carcass back (hardboard) and kick plinth; roughness ≥ .95 keeps them out of the wear pass
   const CARC = STD({ color: 0x9a7c56, roughness: .85 }), EDGE = STD({ color: 0x6b5236, roughness: .8 });
   const STEEL = STD({ color: 0x7c8186, metalness: .6, roughness: .45 }), DARK = STD({ color: 0x24272b, roughness: .55, metalness: .3 }), CHIP = STD({ color: 0xc9b48f, roughness: .85 });
   const RED = STD({ color: 0xb8231d, roughness: .4, metalness: .2 }), YEL = STD({ color: 0xf2b705, roughness: .45 }), BLK = STD({ color: 0x1b1c1e, roughness: .6 }), ORA = STD({ color: 0xe0661c, roughness: .45, metalness: .2 });
@@ -1167,6 +1168,9 @@ function WSHOP(P) {
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, .07, H - .04, .07, CARC, sx * (L / 2 - .05), 0, sz * (D / 2 - .05));
     for (let k = 1; k < Math.floor(L / 1.4); k++) for (const sz of [-1, 1]) box(g, .07, H - .04, .07, CARC, -L / 2 + k * L / Math.floor(L / 1.4), 0, sz * (D / 2 - .05));
     box(g, L - .1, .022, D - .1, CHIP, 0, .16, 0); box(g, L, .07, .04, CARC, 0, H - .14, -D / 2 + .03);
+    if (opts.doors) {   // 27 Oct 05:xx (03:xx review: "black gaps behind the rails, bare wall behind the doors"): close the carcass: hardboard back, ply ends, a rail over the doors, a dark kick plinth
+      box(g, L - .02, H - .06, .006, BACKB, 0, .02, -D / 2 + .008); for (const sx of [-1, 1]) box(g, .018, H - .06, D - .02, CARC, sx * (L / 2 - .009), .02, 0);
+      box(g, L - .02, .09, .02, CARC, 0, H - .16, D / 2 - .012); box(g, L - .04, .1, .018, PLINTH, 0, 0, D / 2 - .035); }
     if (opts.doors) { const n = Math.round(L / .6); for (let i = 0; i < n; i++) { box(g, L / n - .01, H - .26, .018, DOORM, -L / 2 + (i + .5) * L / n, .1, D / 2 - .01); const px = -L / 2 + (i + .5) * L / n; cyl(g, .0055, .13, PULLD, px, H - .29, D / 2 + .026, 'x', 10); for (const sx of [-.055, .055]) cyl(g, .0045, .026, PULLD, px + sx, H - .29, D / 2 + .012, 'z', 8); } }   // 27 Oct: slim D-pull (bar on two posts) instead of a 10 cm steel block
     return g; }
   function shelving(p, x, z, L, D, H, ry, levels) { const g = grp(p, x, 0, z, ry);   // grey slotted-angle shelving, chipboard shelves
