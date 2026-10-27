@@ -1108,9 +1108,22 @@ function WSHOP(P) {
     bump.colorSpace = THREE.NoColorSpace; return STD({ roughness: .58, map, bumpMap: bump, bumpScale: 1.2 }); };
   const DOORM = doorSheet(true), DOORP = doorSheet(false); for (let i = 0; i < 5573; i++) vr();
   const PULLD = STD({ color: 0xd2d6da, metalness: .35, roughness: .3 });   // brushed D-pulls (pale, low metalness reads as metal in the gated workshop light)
-  EDGE.map = can(1024, 16, (x, w, h) => { x.fillStyle = '#6b5236'; x.fillRect(0, 0, w, h);
-    for (let i = 0; i < 160; i++) { x.fillStyle = `rgba(${vr() < .6 ? '35,24,14' : '160,128,90'},${vf(.2, .55)})`; x.fillRect(vr() * w, vr() * h, vf(2, 14), vf(2, 7)); }
-    x.fillStyle = 'rgba(30,20,12,.35)'; x.fillRect(0, 0, w, 3); x.fillStyle = 'rgba(190,160,120,.25)'; x.fillRect(0, h - 2, w, 2); }); EDGE.color.set(0xffffff);
+  // 27 Oct 02:xx: the bench front edge was one 1024 × 16 canvas stretched along the whole bench (9.6 m on the aisle bench: ≈ 1 cm a pixel, blocky dings).
+  // Now a seamless 1 m tile (512 × 32, ≈ 2 mm a pixel) repeated along each bench (`edgeMat(L)`): stained timber grain along the strip, small dings and
+  // dark knocks drawn wrapped round the tile's ends, a shade under the worktop and a pale worn arris on the bottom edge. Own RNG; the old canvas's 960 vr() draws are burned.
+  { let se = 6151; const er = () => (se = (se * 16807) % 2147483647) / 2147483647, ef = (a, b) => a + (b - a) * er();
+    EDGE.map = can(512, 32, (x, w, h) => { x.fillStyle = '#6b5236'; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 26; i++) { x.strokeStyle = `rgba(${er() < .5 ? '58,40,24' : '128,98,64'},${ef(.12, .3)})`; x.lineWidth = ef(.6, 1.6); const y = ef(2, h - 2), a = ef(-.8, .8), ph = er() * 7;
+        x.beginPath(); for (let k = 0; k <= 32; k++) { const xx = k * w / 32; const yy = y + a * Math.sin(xx / w * 2 * Math.PI * 2 + ph); k ? x.lineTo(xx, yy) : x.moveTo(xx, yy); } x.stroke(); }   // grain (whole sine periods, so it wraps)
+      const wrap = (fn, cx, ww) => { fn(cx); if (cx + ww > w) fn(cx - w); if (cx < 0) fn(cx + w); };
+      for (let i = 0; i < 34; i++) { const cx = er() * w, cy = er() * h, rw = ef(1.5, 6), rh = ef(1, 3.5), dark = er() < .65, al = ef(.25, .6);
+        wrap(c => { x.fillStyle = `rgba(${dark ? '34,22,12' : '172,140,100'},${al})`; x.beginPath(); x.ellipse(c, cy, rw, rh, 0, 0, 7); x.fill(); }, cx, rw); }   // dings and knocks
+      for (let i = 0; i < 9; i++) { const cx = er() * w, ww = ef(18, 70), al = ef(.08, .18);
+        wrap(c => { const g = x.createLinearGradient(c - ww, 0, c + ww, 0); g.addColorStop(0, 'rgba(25,16,9,0)'); g.addColorStop(.5, `rgba(25,16,9,${al})`); g.addColorStop(1, 'rgba(25,16,9,0)'); x.fillStyle = g; x.fillRect(c - ww, 0, 2 * ww, h); }, cx, ww); }   // dark worn patches (hands, clamps)
+      const t = x.createLinearGradient(0, 0, 0, 7); t.addColorStop(0, 'rgba(28,18,10,.45)'); t.addColorStop(1, 'rgba(28,18,10,0)'); x.fillStyle = t; x.fillRect(0, 0, w, 7);   // shade under the worktop
+      x.fillStyle = 'rgba(196,164,122,.32)'; x.fillRect(0, h - 3, w, 2); x.fillStyle = 'rgba(196,164,122,.14)'; x.fillRect(0, h - 5, w, 2); });   // worn arris
+    EDGE.map.wrapS = THREE.RepeatWrapping; EDGE.color.set(0xffffff); for (let i = 0; i < 960; i++) vr(); }
+  const EDGES = {}; const edgeMat = L => { const k = L.toFixed(2); if (!EDGES[k]) { const m = EDGE.clone(); m.map = EDGE.map.clone(); m.map.repeat.set(L, 1); m.map.needsUpdate = true; EDGES[k] = m; } return EDGES[k]; };
   const burn = n => { for (let i = 0; i < n; i++) wr(); };   // W5: the old CARD/OSBIN canvases drew from wr(); burn the same number of draws so every later item stays where it was
   burn(5404);
   const CARDS = [0, 1, 2].map(k => STD({ roughness: .9, map: can(128, 128, (x, w, h) => { x.fillStyle = ['#b88d5c', '#a87f52', '#c29a68'][k]; x.fillRect(0, 0, w, h); qspecks(x, w, h, 900, .08);   // three kinds of box: label, tape and print differ
@@ -1150,7 +1163,7 @@ function WSHOP(P) {
   T(shell, 'Workshop walls (inside)', 'OSB-lined walls inside the workshop.', '10.5 × 5.5 m inside (scan)', 'fairly sure').userData.noPick = true;
   // --- builders
   function bench(p, x, z, L, D, H, ry, opts = {}) { const g = grp(p, x, 0, z, ry);   // a timber workbench: ply top with a front edge, legs, a rail, a shelf underneath (optional cupboard doors)
-    box(g, L, .04, D, TOP, 0, H - .04, 0); box(g, L, .06, .025, EDGE, 0, H - .07, D / 2);
+    box(g, L, .04, D, TOP, 0, H - .04, 0); box(g, L, .06, .025, edgeMat(L), 0, H - .07, D / 2);
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, .07, H - .04, .07, CARC, sx * (L / 2 - .05), 0, sz * (D / 2 - .05));
     for (let k = 1; k < Math.floor(L / 1.4); k++) for (const sz of [-1, 1]) box(g, .07, H - .04, .07, CARC, -L / 2 + k * L / Math.floor(L / 1.4), 0, sz * (D / 2 - .05));
     box(g, L - .1, .022, D - .1, CHIP, 0, .16, 0); box(g, L, .07, .04, CARC, 0, H - .14, -D / 2 + .03);

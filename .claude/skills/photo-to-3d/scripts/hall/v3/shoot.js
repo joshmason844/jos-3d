@@ -72,6 +72,7 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   wsvicec:  [[1.72, 1.36, -2.98], [1.22, 1.0, -3.5], true],      // closer, the whole vice in a phone frame: casting, jaws, screw, tommy bar (25 Oct 01:xx)
   wsdrill:  [[1.95, 1.55, -3.55], [1.85, 1.02, -2.75], true],   // close on the front bench: two drills, a tool case (23 Oct)
   wsaisle: [[2.6, 1.9, -9.0], [5.9, 1.1, -7.2], true],       // the long aisle bench and its shelves, the window
+  wsedge:   [[4.62, 1.08, -6.75], [5.31, .9, -7.45], true],      // close on the long aisle bench's dark front edge strip (27 Oct 02:xx)
   wsleft: [[4.4, 2.0, -8.0], [0.6, 1.1, -9.4], true],        // the tall shelving on the left wall, sheet stock, offcuts bin
   wsout: [[6.2, 1.8, -14.8], [5.2, 1.1, -12.9], true],       // the far wall's doorway from the hall
   wswin: [[1.7, 1.75, -5.6], [5.6, 1.05, -3.9], true],        // the front window from inside: daylight on the long bench and the floor (W5b, 23 Oct 00:xx)
