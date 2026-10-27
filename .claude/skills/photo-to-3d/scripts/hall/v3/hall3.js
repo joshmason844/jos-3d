@@ -1089,13 +1089,25 @@ function WSHOP(P) {
   const STEEL = STD({ color: 0x7c8186, metalness: .6, roughness: .45 }), DARK = STD({ color: 0x24272b, roughness: .55, metalness: .3 }), CHIP = STD({ color: 0xc9b48f, roughness: .85 });
   const RED = STD({ color: 0xb8231d, roughness: .4, metalness: .2 }), YEL = STD({ color: 0xf2b705, roughness: .45 }), BLK = STD({ color: 0x1b1c1e, roughness: .6 }), ORA = STD({ color: 0xe0661c, roughness: .45, metalness: .2 });
   // W5b (23 Oct): grime. Cupboard doors: finger marks round the pull, boot scuffs at the foot, dirty edges; bench front edges: dings, dark worn patches
-  const DOORM = STD({ roughness: .62, map: can(128, 256, (x, w, h) => { x.fillStyle = '#d9d4c8'; x.fillRect(0, 0, w, h);
-    for (let i = 0; i < 900; i++) { x.fillStyle = `rgba(${vr() > .5 ? '255,255,255' : '60,50,40'},${.06 * vr()})`; x.fillRect(vr() * w, vr() * h, 1 + vr() * 2, 1 + vr() * 2); }
-    const eg = (x0, y0, x1, y1, a) => { const g = x.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, `rgba(70,55,40,${a})`); g.addColorStop(1, 'rgba(70,55,40,0)'); return g; };
-    x.fillStyle = eg(0, 0, 10, 0, .35); x.fillRect(0, 0, 10, h); x.fillStyle = eg(w, 0, w - 10, 0, .35); x.fillRect(w - 10, 0, 10, h); x.fillStyle = eg(0, h, 0, h - 60, .4); x.fillRect(0, h - 60, w, 60);
-    for (let i = 0; i < 26; i++) { const cx = w / 2 + vf(-26, 26), cy = vf(6, 40), r = vf(3, 9), g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, `rgba(60,48,36,${vf(.12, .3)})`); g.addColorStop(1, 'rgba(60,48,36,0)'); x.fillStyle = g; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }   // fingers round the pull (top)
-    for (let i = 0; i < 9; i++) { x.strokeStyle = `rgba(40,32,26,${vf(.15, .4)})`; x.lineWidth = vf(1, 3); x.beginPath(); const a = vr() * w, b = h - vf(4, 50); x.moveTo(a, b); x.lineTo(a + vf(-30, 30), b + vf(-6, 6)); x.stroke(); }   // boot scuffs
-    for (let i = 0; i < 3; i++) { x.fillStyle = `rgba(90,70,45,${vf(.08, .18)})`; const a = vr() * w; x.fillRect(a, vf(40, 150), vf(2, 4), vf(30, 90)); } }) });   // a few run-down drips
+  // 27 Oct 00:xx: cupboard doors redrawn (26 Oct 07:xx review: "flat white with blotchy dark marks and blocky handles"). A painted MDF door with a routed
+  // shaker panel (a groove 7 cm in, in the colour and as a bump map so it catches the light), faint roller stipple, soft finger grime round the pull, a
+  // lightly scuffed foot; no drips. Own RNG: the old canvas's 5573 vr() draws are burned, so EDGE and the signs keep their looks.
+  const doorSheet = panel => { let sq = 4021; const q = () => (sq = (sq * 16807) % 2147483647) / 2147483647, f = (a, b) => a + (b - a) * q(); const N = 256;
+    const map = can(N, N, (x, w, h) => { x.fillStyle = '#dcd7ca'; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 1400; i++) { x.fillStyle = `rgba(${q() > .5 ? '255,255,255' : '90,80,66'},${f(.02, .05)})`; x.fillRect(q() * w, q() * h, 1 + q() * 1.5, 1 + q() * 1.5); }   // roller stipple
+      const eg = (x0, y0, x1, y1, a) => { const g = x.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, `rgba(80,66,50,${a})`); g.addColorStop(1, 'rgba(80,66,50,0)'); return g; };
+      x.fillStyle = eg(0, 0, 7, 0, .16); x.fillRect(0, 0, 7, h); x.fillStyle = eg(w, 0, w - 7, 0, .16); x.fillRect(w - 7, 0, 7, h); x.fillStyle = eg(0, 0, 0, 6, .12); x.fillRect(0, 0, w, 6);   // edges a touch grubby
+      if (panel) { const m = 30; x.lineWidth = 4; x.strokeStyle = 'rgba(96,86,70,.42)'; x.strokeRect(m, m, w - 2 * m, h - 2 * m);   // the routed groove, in shade
+        x.lineWidth = 1.5; x.strokeStyle = 'rgba(255,253,246,.5)'; x.beginPath(); x.moveTo(m + 3, h - m - 3); x.lineTo(m + 3, m + 3); x.lineTo(w - m - 3, m + 3); x.stroke();   // its lit inner bevel (light from above)
+        x.strokeStyle = 'rgba(70,60,48,.22)'; x.beginPath(); x.moveTo(m + 3, h - m - 3); x.lineTo(w - m - 3, h - m - 3); x.lineTo(w - m - 3, m + 3); x.stroke(); }
+      for (let i = 0; i < 16; i++) { const cx = w / 2 + f(-34, 34), cy = f(30, 78), r = f(5, 13), g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, `rgba(84,70,54,${f(.04, .1)})`); g.addColorStop(1, 'rgba(84,70,54,0)'); x.fillStyle = g; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }   // fingers round the pull
+      const g = x.createLinearGradient(0, h, 0, h - 34); g.addColorStop(0, 'rgba(78,64,48,.2)'); g.addColorStop(1, 'rgba(78,64,48,0)'); x.fillStyle = g; x.fillRect(0, h - 34, w, 34);   // grubby foot
+      for (let i = 0; i < 6; i++) { x.strokeStyle = `rgba(60,50,40,${f(.07, .16)})`; x.lineWidth = f(1, 2.2); x.beginPath(); const a = q() * w, b = h - f(3, 26); x.moveTo(a, b); x.lineTo(a + f(-24, 24), b + f(-3, 3)); x.stroke(); } });   // light boot scuffs
+    const bump = can(N, N, (x, w, h) => { x.fillStyle = '#9a9a9a'; x.fillRect(0, 0, w, h); if (panel) { const m = 30; x.strokeStyle = '#404040'; x.lineWidth = 5; x.strokeRect(m, m, w - 2 * m, h - 2 * m); x.strokeStyle = '#6a6a6a'; x.lineWidth = 11; x.globalAlpha = .5; x.strokeRect(m, m, w - 2 * m, h - 2 * m); x.globalAlpha = 1; }
+      x.fillStyle = '#7a7a7a'; for (const [a, b, c, d] of [[0, 0, w, 3], [0, h - 3, w, 3], [0, 0, 3, h], [w - 3, 0, 3, h]]) x.fillRect(a, b, c, d); });   // eased edges
+    bump.colorSpace = THREE.NoColorSpace; return STD({ roughness: .58, map, bumpMap: bump, bumpScale: 1.2 }); };
+  const DOORM = doorSheet(true), DOORP = doorSheet(false); for (let i = 0; i < 5573; i++) vr();
+  const PULLD = STD({ color: 0xd2d6da, metalness: .35, roughness: .3 });   // brushed D-pulls (pale, low metalness reads as metal in the gated workshop light)
   EDGE.map = can(1024, 16, (x, w, h) => { x.fillStyle = '#6b5236'; x.fillRect(0, 0, w, h);
     for (let i = 0; i < 160; i++) { x.fillStyle = `rgba(${vr() < .6 ? '35,24,14' : '160,128,90'},${vf(.2, .55)})`; x.fillRect(vr() * w, vr() * h, vf(2, 14), vf(2, 7)); }
     x.fillStyle = 'rgba(30,20,12,.35)'; x.fillRect(0, 0, w, 3); x.fillStyle = 'rgba(190,160,120,.25)'; x.fillRect(0, h - 2, w, 2); }); EDGE.color.set(0xffffff);
@@ -1142,7 +1154,7 @@ function WSHOP(P) {
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, .07, H - .04, .07, CARC, sx * (L / 2 - .05), 0, sz * (D / 2 - .05));
     for (let k = 1; k < Math.floor(L / 1.4); k++) for (const sz of [-1, 1]) box(g, .07, H - .04, .07, CARC, -L / 2 + k * L / Math.floor(L / 1.4), 0, sz * (D / 2 - .05));
     box(g, L - .1, .022, D - .1, CHIP, 0, .16, 0); box(g, L, .07, .04, CARC, 0, H - .14, -D / 2 + .03);
-    if (opts.doors) { const n = Math.round(L / .6); for (let i = 0; i < n; i++) { box(g, L / n - .01, H - .26, .018, DOORM, -L / 2 + (i + .5) * L / n, .1, D / 2 - .01); box(g, .1, .015, .02, STEEL, -L / 2 + (i + .5) * L / n, H - .3, D / 2 + .01); } }
+    if (opts.doors) { const n = Math.round(L / .6); for (let i = 0; i < n; i++) { box(g, L / n - .01, H - .26, .018, DOORM, -L / 2 + (i + .5) * L / n, .1, D / 2 - .01); const px = -L / 2 + (i + .5) * L / n; cyl(g, .0055, .13, PULLD, px, H - .29, D / 2 + .026, 'x', 10); for (const sx of [-.055, .055]) cyl(g, .0045, .026, PULLD, px + sx, H - .29, D / 2 + .012, 'z', 8); } }   // 27 Oct: slim D-pull (bar on two posts) instead of a 10 cm steel block
     return g; }
   function shelving(p, x, z, L, D, H, ry, levels) { const g = grp(p, x, 0, z, ry);   // grey slotted-angle shelving, chipboard shelves
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, .04, H, .04, STEEL, sx * (L / 2 - .02), 0, sz * (D / 2 - .02));
@@ -1614,7 +1626,7 @@ function WSHOP(P) {
     for (let i = 0; i < 2; i++) tub(t, .45, i * .2, 0, .4, .18, .3, [0x2a5aa8, 0xb8231d][i]);
     T2(g, 'Bench with mitre saw', 'A short bench at the edge of the low ceiling with a mitre saw on it and two plastic boxes of fixings.', '≈ 1.5 × 0.55 m · top ≈ 1.05 m (scan)'); }
   // --- 5. the long bench down the aisle wall, cupboards under it, shelves over the far half (scan: top ≈ 0.9–1.1 m at x 5.25–5.8 the whole length; stock to ≈ 1.7 m and 2.6 m over z −9…−12.7)
-  { const g = grp(P), b = bench(g, 5.62, -7.6, 9.6, .62, .95, Math.PI / 2, { doors: true }); const t = grp(g, 5.62, .95, 0);
+  { const g = grp(P), b = bench(g, 5.62, -7.6, 9.6, .62, .95, -Math.PI / 2, { doors: true }); const t = grp(g, 5.62, .95, 0);   // 27 Oct: −π/2 (was +π/2: the doors and front edge faced the wall)
     let z = -3.4; const kinds = ['case', 'drill', 'tins', 'box', 'reel', 'tub', 'case', 'box', 'drill', 'tins', 'tub', 'box', 'case'];
     for (const k of kinds) { z -= wf(.55, .8); if (z < -12.3) break;
       if (k === 'case') caseY(t, 0, 0, z, .35, .13, .5, Math.PI / 2 + wf(-.1, .1)); else if (k === 'drill') drill(t, -.05, 0, z, wf(0, 6), wr() < .5 ? YEL : 0x2a5aa8);
@@ -1663,7 +1675,7 @@ function WSHOP(P) {
     const bn = offBin(g, 3.25, -8.45);   // 05:xx: ribbed bin, rim, side handles, offcuts stood up in it
     for (let i = 0; i < 18; i++) wr();   // the old offcuts took 18 layout draws: keep taking them so nothing after this moves
     for (const [x, z, r, c] of [[2.4, -9.5, .2, 0x2a5aa8], [1.97, -9.95, .16, 0xe8e2d0]]) { const bk = grp(g, x, 0, z); const bm2 = new THREE.Mesh(new THREE.CylinderGeometry(r, r * .85, r * 1.7, 18, 1, true), STD({ color: c, roughness: .5, side: THREE.DoubleSide })); bm2.position.y = r * .85; bk.add(bm2); const rim = new THREE.Mesh(new THREE.TorusGeometry(r, .012, 6, 20), STD({ color: c })); rim.rotation.x = Math.PI / 2; rim.position.y = r * 1.7; bk.add(rim); T2(bk, 'Bucket', 'A plastic bucket on the floor (the scan shows an open ring here).', '≈ ' + (r * 2).toFixed(1) + ' m across'); }   // scan: two rings ≈ 0.4 m at x 2.2–2.6, z −9.3…−9.7 and x 1.6–2.0, z −9.7…−10.1
-    { const lc = grp(g, .9, 0, -11.95); box(lc, .8, .95, .6, DOORM, 0, 0, 0); box(lc, .84, .03, .64, TOP, 0, .95, 0); box(lc, .004, .86, .006, STD({ color: 0x3a362f, roughness: .9 }), .401, .05, 0); box(lc, .004, .06, .58, STD({ color: 0x4a4640, roughness: .9 }), .401, 0, 0);   // two doors meeting in the middle, scuffed dark kick strip (24 Oct 03:xx)
+    { const lc = grp(g, .9, 0, -11.95); box(lc, .8, .95, .6, DOORP, 0, 0, 0); box(lc, .84, .03, .64, TOP, 0, .95, 0); box(lc, .004, .86, .006, STD({ color: 0x3a362f, roughness: .9 }), .401, .05, 0); box(lc, .004, .06, .58, STD({ color: 0x4a4640, roughness: .9 }), .401, 0, 0);   // two doors meeting in the middle, scuffed dark kick strip (24 Oct 03:xx)
       const PULL2 = STD({ color: 0xc9cdd1, metalness: .35, roughness: .32 }); for (const dz of [-.045, .045]) { const pl = grp(lc, .4, .72, dz); box(pl, .03, .16, .022, PULL2, .028, 0, 0); for (const dy of [.01, .13]) box(pl, .03, .02, .02, PULL2, .012, dy, 0); } tin(lc, -.1, .98, .1, .06, .16, 0xb8231d); cbox(lc, .1, .98, -.1, .35, .25, .3); T2(lc, 'Low cupboard', 'A low cupboard in the far left corner with a tin and a box on it.', '≈ 0.8 × 0.6 × 1.0 m (scan)'); }   // D-pulls on each door by the meeting edge (24 Oct 03:xx; were 1.5 cm slivers). scan: ≈ 1.0–1.1 m at x 0.75–1.0, z −11.7…−12.2
     T2(bn, 'Offcuts bin', 'A black bin full of timber offcuts.', '≈ 0.55 m across · 0.7 m (scan)');
     const lean = grp(g, .5, 0, -11.0); for (let i = 0; i < 5; i++) { const s = box(lean, .018, 2.4 - i * .25, 1.2 - (i % 2) * .3, i % 2 ? CARC : STD({ color: 0xcdb08a, roughness: .8 }), .05 + i * .02, 0, wf(-.1, .1)); s.rotation.z = -.08; }
