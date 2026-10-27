@@ -1127,6 +1127,22 @@ function WSHOP(P) {
       const t = x.createLinearGradient(0, 0, 0, 7); t.addColorStop(0, 'rgba(28,18,10,.45)'); t.addColorStop(1, 'rgba(28,18,10,0)'); x.fillStyle = t; x.fillRect(0, 0, w, 7);   // shade under the worktop
       x.fillStyle = 'rgba(196,164,122,.32)'; x.fillRect(0, h - 3, w, 2); x.fillStyle = 'rgba(196,164,122,.14)'; x.fillRect(0, h - 5, w, 2); });   // worn arris
     EDGE.map.wrapS = THREE.RepeatWrapping; EDGE.color.set(0xffffff); for (let i = 0; i < 960; i++) vr(); }
+  // 27 Oct 07:xx (05:xx find: "the rail is a flat plain tan band; doors sit on the plinth with no reveal"): the rail over the doors is a painted face-frame rail in the
+  // doors' paint, a seamless 1 m tile (512 × 48, ≈ 2 mm a pixel) repeated by the bench's length: roller stipple, a shade under the worktop edge, a lit eased arris
+  // along its foot, grubby finger marks along the bottom where hands reach for the pulls, a few knocks. Own RNG (7207), no shared draws. Doors get 6 mm reveals.
+  const RAIL = STD({ color: 0xffffff, roughness: .6 });
+  { let sr = 7207; const rr = () => (sr = (sr * 16807) % 2147483647) / 2147483647, rf = (a, b) => a + (b - a) * rr();
+    RAIL.map = can(512, 48, (x, w, h) => { x.fillStyle = '#d6d0c2'; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 2600; i++) { x.fillStyle = `rgba(${rr() > .5 ? '255,255,255' : '90,80,66'},${rf(.02, .05)})`; x.fillRect(rr() * w, rr() * h, 1 + rr() * 1.5, 1 + rr() * 1.5); }   // roller stipple (same as the doors)
+      const wrap = (fn, cx, ww) => { fn(cx); if (cx + ww > w) fn(cx - w); if (cx < 0) fn(cx + w); };
+      for (let i = 0; i < 14; i++) { const cx = rr() * w, ww = rf(10, 26), al = rf(.05, .12);
+        wrap(c => { const g = x.createRadialGradient(c, h - 4, 0, c, h - 4, ww); g.addColorStop(0, `rgba(84,70,54,${al})`); g.addColorStop(1, 'rgba(84,70,54,0)'); x.fillStyle = g; x.fillRect(c - ww, h - 4 - ww, 2 * ww, 2 * ww); }, cx, ww); }   // finger grime along the foot
+      for (let i = 0; i < 10; i++) { const cx = rr() * w, cy = rf(8, h - 6), rw = rf(1, 3), rh = rf(.8, 2), al = rf(.15, .35);
+        wrap(c => { x.fillStyle = `rgba(110,96,78,${al})`; x.beginPath(); x.ellipse(c, cy, rw, rh, 0, 0, 7); x.fill(); }, cx, rw); }   // small knocks
+      const t = x.createLinearGradient(0, 0, 0, 12); t.addColorStop(0, 'rgba(60,48,34,.38)'); t.addColorStop(1, 'rgba(60,48,34,0)'); x.fillStyle = t; x.fillRect(0, 0, w, 12);   // shade under the worktop edge
+      x.fillStyle = 'rgba(255,253,246,.55)'; x.fillRect(0, h - 4, w, 2); x.fillStyle = 'rgba(70,58,44,.35)'; x.fillRect(0, h - 2, w, 2); });   // lit eased arris, dark underside line
+    RAIL.map.wrapS = THREE.RepeatWrapping; }
+  const RAILS = {}; const railMat = L => { const k = L.toFixed(2); if (!RAILS[k]) { const m = RAIL.clone(); m.map = RAIL.map.clone(); m.map.repeat.set(L, 1); m.map.needsUpdate = true; RAILS[k] = m; } return RAILS[k]; };
   const EDGES = {}; const edgeMat = L => { const k = L.toFixed(2); if (!EDGES[k]) { const m = EDGE.clone(); m.map = EDGE.map.clone(); m.map.repeat.set(L, 1); m.map.needsUpdate = true; EDGES[k] = m; } return EDGES[k]; };
   const burn = n => { for (let i = 0; i < n; i++) wr(); };   // W5: the old CARD/OSBIN canvases drew from wr(); burn the same number of draws so every later item stays where it was
   burn(5404);
@@ -1180,8 +1196,9 @@ function WSHOP(P) {
     box(g, L - .1, .022, D - .1, CHIP, 0, .16, 0); box(g, L, .07, .04, CARC, 0, H - .14, -D / 2 + .03);
     if (opts.doors) {   // 27 Oct 05:xx (03:xx review: "black gaps behind the rails, bare wall behind the doors"): close the carcass: hardboard back, ply ends, a rail over the doors, a dark kick plinth
       box(g, L - .02, H - .06, .006, BACKB, 0, .02, -D / 2 + .008); for (const sx of [-1, 1]) box(g, .018, H - .06, D - .02, CARC, sx * (L / 2 - .009), .02, 0);
-      box(g, L - .02, .09, .02, CARC, 0, H - .16, D / 2 - .012); box(g, L - .04, .1, .018, PLINTH, 0, 0, D / 2 - .035); }
-    if (opts.doors) { const n = Math.round(L / .6); for (let i = 0; i < n; i++) { box(g, L / n - .01, H - .26, .018, DOORM, -L / 2 + (i + .5) * L / n, .1, D / 2 - .01); const px = -L / 2 + (i + .5) * L / n; cyl(g, .0055, .13, PULLD, px, H - .29, D / 2 + .026, 'x', 10); for (const sx of [-.055, .055]) cyl(g, .0045, .026, PULLD, px + sx, H - .29, D / 2 + .012, 'z', 8); } }   // 27 Oct: slim D-pull (bar on two posts) instead of a 10 cm steel block
+      box(g, L - .02, .09, .02, railMat(L - .02), 0, H - .16, D / 2 - .012); box(g, L - .04, .1, .018, PLINTH, 0, 0, D / 2 - .035); }
+    if (opts.doors) { const n = Math.round(L / .6); for (let i = 0; i < n; i++) { box(g, L / n - .01, H - .272, .018, DOORM, -L / 2 + (i + .5) * L / n, .106, D / 2 - .01);   // 6 mm reveals under the rail and over the plinth (07:xx)
+      const px = -L / 2 + (i + .5) * L / n; cyl(g, .0055, .13, PULLD, px, H - .29, D / 2 + .026, 'x', 10); for (const sx of [-.055, .055]) cyl(g, .0045, .026, PULLD, px + sx, H - .29, D / 2 + .012, 'z', 8); } }   // 27 Oct: slim D-pull (bar on two posts) instead of a 10 cm steel block
     return g; }
   function shelving(p, x, z, L, D, H, ry, levels) { const g = grp(p, x, 0, z, ry);   // grey slotted-angle shelving, chipboard shelves
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, .04, H, .04, STEEL, sx * (L / 2 - .02), 0, sz * (D / 2 - .02));
