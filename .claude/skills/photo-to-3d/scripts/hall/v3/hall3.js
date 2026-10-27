@@ -1357,7 +1357,10 @@ function WSHOP(P) {
         const off = px[q] / 255 * MX; let bi = 0; while (off >= BANDS[bi][1] && bi < 3) bi++; const d = ims[bi].data, r = (j * RW + i) * 4; d[r] = 20; d[r + 1] = 12; d[r + 2] = 6; d[r + 3] = 255; }
       const sc = document.createElement('canvas'); sc.width = PX * 2; sc.height = PY; const sx = sc.getContext('2d'); let n = 0; ims.forEach(im => { for (let q = 3; q < im.data.length; q += 4) n += im.data[q] > 0; }); window.__pegShadowPx = n;   /* test hook: how many tool pixels cast a shadow */
       BANDS.forEach(([b0, b1], bi) => { lay[bi].getContext('2d').putImageData(ims[bi], 0, 0); const off = Math.max(.006, Math.min(.05, (b0 + b1) / 2));
-        for (const [al, bl, dy] of [[Math.min(.6, .38 + off * 5), 2 + off * k * .9, 1.9], [Math.min(.6, .42 + off * 4), 1.2 + off * k * .25, 1.3]]) {   // a wide soft shadow, then a tighter darker core nearer the part
+        /* 27 Oct 01:xx (review: "dark smear under the hammers"): alpha used to RISE with stand-off, so the hammer heads (5 cm off) threw the darkest, widest
+           blobs. Now a part further off throws a lighter, softer shadow, and the tight dark core only comes from parts close to the board */
+        for (const [al, bl, dy] of [[Math.max(.16, .48 - off * 6.5), 2 + off * k * .75, 1.5], [Math.max(0, .5 - off * 16), 1.2 + off * k * .2, 1.1]]) {   // a wide soft shadow, then a tighter darker core nearer the part
+          if (al <= 0) continue;
           sx.save(); sx.globalAlpha = al; sx.shadowColor = 'rgba(20,12,6,1)'; sx.shadowBlur = bl; sx.shadowOffsetX = -PX; sx.shadowOffsetY = off * k * dy;   // the image goes in the right half, its shadow lands in the left half
           sx.drawImage(lay[bi], PX, 0, PX, PY); sx.restore(); } });   // (drawing it fully off-canvas and keeping only the shadow, as the box version did, draws nothing in Chrome: drawImage off the canvas is skipped)
       x.drawImage(sc, 0, 0, PX, PY, 0, 0, PX, PY);
