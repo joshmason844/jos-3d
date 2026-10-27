@@ -869,7 +869,10 @@ function layout() {
   // ===== door end, left: workshop under the mezzanine, racking with the mezzanine store over it, IBCs =====
   zone('Door end · left');
   { const g = grp(P, 0, 0, -2.3); const MW = 6.0, ML = 10.6, CH = 3.8, DK = CH + .22, SH = 1.95;   // CH: workshop ceiling 3.8 m in Josh's workshop scan (was drawn 3.0); DK: sewing-room floor; SH: its front wall, kept under the 6 m eaves. LiDAR (15 Oct): left as you walk in, 6.1 m deep off the left wall × 10.6 m long, front 2.45 m in from the door wall (Josh guessed 8 × 4)
-    box(g, MW, .22, ML, MX.steel, MW / 2, CH, -ML / 2 - .1); for (const [x, z] of [[.3, -.3], [MW - .1, -.3], [MW - .1, -ML / 2], [MW - .1, -ML], [.3, -ML]]) box(g, .14, CH, .14, MX.steel, x, 0, z);
+    box(g, MW, .22, ML, MX.steel, MW / 2, CH, -ML / 2 - .1); { const sh = new THREE.Shape(), a = .07, r = .012; sh.moveTo(-a + r, -a); sh.lineTo(a - r, -a); sh.quadraticCurveTo(a, -a, a, -a + r); sh.lineTo(a, a - r); sh.quadraticCurveTo(a, a, a - r, a); sh.lineTo(-a + r, a); sh.quadraticCurveTo(-a, a, -a, a - r); sh.lineTo(-a, -a + r); sh.quadraticCurveTo(-a, -a, -a + r, -a);
+      const POSTM = STD({ color: 0x2c4a39, roughness: .4, metalness: .3 });   // satin moss-green paint, a shade lighter than the portal frames so the rounded corners catch the light
+      const PG = new THREE.ExtrudeGeometry(sh, { depth: CH, bevelEnabled: false, curveSegments: 3 }); PG.rotateX(-Math.PI / 2); PG.translate(0, -CH / 2, 0);   // 27 Oct 06:xx: mezzanine posts are 140 SHS with rounded corners (were sharp boxes: a flat dark stripe at phone size), same material, same mesh count
+      for (const [x, z] of [[.3, -.3], [MW - .1, -.3], [MW - .1, -ML / 2], [MW - .1, -ML], [.3, -ML]]) { const m = box(g, .14, CH, .14, POSTM, x, 0, z); m.geometry.dispose(); m.geometry = PG; } }
     box(g, MW, CH, .05, MX.osb, MW / 2, 0, -.15); box(g, .05, CH, ML - .2, MX.osb, MW, 0, -ML / 2 - .1);   // workshop walls
     box(g, .04, 1.4, 2.4, STD({ color: 0x8aa0ad, metalness: .4, roughness: .1 }), MW + .04, 1.2, -1.8); box(g, .04, .9, 1.6, STD({ color: 0x8aa0ad, metalness: .4, roughness: .1 }), MW + .04, 1.2, -9.5);   // windows clear of the yellow racking (scan: racking z -5.25…-10.85)
     box(SPARE, .06, 2.0, .9, MX.osb, MW + .04, 0, -2.4);   // 17 Oct: no door here (the workshop scan has the long bench and a wide window on this stretch; the way in is in the far wall): drawn into SPARE. Was: door near the front, where the scan shows the way in                                                         // door
@@ -1085,7 +1088,7 @@ function WSHOP(P) {
     for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(${['60,40,25', '40,40,40', '200,190,170', '90,110,140', '160,60,40'][i % 5]},${wf(.12, .4)})`; x.beginPath(); x.ellipse(wr() * w, wr() * h, wf(2, 14), wf(2, 9), wr() * 3, 0, 7); x.fill(); }
     for (let i = 0; i < 14; i++) { x.strokeStyle = `rgba(50,32,18,${wf(.25, .5)})`; x.lineWidth = 1; x.beginPath(); const a = wr() * w, b = wr() * h; x.moveTo(a, b); x.lineTo(a + wf(-60, 60), b + wf(-8, 8)); x.stroke(); }
     specks(x, w, h, 4000, .12); const g = x.createRadialGradient(w / 2, h / 2, h * .2, w / 2, h / 2, w * .6); g.addColorStop(0, 'rgba(70,45,25,.12)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); }) });
-  const BACKB = STD({ color: 0x5e4a34, roughness: .96 }), PLINTH = STD({ color: 0x3e3428, roughness: .96 });   // 27 Oct 05:xx: carcass back (hardboard) and kick plinth; roughness ≥ .95 keeps them out of the wear pass
+  const BACKB = STD({ color: 0x5e4a34, roughness: .96 }), PLINTH = STD({ color: 0x3e3428, roughness: .96 }); const NOTCHE = STD({ color: 0xc8ad84, roughness: .96 });   // 27 Oct 06:xx: raw ply on the worktop's notch cut   // 27 Oct 05:xx: carcass back (hardboard) and kick plinth; roughness ≥ .95 keeps them out of the wear pass
   const CARC = STD({ color: 0x9a7c56, roughness: .85 }), EDGE = STD({ color: 0x6b5236, roughness: .8 });
   const STEEL = STD({ color: 0x7c8186, metalness: .6, roughness: .45 }), DARK = STD({ color: 0x24272b, roughness: .55, metalness: .3 }), CHIP = STD({ color: 0xc9b48f, roughness: .85 });
   const RED = STD({ color: 0xb8231d, roughness: .4, metalness: .2 }), YEL = STD({ color: 0xf2b705, roughness: .45 }), BLK = STD({ color: 0x1b1c1e, roughness: .6 }), ORA = STD({ color: 0xe0661c, roughness: .45, metalness: .2 });
@@ -1164,7 +1167,14 @@ function WSHOP(P) {
   T(shell, 'Workshop walls (inside)', 'OSB-lined walls inside the workshop.', '10.5 × 5.5 m inside (scan)', 'fairly sure').userData.noPick = true;
   // --- builders
   function bench(p, x, z, L, D, H, ry, opts = {}) { const g = grp(p, x, 0, z, ry);   // a timber workbench: ply top with a front edge, legs, a rail, a shelf underneath (optional cupboard doors)
-    box(g, L, .04, D, TOP, 0, H - .04, 0); box(g, L, .06, .025, edgeMat(L), 0, H - .07, D / 2);
+    if (opts.notch) { const { x: nx, w: nw, d: nd } = opts.notch, a = nx - nw / 2, b = nx + nw / 2;   // 27 Oct 06:xx (03:xx review: "the green column runs through the bench top"): the top is notched round the mezzanine post, cut edges show
+      const sh = new THREE.Shape([[-L / 2, -D / 2], [L / 2, -D / 2], [L / 2, D / 2], [b, D / 2], [b, D / 2 - nd], [a, D / 2 - nd], [a, D / 2], [-L / 2, D / 2]].map(q => new THREE.Vector2(...q)));   // one notched slab (06:xx v1 was three boxes: a shading seam showed at the joins)
+      const TG = new THREE.ExtrudeGeometry(sh, { depth: .04, bevelEnabled: false }); TG.rotateX(-Math.PI / 2); TG.translate(0, H - .04, 0); TG.computeVertexNormals();
+      const P_ = TG.attributes.position, N_ = TG.attributes.normal, U_ = TG.attributes.uv; for (let i = 0; i < P_.count; i++) if (N_.getY(i) > .5) U_.setXY(i, (P_.getX(i) + L / 2) / L, 1 - (P_.getZ(i) + D / 2) / D);   // same UVs as the uncut box top
+      const tm = new THREE.Mesh(TG, TOP); tm.castShadow = tm.receiveShadow = true; g.add(tm);
+      for (const ex of [a, b]) box(g, .003, .041, nd, NOTCHE, ex, H - .0405, -D / 2 + nd / 2); box(g, nw, .041, .003, NOTCHE, nx, H - .0405, -D / 2 + nd); }   // raw ply on the cut faces, a hair proud so they show
+    else box(g, L, .04, D, TOP, 0, H - .04, 0);
+    box(g, L, .06, .025, edgeMat(L), 0, H - .07, D / 2);
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, .07, H - .04, .07, CARC, sx * (L / 2 - .05), 0, sz * (D / 2 - .05));
     for (let k = 1; k < Math.floor(L / 1.4); k++) for (const sz of [-1, 1]) box(g, .07, H - .04, .07, CARC, -L / 2 + k * L / Math.floor(L / 1.4), 0, sz * (D / 2 - .05));
     box(g, L - .1, .022, D - .1, CHIP, 0, .16, 0); box(g, L, .07, .04, CARC, 0, H - .14, -D / 2 + .03);
@@ -1650,7 +1660,7 @@ function WSHOP(P) {
     for (let i = 0; i < 2; i++) tub(t, .45, i * .2, 0, .4, .18, .3, [0x2a5aa8, 0xb8231d][i]);
     T2(g, 'Bench with mitre saw', 'A short bench at the edge of the low ceiling with a mitre saw on it and two plastic boxes of fixings.', '≈ 1.5 × 0.55 m · top ≈ 1.05 m (scan)'); }
   // --- 5. the long bench down the aisle wall, cupboards under it, shelves over the far half (scan: top ≈ 0.9–1.1 m at x 5.25–5.8 the whole length; stock to ≈ 1.7 m and 2.6 m over z −9…−12.7)
-  { const g = grp(P), b = bench(g, 5.62, -7.6, 9.6, .62, .95, -Math.PI / 2, { doors: true }); const t = grp(g, 5.62, .95, 0);   // 27 Oct: −π/2 (was +π/2: the doors and front edge faced the wall)
+  { const g = grp(P), b = bench(g, 5.62, -7.6, 9.6, .62, .95, -Math.PI / 2, { doors: true, notch: { x: 0, w: .15, d: .105 } });   /* notch: the mezzanine post (x 5.83–5.97, z −7.6) stands in the back of this bench */ const t = grp(g, 5.62, .95, 0);   // 27 Oct: −π/2 (was +π/2: the doors and front edge faced the wall)
     let z = -3.4; const kinds = ['case', 'drill', 'tins', 'box', 'reel', 'tub', 'case', 'box', 'drill', 'tins', 'tub', 'box', 'case'];
     for (const k of kinds) { z -= wf(.55, .8); if (z < -12.3) break;
       if (k === 'case') caseY(t, 0, 0, z, .35, .13, .5, Math.PI / 2 + wf(-.1, .1)); else if (k === 'drill') drill(t, -.05, 0, z, wf(0, 6), wr() < .5 ? YEL : 0x2a5aa8);
