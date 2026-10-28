@@ -75,6 +75,7 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   wsedge:   [[4.62, 1.08, -6.75], [5.31, .9, -7.45], true],      // close on the long aisle bench's dark front edge strip (27 Oct 02:xx)
   wstop:    [[5.05, 1.75, -8.05], [5.62, .95, -8.1], true],     // looking down on the long aisle bench's top by the post: tub, case, contact shadows (27 Oct 23:xx)
   wspost:   [[4.95, 1.4, -7.05], [5.85, .93, -7.62], true],     // close on where the mezzanine post meets the long aisle bench's top (27 Oct 06:xx)
+  wscase:   [[4.92, 1.2, -7.72], [5.6, .99, -8.12], true],    // low on the front of the tool case on the long bench by the post: latches, bumpers, grip (28 Oct 04:xx)
   wsleft: [[4.4, 2.0, -8.0], [0.6, 1.1, -9.4], true],        // the tall shelving on the left wall, sheet stock, offcuts bin
   wsout: [[6.2, 1.8, -14.8], [5.2, 1.1, -12.9], true],       // the far wall's doorway from the hall
   wswin: [[1.7, 1.75, -5.6], [5.6, 1.05, -3.9], true],        // the front window from inside: daylight on the long bench and the floor (W5b, 23 Oct 00:xx)

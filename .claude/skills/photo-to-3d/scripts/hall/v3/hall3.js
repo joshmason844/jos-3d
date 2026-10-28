@@ -1262,11 +1262,44 @@ function WSHOP(P) {
     }; })();
   const tub = (p, x, y, z, w, h, d, lid) => TUB(p, x, y, z, w, h, d, lid);
   const tin = (p, x, y, z, r, h, col) => { cyl(p, r, h, STD({ color: 0xb5b9bc, metalness: .7, roughness: .35 }), x, y + h / 2, z); cyl(p, r * 1.01, h * .55, STD({ color: col, roughness: .5 }), x, y + h * .45, z); cyl(p, r * .95, .006, STEEL, x, y + h + .003, z); };
-  const caseY = (p, x, y, z, w, h, d, ry = 0) => { const g = grp(p, x, y, z, ry); box(g, w, h * .5, d, YEL, 0, 0, 0); box(g, w, h * .5, d, BLK, 0, h * .5, 0); box(g, w + .008, .012, d + .008, BLK, 0, h * .5 - .006, 0);   // moulded seam rim
-    for (const sx of [-1, 1]) { box(g, .022, .028, .03, BLK, sx * w * .2, h, 0); box(g, .05, .05, .018, YEL, sx * w * .35, h * .42, d / 2 + .009); box(g, .036, .014, .02, BLK, sx * w * .35, h * .5, d / 2 + .012); }   // handle posts, flip latches
-    const hd = tmesh(g, new THREE.CapsuleGeometry(.011, w * .36, 3, 8), BLK, 0, h + .036, 0); hd.rotation.z = Math.PI / 2;   // grip
-    for (let i = 0; i < 3; i++) box(g, w * .7, .004, .006, BLK, 0, h * .78 + i * .018, -d / 2 - .003);   // ribs on the lid back
-    return g; };   // yellow-and-black tool case
+  // 28 Oct 04:xx (03:xx review, wstop: "the black case on the yellow base is a noisy black block: no corner caps, latches or edge trim, handle looks stuck on").
+  // A moulded stacking tool case instead of two boxes: rounded, slightly tapered yellow base with black corner bumpers, a dark parting rim, a black lid with
+  // two stacking ribs and a rounded front lip, two brushed-steel flip latches over yellow keeps (hinge pin, hook over the base lip), two lid hinges at the back,
+  // and a rubber grip that actually sits on its posts (was floating 1 cm above them). Shell parts carry their own fine moulded-plastic maps in metres
+  // (own RNG 7411), so the wear pass, which paints scratches on mapless parts, leaves them alone: that was the "noise". Same signature and footprint.
+  const CASEY = (() => { let cs = 7411; const cr = () => (cs = (cs * 16807) % 2147483647) / 2147483647;
+    const cvs = (W, H, draw) => { const c = document.createElement('canvas'); c.width = W; c.height = H; draw(c.getContext('2d'), W, H); const t = new CT(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
+    const skin = (base, spot, scuff, grime) => cvs(512, 512, (x, W, H) => { x.fillStyle = base; x.fillRect(0, 0, W, H);   // 1 m tile: fine matte stipple, soft handling grime, a few short pale scuffs, dust
+      for (let i = 0; i < 9000; i++) { x.fillStyle = `rgba(${cr() < .5 ? spot : '0,0,0'},${.04 + cr() * .06})`; x.fillRect(cr() * W, cr() * H, 1, 1); }
+      for (let i = 0; i < 16; i++) { const cx = cr() * W, cy = cr() * H, r = 18 + cr() * 46, g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, `rgba(${grime},${.06 + cr() * .08})`); g.addColorStop(1, `rgba(${grime},0)`); x.fillStyle = g; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }
+      for (let i = 0; i < 26; i++) { x.strokeStyle = `rgba(${scuff},${.1 + cr() * .16})`; x.lineWidth = .5 + cr() * .7; const a = cr() * W, b = cr() * H, t = cr() * 6.28, L = 4 + cr() * 14; x.beginPath(); x.moveTo(a, b); x.lineTo(a + Math.cos(t) * L, b + Math.sin(t) * L * .5); x.stroke(); } });
+    const yS = STD({ map: skin('#ffffff', '255,255,255', '255,255,240', '90,74,40'), color: 0xf2b705, roughness: .5 });
+    const kS = STD({ map: skin('#2a2b2e', '120,120,124', '150,150,150', '110,104,94'), color: 0xffffff, roughness: .55 });
+    const kR = STD({ color: 0x1d1e20, roughness: .78 });   // grip and posts: rubbery (the wear pass gives it a knurl and dust)
+    const stl = STD({ color: 0xb9bdc0, metalness: .6, roughness: .34 }), keep = STD({ map: yS.map, color: 0xd9a204, roughness: .55 });
+    const rrect = (w, d, r) => { const s = new THREE.Shape(), a = w / 2, b = d / 2; s.moveTo(-a + r, -b); s.lineTo(a - r, -b); s.quadraticCurveTo(a, -b, a, -b + r); s.lineTo(a, b - r); s.quadraticCurveTo(a, b, a - r, b); s.lineTo(-a + r, b); s.quadraticCurveTo(-a, b, -a, b - r); s.lineTo(-a, -b + r); s.quadraticCurveTo(-a, -b, -a + r, -b); return s; };
+    const slab = (w, d, r, h, taper = 0) => { const G = new THREE.ExtrudeGeometry(rrect(w, d, r), { depth: h, bevelEnabled: false, curveSegments: 4 }); G.rotateX(-Math.PI / 2);
+      if (taper) { const P_ = G.attributes.position; for (let i = 0; i < P_.count; i++) { const k = 1 - taper * (1 - P_.getY(i) / h); P_.setX(i, P_.getX(i) * k); P_.setZ(i, P_.getZ(i) * k); } }
+      G.computeVertexNormals(); return G; };
+    const M = (p, G, m, x, y, z) => { const o = new THREE.Mesh(G, m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; p.add(o); return o; };
+    return (p, x, y, z, w, h, d, ry = 0) => { const g = grp(p, x, y, z, ry), r = Math.min(.022, w * .07, d * .07), hb = h * .56, hl = h - hb;
+      M(g, slab(w - .012, d - .012, r, hb - .006, .04), yS, 0, 0, 0);                                   // yellow base, a touch narrower at the foot
+      for (const sx of [-1, 1]) for (const sz of [-1, 1]) M(g, new THREE.CylinderGeometry(r + .003, r + .001, hb - .014, 10), kS, sx * (w / 2 - r - .004), (hb - .014) / 2, sz * (d / 2 - r - .004));   // corner bumpers
+      M(g, slab(w - .004, d - .004, r + .002, .007), kS, 0, hb - .008, 0);                            // dark parting rim
+      M(g, slab(w, d, r + .004, hl - .006), kS, 0, hb - .002, 0);                                     // lid
+      M(g, slab(w - .02, d - .02, r, .006), kS, 0, h - .008, 0);                                       // lid top, a step in from the edge
+      for (const s of [-1, 1]) M(g, slab(w * .82, .014, .006, .007), kS, 0, h - .002, s * d * .3);      // two stacking ribs along the top
+      for (const sx of [-1, 1]) { const lx = sx * w * .33;
+        box(g, .052, .044, .006, keep, lx, hb - .05, d / 2 - .004);                                       // recessed yellow keep on the base front
+        const L = box(g, .04, .046, .007, stl, lx, hb - .03, d / 2 + .006); L.rotation.x = -.04;           // steel flip latch, lying over the parting line
+        box(g, .042, .006, .01, stl, lx, hb - .034, d / 2 + .008);                                        // its hook lip over the base keep
+        const pin = cyl(g, .005, .046, stl, lx, hb + .018, d / 2 + .004); pin.rotation.z = Math.PI / 2;     // hinge pin across the lid front
+        const hg = cyl(g, .007, w * .14, kS, sx * w * .3, hb, -d / 2 - .002); hg.rotation.z = Math.PI / 2; }  // lid hinges at the back
+      for (const sx of [-1, 1]) box(g, .026, .03, .03, kR, sx * w * .2, h - .002, 0);                       // grip posts, standing on the lid
+      const hd = tmesh(g, new THREE.CapsuleGeometry(.012, w * .4, 3, 10), kR, 0, h + .036, 0); hd.rotation.z = Math.PI / 2;   // grip, resting on the posts
+      for (let i = 0; i < 3; i++) box(g, w * .7, .004, .006, kS, 0, hb + hl * .3 + i * .016, -d / 2 - .004);  // ribs on the lid back
+      return g; }; })();
+  const caseY = (p, x, y, z, w, h, d, ry = 0) => CASEY(p, x, y, z, w, h, d, ry);   // yellow-and-black tool case
   // hand and power tools (23 Oct 04:xx: shaped, not blocks; same footprints and call signatures as before)
   const tmesh = (p, geo, m, x, y, z) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; p.add(o); return o; };
   const GRIP = STD({ color: 0x2a2c2e, roughness: .85 }), WOODH = STD({ color: 0x9a6b3c, roughness: .6 }), BRIGHT = STD({ color: 0xb4b9bd, metalness: .85, roughness: .28 });
@@ -1734,7 +1767,7 @@ function WSHOP(P) {
   { const g = grp(P), b = bench(g, 5.62, -7.6, 9.6, .62, .95, -Math.PI / 2, { doors: true, notch: { x: 0, w: .15, d: .105 } });   /* notch: the mezzanine post (x 5.83–5.97, z −7.6) stands in the back of this bench */ const t = grp(g, 5.62, .95, 0);   // 27 Oct: −π/2 (was +π/2: the doors and front edge faced the wall)
     let z = -3.4; const kinds = ['case', 'drill', 'tins', 'box', 'reel', 'tub', 'case', 'box', 'drill', 'tins', 'tub', 'box', 'case'];
     for (const k of kinds) { z -= wf(.55, .8); if (z < -12.3) break;
-      if (k === 'case') caseY(t, 0, 0, z, .35, .13, .5, Math.PI / 2 + wf(-.1, .1)); else if (k === 'drill') drill(t, -.05, 0, z, wf(0, 6), wr() < .5 ? YEL : 0x2a5aa8);
+      if (k === 'case') caseY(t, 0, 0, z, .35, .13, .5, -Math.PI / 2 + wf(-.1, .1)); else if (k === 'drill') drill(t, -.05, 0, z, wf(0, 6), wr() < .5 ? YEL : 0x2a5aa8);   // 28 Oct 04:xx: cases −π/2, latches and front to the room (were to the wall)
       else if (k === 'tins') for (let i = 0; i < 3; i++) tin(t, -.12 + (i % 2) * .14, 0, z + i * .13, .05, .1 + wr() * .06, [0xe8e2d0, 0x3b6b3a, 0xb8231d][i]);
       else if (k === 'box') cbox(t, 0, 0, z, .35, .25, .45, wf(-.2, .2)); else if (k === 'tub') tub(t, 0, 0, z, .32, .22, .45, [0x2a5aa8, 0xb8231d, 0x3b6b3a][Math.floor(wr() * 3)]);
       else benchReel(t, -.02, 0, z, Math.PI / 2); }   // 05:xx: a real site cable reel
