@@ -864,16 +864,19 @@ const OSB = (() => {
     const map = new THREE.CanvasTexture(c); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 8; const bump = new THREE.CanvasTexture(bc);
     return STD({ map, bumpMap: bump, bumpScale: 1.4, roughness: .86 }); }
   const MAT = { up: [sheet(0, false, true), sheet(1, false, false)], low: [sheet(1, true, false), sheet(0, true, true)] };
+  // inside the workshop (28 Oct): the same sheets a shade lighter with a softer bump: under the gated lamps the full-strength look read dark and busy
+  const MIN = {}; for (const k of ['up', 'low']) MIN[k] = MAT[k].map(m => { const c = m.clone(); c.color.setScalar(1.14); c.bumpScale = .9; return c; });
   // A wall of sheets: group at (ox, y0, oz) turned ry; sheets run along local +x for L metres, face local +z, H metres tall.
   // skip: [[s0, s1, y0, y1]] holes (local metres) where no sheet is drawn (openings).
-  function wall(p, ox, y0, oz, ry, L, H, row0Low = true) {
+  // turn (28 Oct, inside lining): clean sheets may also hang upside down (a 180° turn, strands still run up the sheet), so 2 strand bases give 4 looks
+  function wall(p, ox, y0, oz, ry, L, H, row0Low = true, turn = false) {
     const g = grp(p, ox, y0, oz, ry);
     for (let s = 0, i = 0; s < L - .001; s += SW, i++) {
       const w = Math.min(SW, L - s);
       for (let y = 0, r = 0; y < H - .001; y += SH, r++) {
-        const h = Math.min(SH, H - y), low = r === 0 && row0Low, m = (low ? MAT.low : MAT.up)[(i + r + (fr() < .3 ? 1 : 0)) % 2], flip = fr() < .5;
+        const h = Math.min(SH, H - y), low = r === 0 && row0Low, ms = (low ? MAT.low : MAT.up), k2 = (i + r + (fr() < .3 ? 1 : 0)) % 2, m = turn ? (low ? MIN.low : MIN.up)[k2] : ms[k2], flip = fr() < .5, rot = turn && !low && ms[k2] !== MAT.up[0] && ((i * 5 + r * 3 + (ox * 7 | 0)) & 1);   // never turn the stamped sheet (upside-down ink)
         const geo = new THREE.PlaneGeometry(w, h), uv = geo.attributes.uv;
-        for (let k = 0; k < uv.count; k++) { let u = uv.getX(k) * w / SW, v = uv.getY(k) * h / SH; if (flip) u = 1 - u; if (!low && r > 0) v = 1 - h / SH + v * 1; uv.setXY(k, u, v); }
+        for (let k = 0; k < uv.count; k++) { let u = uv.getX(k) * w / SW, v = uv.getY(k) * h / SH; if (flip) u = 1 - u; if (!low && r > 0) v = 1 - h / SH + v * 1; if (rot) { u = 1 - u; v = 1 - v; } uv.setXY(k, u, v); }
         const mesh = new THREE.Mesh(geo, m); mesh.position.set(s + w / 2, y + h / 2, 0); mesh.receiveShadow = true; g.add(mesh); } }
     return g; }
   MX.osb.map.dispose(); MX.osb.map = null; MX.osb.color.set(0x9a7c56); MX.osb.needsUpdate = true;   // box edges and inner faces: plain OSB tone (the old stretched blotchy map is gone)
@@ -1183,13 +1186,15 @@ function WSHOP(P) {
   const sheet = (w, h, m, x, y, z, ry) => { const s = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m); s.position.set(x, y + h / 2, z); s.rotation.y = ry; s.receiveShadow = true; P.add(s); return s; };
   // --- shell: OSB lining on the left (x 0.45) and on the inside of the front and aisle walls, the far wall with its doorway, the low ply soffit
   const shell = grp(P);
-  const lin = (L, H, x, z, ry) => { const m = OSBIN.clone(); m.map = OSBIN.map.clone(); m.map.repeat.set(L / 1.22, H / 2.44); m.map.needsUpdate = true; const s = sheet(L, H, m, x, 0, z, ry); P.remove(s); shell.add(s); return s; };
+  // 28 Oct 02:xx: the lining is real sheets from OSB.wall (2 strand bases, flipped/turned, stamps, a grubby bottom row, bump), not one
+  // 1.22 × 2.44 tile repeated identically down every wall (07:xx review: "OSB grain repeated and overscaled up close"). OSBIN is still drawn (qr() draws) for the far-wall door leaf.
+  const lin = (L, H, x, z, ry) => OSB.wall(shell, x - Math.cos(ry) * L / 2, 0, z + Math.sin(ry) * L / 2, ry, L, H, true, true);
   lin(10.5, 3.8, .45, -7.7, Math.PI / 2);
   { const w = grp(P), GL = STD({ color: 0x9fb4c2, metalness: .3, roughness: .08, emissive: 0x6f8798, emissiveIntensity: .35 }), FR = STD({ color: 0xc8a878, roughness: .7 });   // the front window from inside (scan: the aisle wall reads as glass at z −2.9…−5.3, 1.2–2.6 m)
     box(w, .02, 1.4, 2.4, GL, 5.945, 1.2, -4.1); for (const s of [-1, 1]) box(w, .05, 1.5, .07, FR, 5.93, 1.15, -4.1 + s * 1.235); for (const y of [1.13, 2.6]) box(w, .05, .07, 2.54, FR, 5.93, y, -4.1); box(w, .05, 1.4, .05, FR, 5.93, 1.2, -4.1);
     box(w, .16, .03, 2.54, FR, 5.86, 1.13, -4.1); } lin(5.5, 3.8, 3.2, -2.48, Math.PI); lin(10.4, 3.8, 5.96, -7.65, -Math.PI / 2);
   { const fw = grp(P, 0, 0, -12.95); const H = 3.8, D0 = 4.95, D1 = 5.85, DH = 2.05;   // far wall: OSB on studs, a doorway at the aisle corner (scan: gap at x ≈ 5.0–5.8)
-    for (const [a, b, y0, y1] of [[.45, D0, 0, H], [D1, 6.0, 0, H], [D0, D1, DH, H]]) { box(fw, b - a, y1 - y0, .1, CARC, (a + b) / 2, y0, 0); for (const zz of [.052, -.052]) { const om = OSBIN.clone(); om.map = OSBIN.map.clone(); om.map.repeat.set((b - a) / 1.22, (y1 - y0) / 2.44); om.map.needsUpdate = true; const s = new THREE.Mesh(new THREE.PlaneGeometry(b - a, y1 - y0), om); s.position.set((a + b) / 2, (y0 + y1) / 2, zz); s.rotation.y = zz > 0 ? 0 : Math.PI; s.receiveShadow = true; fw.add(s); } }
+    for (const [a, b, y0, y1] of [[.45, D0, 0, H], [D1, 6.0, 0, H], [D0, D1, DH, H]]) { box(fw, b - a, y1 - y0, .1, CARC, (a + b) / 2, y0, 0); for (const zz of [.052, -.052]) OSB.wall(fw, zz > 0 ? a : b, y0, zz, zz > 0 ? 0 : Math.PI, b - a, y1 - y0, y0 === 0, true); }   // 28 Oct: real sheets, as the lining
     const TR = STD({ color: 0xc8a878, roughness: .7 }); for (const x of [D0 - .03, D1 + .03]) box(fw, .06, DH + .06, .14, TR, x, 0, 0); box(fw, D1 - D0 + .12, .06, .14, TR, (D0 + D1) / 2, DH, 0);
     const leaf = grp(fw, D0 + .02, 0, -.07); leaf.rotation.y = -Math.PI * .62; box(leaf, .86, DH - .03, .04, CARC, .43, .01, -.02); for (const s of [.022, -.062]) { const f = new THREE.Mesh(new THREE.PlaneGeometry(.86, DH - .03), OSBIN); f.position.set(.43, (DH) / 2, s); if (s < 0) f.rotation.y = Math.PI; leaf.add(f); }
     box(leaf, .12, .03, .03, STEEL, .74, 1.0, .02); box(leaf, .12, .03, .03, STEEL, .74, 1.0, -.07);
