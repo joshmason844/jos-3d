@@ -78,6 +78,7 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   wsleft: [[4.4, 2.0, -8.0], [0.6, 1.1, -9.4], true],        // the tall shelving on the left wall, sheet stock, offcuts bin
   wsout: [[6.2, 1.8, -14.8], [5.2, 1.1, -12.9], true],       // the far wall's doorway from the hall
   wswin: [[1.7, 1.75, -5.6], [5.6, 1.05, -3.9], true],        // the front window from inside: daylight on the long bench and the floor (W5b, 23 Oct 00:xx)
+  wsconc:   [[4.3, 1.25, -7.9], [3.4, 0, -9.6], true],       // low over the workshop floor between the benches: concrete grain, sawdust, contact shadows (28 Oct 01:xx)
   wsfloor: [[3.5, 3.45, -9.85], [3.5, 0, -9.9], true],      // straight down on the back half of the workshop floor: contact shadows under the compressor, bin and buckets
   wsboard: [[4.3, 1.75, -5.2], [4.3, 1.55, -2.5], true],    // the front wall over the front bench: whiteboard, calendar, notice; the window light on the floor (23 Oct, W5b)
   wssigns: [[3.0, 2.8, -9.6], [3.2, 2.5, -12.9], true],     // the far wall above the tool wall: eye/ear signs, no smoking over the doorway

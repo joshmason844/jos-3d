@@ -76,10 +76,17 @@ function wwFloor() {
   for (let i = 0; i < 14; i++) { const g = d.createRadialGradient(0, 0, 0, 0, 0, 1); d.save(); d.translate(fr() * 1024, fr() * 1024); d.rotate(fr() * 6); d.scale(160 + fr() * 260, 50 + fr() * 120);   // soft trowel clouds
     const c = fr() < .5 ? '255,252,240' : '120,116,104'; g.addColorStop(0, `rgba(${c},${.05 + fr() * .05})`); g.addColorStop(1, `rgba(${c},0)`); d.fillStyle = g; d.beginPath(); d.arc(0, 0, 1, 0, 7); d.fill(); d.restore(); }
   for (let i = 0; i < 26; i++) { d.strokeStyle = `rgba(255,253,245,${.025 + fr() * .03})`; d.lineWidth = 18 + fr() * 30; d.beginPath(); const cx = fr() * 1024, cy = fr() * 1024, r = 120 + fr() * 220, a = fr() * 6; d.arc(cx, cy, r, a, a + .6 + fr() * .8); d.stroke(); }   // power-float swirls
-  for (let i = 0; i < 18000; i++) { const t = fr(), sz = t < .9 ? .8 + fr() * 1.6 : 2 + fr() * 3.5; const k = fr();                   // aggregate: grey, cream and the odd brown fleck
-    d.fillStyle = k < .45 ? `rgba(90,88,82,${.08 + fr() * .14})` : k < .85 ? `rgba(240,236,224,${.1 + fr() * .16})` : `rgba(130,100,70,${.1 + fr() * .14})`; d.beginPath(); d.ellipse(fr() * 1024, fr() * 1024, sz, sz * (.5 + fr() * .5), fr() * 3, 0, 7); d.fill(); }
+  // 28 Oct 01:xx: the old aggregate (18000 cream/grey/brown flecks up to 5 mm) read as terrazzo up close (07:xx review). Power-floated
+  // concrete shows almost no stone: a fine low-contrast cement-paste grain, a few sand fines, faint darker fines. Own RNG; the old
+  // loop's 7 draws × 18000 are still eaten so the lanes, oil and joints below don't move.
+  for (let i = 0; i < 126000; i++) fr();
+  { let sa = 7781; const ar = () => (sa = (sa * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 90000; i++) { const v = ar() < .5 ? 255 : 60; d.fillStyle = `rgba(${v},${v - (v > 128 ? 4 : 2)},${v - (v > 128 ? 12 : 6)},${.025 + ar() * .045})`; d.fillRect(ar() * 1024, ar() * 1024, 1, 1); }   // paste grain, 2 mm
+    for (let i = 0; i < 26; i++) { const g = d.createRadialGradient(0, 0, 0, 0, 0, 1); d.save(); d.translate(ar() * 1024, ar() * 1024); d.rotate(ar() * 6); d.scale(40 + ar() * 90, 30 + ar() * 70);   // 10–40 cm blotches of paste tone
+      const c = ar() < .5 ? '250,246,236' : '112,108,98'; g.addColorStop(0, `rgba(${c},${.035 + ar() * .035})`); g.addColorStop(1, `rgba(${c},0)`); d.fillStyle = g; d.beginPath(); d.arc(0, 0, 1, 0, 7); d.fill(); d.restore(); }
+    for (let i = 0; i < 2200; i++) { const k = ar(); d.fillStyle = k < .6 ? `rgba(120,116,106,${.07 + ar() * .08})` : `rgba(206,202,190,${.06 + ar() * .07})`; d.beginPath(); d.arc(ar() * 1024, ar() * 1024, .6 + ar() * .9, 0, 7); d.fill(); } }   // sand fines, ≤ 3 mm, close to the paste tone
   const [bc, b] = can(512, 512); b.fillStyle = '#808080'; b.fillRect(0, 0, 512, 512);                          // bump: pin-hole pores and tiny pits
-  for (let i = 0; i < 2600; i++) { const r = .6 + fr() * 1.4, x = fr() * 512, y = fr() * 512; b.fillStyle = `rgba(20,20,20,${.5 + fr() * .5})`; b.beginPath(); b.arc(x, y, r, 0, 7); b.fill(); d.fillStyle = 'rgba(70,66,58,.35)'; d.beginPath(); d.arc(x * 2, y * 2, r * 1.6, 0, 7); d.fill(); }
+  for (let i = 0; i < 2600; i++) { const r = .6 + fr() * 1.4, x = fr() * 512, y = fr() * 512; b.fillStyle = `rgba(20,20,20,${.5 + fr() * .5})`; b.beginPath(); b.arc(x, y, r, 0, 7); b.fill(); d.fillStyle = 'rgba(84,80,72,.17)'; d.beginPath(); d.arc(x * 2, y * 2, r * 1.15, 0, 7); d.fill(); }
   for (let i = 0; i < 9000; i++) { b.fillStyle = `rgba(${fr() < .5 ? '255,255,255' : '0,0,0'},.12)`; b.fillRect(fr() * 512, fr() * 512, 1 + fr() * 2, 1 + fr() * 2); }
   const rep = t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(HW / 2, HL / 2); t.anisotropy = 8; return t; };
   const map = rep(new THREE.CanvasTexture(dc)); map.colorSpace = THREE.SRGBColorSpace; const bump = rep(new THREE.CanvasTexture(bc));
@@ -88,6 +95,16 @@ function wwFloor() {
   const [wc, w] = can(W, H), [rc, r] = can(W, H); w.fillStyle = 'rgb(128,128,128)'; w.fillRect(0, 0, W, H); r.fillStyle = '#fff'; r.fillRect(0, 0, W, H);
   const blob = (ctx, x, z, rx, rz, col, a, rot = 0) => { const [px, py] = P(x, z); const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, `rgba(${col},${a})`); g.addColorStop(.6, `rgba(${col},${a * .55})`); g.addColorStop(1, `rgba(${col},0)`);
     ctx.save(); ctx.translate(px, py); ctx.rotate(rot); ctx.scale(rx * sx, rz * sz); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 1, 0, 7); ctx.fill(); ctx.restore(); };
+  // 28 Oct 01:xx: slab-scale variation (07:xx review: no slab-to-slab change). Each pour between the saw cuts gets its own
+  // tone (±3 %) and a soft diagonal drift, and a darker, grubbier 10–20 cm band along its edges where dirt packs against
+  // the joint. Drawn under the mottling. Own RNG so the lanes, oil and joints below don't move.
+  { let sb = 5309; const br = () => (sb = (sb * 16807) % 2147483647) / 2147483647;
+    for (let z0 = 0; z0 > -HL + .01; z0 -= BAY) for (const [x0, x1] of [[0, HW / 2], [HW / 2, HW]]) { const z1 = Math.max(z0 - BAY, -HL);
+      const [ax, ay] = P(x0, z0), [bx, by] = P(x1, z1), tone = Math.round(128 + (br() - .5) * 8);
+      w.fillStyle = `rgb(${tone},${tone},${tone - 1})`; w.fillRect(ax, by, bx - ax, ay - by);
+      const g = w.createLinearGradient(ax, ay, bx, by), d2 = Math.round((br() - .5) * 6); g.addColorStop(0, `rgba(${128 + d2},${128 + d2},${128 + d2},.5)`); g.addColorStop(1, `rgba(${128 - d2},${128 - d2},${128 - d2},.5)`); w.fillStyle = g; w.fillRect(ax, by, bx - ax, ay - by);
+      const e = (.1 + br() * .1) * sx; for (const [rx, ry, rw, rh, gx0, gy0, gx1, gy1] of [[ax, by, bx - ax, e, 0, by, 0, by + e], [ax, ay - e, bx - ax, e, 0, ay, 0, ay - e], [ax, by, e, ay - by, ax, 0, ax + e, 0], [bx - e, by, e, ay - by, bx, 0, bx - e, 0]]) {
+        const gg = w.createLinearGradient(gx0, gy0, gx1, gy1); gg.addColorStop(0, 'rgba(112,108,100,.45)'); gg.addColorStop(1, 'rgba(112,108,100,0)'); w.fillStyle = gg; w.fillRect(rx, ry, rw, rh); } } }
   for (let i = 0; i < 420; i++) { const lighter = fr() < .5; blob(w, fr() * HW, -fr() * HL, .6 + fr() * 2.4, .6 + fr() * 2.4, lighter ? '146,145,141' : '110,109,106', .35 + fr() * .45, fr() * 3); }   // large-scale mottling (±8%), like the scan
   // dust and dirt along the walls and under the racking (warm, rough)
   for (const [x0, z0, x1, z1] of [[0, 0, .6, -39], [19.4, 0, 20, -39], [0, -38.5, 20, -39], [18.3, -.3, 20, -14.3], [13.5, -14.6, 18.6, -15.4], [15.1, -1.4, 18.2, -2.2], [6.9, -5.1, 7.6, -11]])
@@ -1773,9 +1790,13 @@ function WSHOP(P) {
     box(g, 9.4, .025, .025, CND, 5.93, 1.2, -7.6).rotation.y = Math.PI / 2; for (let z = -3.6; z > -12.3; z -= 1.4) { box(g, .04, .09, .15, CND, 5.93, 1.16, z); for (const dz of [-.035, .035]) box(g, .005, .025, .015, BLK, 5.905, 1.2, z + dz); }
     box(g, 2.8, .025, .025, CND, 3.25, 1.28, -12.92); for (const x of [2.2, 3.4, 4.5]) box(g, .15, .09, .04, CND, x, 1.24, -12.92);
     box(g, .08, .12, .03, CND, 4.75, 1.3, -12.92); box(g, .025, 1.3, .025, CND, 4.75, 1.42, -12.92);
-    const dust = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 10.5), new THREE.MeshStandardMaterial({ transparent: true, depthWrite: false, roughness: 1, map: can(256, 512, (x, w, h) => { x.clearRect(0, 0, w, h);
-      for (let i = 0; i < 220; i++) { const cx = wr() * w, cy = wr() * h, r = wf(6, 30), gr = x.createRadialGradient(cx, cy, 0, cx, cy, r); gr.addColorStop(0, `rgba(${wr() < .7 ? '214,180,128' : '120,110,96'},${wf(.15, .4)})`); gr.addColorStop(1, 'rgba(214,180,128,0)'); x.fillStyle = gr; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }
-      for (let i = 0; i < 2500; i++) { x.fillStyle = `rgba(225,195,140,${wf(.2, .6)})`; x.fillRect(wr() * w, wr() * h, 1, 1); } }) }));
+    const dust = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 10.5), new THREE.MeshStandardMaterial({ transparent: true, depthWrite: false, roughness: 1, map: can(1024, 2048, (x, w, h) => { x.clearRect(0, 0, w, h);   // 28 Oct 01:xx: 4× the pixels (≈ 5 mm), same wr() draws
+      for (let i = 0; i < 220; i++) { const cx = wr() * w, cy = wr() * h, r = wf(6, 30) * 4, gr = x.createRadialGradient(cx, cy, 0, cx, cy, r); gr.addColorStop(0, `rgba(${wr() < .7 ? '214,180,128' : '120,110,96'},${wf(.15, .4) * .8})`); gr.addColorStop(1, 'rgba(214,180,128,0)'); x.fillStyle = gr; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }
+      // the 2500 specks were 2 cm squares at up to .6 alpha: from close they read as terrazzo chips (07:xx review). Now 5–12 mm
+      // sawdust chips, fainter, plus a fine film of dust (own RNG) so the floor reads as concrete with dust on it.
+      { let sf = 6421; const fq = () => (sf = (sf * 16807) % 2147483647) / 2147483647;
+        for (let i = 0; i < 2500; i++) { const a = wf(.2, .6) * .5, px = wr() * w, py = wr() * h; x.fillStyle = `rgba(${fq() < .75 ? '222,192,138' : '170,140,98'},${a})`; x.beginPath(); x.ellipse(px, py, 1 + fq() * 1.4, .6 + fq() * .7, fq() * 3.14, 0, 7); x.fill(); }
+        for (let i = 0; i < 70000; i++) { x.fillStyle = `rgba(${fq() < .8 ? '218,190,140' : '150,138,120'},${.04 + fq() * .1})`; x.fillRect(fq() * w, fq() * h, 1, 1); } } }) }));
     dust.rotation.x = -Math.PI / 2; dust.position.set(3.2, .004, -7.7); g.add(dust);
     T(g, 'Workshop lights + sockets', 'Fluorescent strip lights on the ceilings, white conduit and double sockets along the benches, a switch by the door; sawdust on the floor.', '', 'not sure').userData.noPick = true; }
   // --- 9b. W5b (23 Oct): signs and notices on the bare walls (the scan can't read anything this small: typical workshop kit, NOT SURE)
