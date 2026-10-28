@@ -1206,7 +1206,18 @@ function WSHOP(P) {
     for (const sx of [-1, 1]) { const m = new THREE.Mesh(new THREE.BoxGeometry(.012, Math.hypot(H * .5, D) , .02), STEEL); m.position.set(sx * (L / 2 - .02), H * .75, 0); m.rotation.x = Math.atan2(D, H * .5); g.add(m); }
     return g; }
   const cbox = (p, x, y, z, w, h, d, ry = 0) => { const b = box(p, w, h, d, CARDS[cardN++ % 3], x, y, z, ry); return b; };
-  const tub = (p, x, y, z, w, h, d, lid) => { box(p, w, h, d, STD({ color: 0xe8ecee, transparent: false, roughness: .3 }), x, y, z); box(p, w + .02, .03, d + .02, STD({ color: lid, roughness: .4 }), x, y + h, z); };
+  // 27 Oct 23:xx (07:xx review: "the crate's texture is a low-res smear of scratches"): the mapless white tubs got the wear pass's paint tile
+  // stretched over each face. Now one moulded-polypropylene tile of their own (so the wear pass skips them): faint vertical draft ribs, a
+  // shade under the lid lip, grubby foot, finger smudges near the top, a few fine scuffs. Own RNG, nothing else moves.
+  const TUBM = (() => { let ts = 9157; const tr = () => (ts = (ts * 16807) % 2147483647) / 2147483647, tf = (a, b) => a + (b - a) * tr();
+    return STD({ roughness: .42, map: can(256, 256, (x, w, h) => { x.fillStyle = '#e9ecec'; x.fillRect(0, 0, w, h);
+      for (let i = 4; i < w; i += 21) { x.fillStyle = 'rgba(255,255,255,.35)'; x.fillRect(i, 0, 2, h); x.fillStyle = 'rgba(90,96,100,.10)'; x.fillRect(i + 2, 0, 1, h); }   // draft ribs
+      let g = x.createLinearGradient(0, 0, 0, 26); g.addColorStop(0, 'rgba(60,64,66,.30)'); g.addColorStop(1, 'rgba(60,64,66,0)'); x.fillStyle = g; x.fillRect(0, 0, w, 26);   // shade under the lid lip
+      g = x.createLinearGradient(0, h, 0, h - 40); g.addColorStop(0, 'rgba(92,80,62,.32)'); g.addColorStop(1, 'rgba(92,80,62,0)'); x.fillStyle = g; x.fillRect(0, h - 40, w, 40);   // grubby foot
+      for (let i = 0; i < 7; i++) { const cx = tf(20, w - 20), cy = tf(26, 90), r = tf(8, 18), gr = x.createRadialGradient(cx, cy, 0, cx, cy, r); gr.addColorStop(0, `rgba(110,98,82,${tf(.06, .13)})`); gr.addColorStop(1, 'rgba(110,98,82,0)'); x.fillStyle = gr; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }   // finger smudges
+      for (let i = 0; i < 22; i++) { const a = tf(0, w), b = tf(30, h - 8), t = tf(-.5, .5) + (tr() < .5 ? 0 : Math.PI / 2), l = tf(4, 16); x.strokeStyle = `rgba(120,124,126,${tf(.18, .4)})`; x.lineWidth = tf(.5, 1); x.beginPath(); x.moveTo(a, b); x.lineTo(a + Math.cos(t) * l, b + Math.sin(t) * l); x.stroke(); }   // fine scuffs
+      for (let i = 0; i < 900; i++) { x.fillStyle = `rgba(${tr() < .5 ? '255,255,255' : '120,120,118'},${tf(.03, .09)})`; x.fillRect(tf(0, w), tf(0, h), 1, 1); } }) }); })();
+  const tub = (p, x, y, z, w, h, d, lid) => { box(p, w, h, d, TUBM, x, y, z); box(p, w + .02, .03, d + .02, STD({ color: lid, roughness: .4 }), x, y + h, z); };
   const tin = (p, x, y, z, r, h, col) => { cyl(p, r, h, STD({ color: 0xb5b9bc, metalness: .7, roughness: .35 }), x, y + h / 2, z); cyl(p, r * 1.01, h * .55, STD({ color: col, roughness: .5 }), x, y + h * .45, z); cyl(p, r * .95, .006, STEEL, x, y + h + .003, z); };
   const caseY = (p, x, y, z, w, h, d, ry = 0) => { const g = grp(p, x, y, z, ry); box(g, w, h * .5, d, YEL, 0, 0, 0); box(g, w, h * .5, d, BLK, 0, h * .5, 0); box(g, w + .008, .012, d + .008, BLK, 0, h * .5 - .006, 0);   // moulded seam rim
     for (const sx of [-1, 1]) { box(g, .022, .028, .03, BLK, sx * w * .2, h, 0); box(g, .05, .05, .018, YEL, sx * w * .35, h * .42, d / 2 + .009); box(g, .036, .014, .02, BLK, sx * w * .35, h * .5, d / 2 + .012); }   // handle posts, flip latches
@@ -1817,18 +1828,22 @@ function WSHOP(P) {
     cs.rotation.x = -Math.PI / 2; cs.position.set((X0 + X1) / 2, .006, (Z0 + Z1) / 2); cs.renderOrder = 1; P.add(cs); }
   // --- 10b. W5b (23 Oct): contact shadows on bench tops and shelves. Each worktop or shelf board gets its own small baked shadow sheet:
   //     everything resting on it (within 10 cm) darkens its footprint, the closer the darker, blurred in JS. Same maths as the floor bake.
-  { P.updateMatrixWorld(true); const surf = [], items = [], bb = new THREE.Box3();
+  { P.updateMatrixWorld(true); const surf = [], items = [], bb = new THREE.Box3(), dbg = window.__topShadow = [];
     for (const top of P.children.slice(n0)) top.traverse(o => { if (!o.isMesh || o.material.transparent) return; const b = bb.setFromObject(o).clone();
       if ((o.material === TOP || o.material === CHIP) && b.max.y - b.min.y < .05 && b.max.x - b.min.x > .25 && b.max.z - b.min.z > .2) surf.push(b); else if (b.max.y - b.min.y > .004) items.push(b); });
     const SM = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
-    for (const sf of surf) { const y = sf.max.y, PPM = 60, W = Math.max(2, Math.ceil((sf.max.x - sf.min.x) * PPM)), H = Math.max(2, Math.ceil((sf.max.z - sf.min.z) * PPM)), A = new Float32Array(W * H); let hit = 0;
+    // 27 Oct 23:xx (07:xx review: "the crate and flight case on the worktop have no contact shadow"): the old bake darkened only the footprint
+    // (+3 cm, 60 px/m, box-blurred), so almost all of it sat hidden under the item. Now each footprint casts a halo OUTSIDE its edge, from a
+    // distance field at 160 px/m: a tight dark core (≈ 1 cm) where it meets the board plus a soft spread that grows with the item's height
+    // (2.5–7 cm), the closer it sits the darker. Same sheet, same placement, no blur pass.
+    for (const sf of surf) { const y = sf.max.y, PPM = 160, W = Math.max(2, Math.ceil((sf.max.x - sf.min.x) * PPM)), H = Math.max(2, Math.ceil((sf.max.z - sf.min.z) * PPM)), A = new Float32Array(W * H); let hit = 0;
       for (const b of items) { const gap = b.min.y - y; if (gap < -.012 || gap > .1 || b.max.y < y + .01 || b.max.x < sf.min.x || b.min.x > sf.max.x || b.max.z < sf.min.z || b.min.z > sf.max.z) continue;
-        const k = Math.pow(1 - Math.max(0, gap) / .1, 2) * (b.max.y - b.min.y > .08 ? .78 : .5), pad = .03; hit++;
+        const ih = b.max.y - Math.max(b.min.y, y), k = Math.pow(1 - Math.max(0, gap) / .1, 2) * (ih > .08 ? .9 : .6), rC = .01, rW = Math.min(.07, Math.max(.025, .02 + ih * .15)), pad = rW * 3; hit++;
         const i0 = Math.max(0, Math.floor((b.min.x - pad - sf.min.x) * PPM)), i1 = Math.min(W - 1, Math.ceil((b.max.x + pad - sf.min.x) * PPM)), j0 = Math.max(0, Math.floor((b.min.z - pad - sf.min.z) * PPM)), j1 = Math.min(H - 1, Math.ceil((b.max.z + pad - sf.min.z) * PPM));
-        for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) A[j * W + i] = 1 - (1 - A[j * W + i]) * (1 - k); }
-      if (!hit) continue;
-      const B = new Float32Array(W * H); for (let pass = 0; pass < 2; pass++) { for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { let t = 0, n = 0; for (let d = -2; d <= 2; d++) { const ii = i + d; if (ii >= 0 && ii < W) { t += A[j * W + ii]; n++; } } B[j * W + i] = t / n; }
-        for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { let t = 0, n = 0; for (let d = -2; d <= 2; d++) { const jj = j + d; if (jj >= 0 && jj < H) { t += B[jj * W + i]; n++; } } A[j * W + i] = t / n; } }
+        for (let j = j0; j <= j1; j++) { const wz = sf.min.z + (j + .5) / PPM, dz = Math.max(b.min.z - wz, 0, wz - b.max.z);
+          for (let i = i0; i <= i1; i++) { const wx = sf.min.x + (i + .5) / PPM, dx = Math.max(b.min.x - wx, 0, wx - b.max.x), d = Math.hypot(dx, dz);
+            const a = k * (d <= 0 ? 1 : Math.min(1, .45 * Math.exp(-d / rC) + .6 * Math.exp(-d / rW))); if (a > .004) A[j * W + i] = 1 - (1 - A[j * W + i]) * (1 - a); } } }
+      dbg.push([+sf.min.x.toFixed(2), +sf.min.z.toFixed(2), +sf.max.x.toFixed(2), +sf.max.z.toFixed(2), +y.toFixed(3), hit]); if (!hit) continue;
       const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'), im = x.createImageData(W, H);
       for (let q = 0; q < W * H; q++) { im.data[q * 4] = 20; im.data[q * 4 + 1] = 14; im.data[q * 4 + 2] = 8; im.data[q * 4 + 3] = Math.min(255, A[q] * 255); }   // row 0 = low z, as the floor bake
       x.putImageData(im, 0, 0); const m = SM.clone(); m.map = new CT(c); m.map.colorSpace = THREE.SRGBColorSpace;
