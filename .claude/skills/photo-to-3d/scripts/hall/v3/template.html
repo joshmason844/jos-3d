@@ -143,9 +143,25 @@ renderer.setAnimationLoop(now => { const dt = Math.min(.05, (now - t0) / 1000); 
 // labels (24 Oct): nearest first, and one that would overlap a label already placed is skipped. Close up (within NEAR m) the labels show
 // even with 'labels' off, at most NEAR_MAX, so every guessed tool in a close-up carries its orange NOT SURE chip.
 const NEAR = 2.6, NEAR_MAX = 4;
-function placeLabels() { const near = !labelsOn, cand = [];
+// 28 Oct 05:xx (04:xx run find): the workshop's walls hide labels. Standing inside, the yellow racking's "Black flight case" (outside the aisle
+// wall) was drawn on the bench's own tool case. A label shows only if the line from the camera to it doesn't pass through the workshop's walls,
+// deck or ceiling, except through the front window or the far-wall doorway. Items that straddle a wall (the wall itself, the door) are never hidden.
+const WSB = [.45, 6.02, -12.98, -2.42, 3.9], WS_HOLES = [[0, 6.02, 2, -5.3, -2.9, 1.2, 2.6], [2, -12.98, 0, 4.95, 5.85, 0, 2.05]];   // box [x0, x1, z0, z1, top]; holes [axis, plane, other axis, lo, hi, y0, y1]
+const wsInside = p => p.x > WSB[0] && p.x < WSB[1] && p.z > WSB[2] && p.z < WSB[3] && p.y < WSB[4];
+function wsSeg(a, b) { let t0 = 0, t1 = 1; const lo = [WSB[0], -1e9, WSB[2]], hi = [WSB[1], WSB[4], WSB[3]], A = a.toArray(), D = b.clone().sub(a).toArray();   // slab test: where the segment a→b is inside the box
+  for (let i = 0; i < 3; i++) { if (Math.abs(D[i]) < 1e-9) { if (A[i] < lo[i] || A[i] > hi[i]) return null; continue; } let u = (lo[i] - A[i]) / D[i], w = (hi[i] - A[i]) / D[i]; if (u > w) [u, w] = [w, u]; t0 = Math.max(t0, u); t1 = Math.min(t1, w); if (t0 > t1) return null; }
+  return [t0, t1]; }
+const wsHole = (a, b, t) => { const P = [a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t]; return WS_HOLES.some(([ax, pl, o, lo, hi, y0, y1]) => Math.abs(P[ax] - pl) < .04 && P[o] > lo && P[o] < hi && P[1] > y0 && P[1] < y1); };
+function wsHidden(l) { if (l.ws === null) return false; const c = camera.position, cin = wsInside(c); if (cin && l.ws) return false;
+  const s = wsSeg(c, l.a); if (!s) return false; const [t0, t1] = s;
+  if (cin) return !wsHole(c, l.a, t1); if (l.ws) return !wsHole(c, l.a, t0);   // one end inside: the one crossing must be a hole
+  return t1 - t0 > 1e-6 && !(wsHole(c, l.a, t0) && wsHole(c, l.a, t1)); }   // both outside but the line cuts through the box
+for (const l of labels) { const b = new THREE.Box3().setFromObject(l.o).expandByScalar(-.02), i0 = wsInside(b.min), i1 = wsInside(b.max), out = b.max.x < WSB[0] || b.min.x > WSB[1] || b.max.z < WSB[2] || b.min.z > WSB[3] || b.min.y > WSB[4];
+  l.ws = i0 && i1 ? true : out ? false : null; }   // true = in the workshop, false = outside it, null = straddles a wall (never hidden)
+let wsHid = 0; window.__wsHidden = () => wsHid; window.__wsSide = () => Object.fromEntries(labels.map(l => [l.o.userData.info.name, l.ws]));   // for test_wslabels.js
+function placeLabels() { const near = !labelsOn, cand = []; wsHid = 0;
   for (const l of labels) { const d = camera.position.distanceTo(l.a); v.copy(l.a).project(camera);
-    if (v.z < 1 && Math.abs(v.x) < .96 && v.y > -.96 && v.y < (near ? 1.32 : .96) && d < (near ? NEAR : 14))   // close up, a tool whose top is just off the top edge still gets its label, pulled down into view
+    if (v.z < 1 && Math.abs(v.x) < .96 && v.y > -.96 && v.y < (near ? 1.32 : .96) && d < (near ? NEAR : 14) && !(wsHidden(l) && ++wsHid))   // close up, a tool whose top is just off the top edge still gets its label, pulled down into view
     cand.push([d, l, (v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]); else l.d.style.display = 'none'; }
   const inC = new Set(cand.map(c => c[1].o)); for (let i = cand.length; i--;) { const o = cand[i][1].o; if (cand.some(c => c[1].o !== o && inC.has(c[1].o) && (() => { for (let q = c[1].o.parent; q; q = q.parent) if (q === o) return true; })())) cand.splice(i, 1); }   // a bench's label gives way to the tools tagged on it
   $('labels').style.display = cand.length ? '' : 'none'; cand.sort((a, b) => a[0] - b[0]); const placed = [], R = e => { const b = e.getBoundingClientRect(); return [b.left, b.top, b.right, b.bottom]; }, card = R(document.querySelector('.top .tag')), keep = [...document.querySelectorAll('.bar, #secs > button, #card:not([hidden])')].map(R).filter(q => q[2] > q[0]);   // keep-outs: the title card (labels slide below it), the bars, the open card
