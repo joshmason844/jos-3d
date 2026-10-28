@@ -824,48 +824,54 @@ const OSB = (() => {
   let sd = 9157; const fr = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
   const SW = 1.22, SH = 2.44, PW = 440, PH = 880, K = PW / SW;            // px per metre ≈ 360
   const PAL = [[128, 100, 68], [142, 114, 78], [152, 124, 88], [162, 131, 90], [172, 142, 100], [182, 152, 112], [194, 160, 112], [204, 172, 130]];   // the scan's p25–p85: the full p10–p90 spread read as wood chips
+  let R = fr;                                                       // 28 Oct 03:xx: canvas draws go through R, so the inside sheets can draw on their own RNG
   const can = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
   function strand(x, b, cx, cy, L, Wd, a, col, dark) {           // one flake: a wonky rotated rectangle with ragged ends
     x.save(); x.translate(cx, cy); x.rotate(a); x.beginPath();
-    x.moveTo(-L / 2 + fr() * 3, -Wd / 2); x.lineTo(L / 2 - fr() * 4, -Wd / 2 + (fr() - .5) * 2); x.lineTo(L / 2 + (fr() - .5) * 5, 0); x.lineTo(L / 2 - fr() * 4, Wd / 2); x.lineTo(-L / 2 + fr() * 4, Wd / 2 + (fr() - .5) * 2); x.lineTo(-L / 2 + (fr() - .5) * 5, 0); x.closePath();
+    x.moveTo(-L / 2 + R() * 3, -Wd / 2); x.lineTo(L / 2 - R() * 4, -Wd / 2 + (R() - .5) * 2); x.lineTo(L / 2 + (R() - .5) * 5, 0); x.lineTo(L / 2 - R() * 4, Wd / 2); x.lineTo(-L / 2 + R() * 4, Wd / 2 + (R() - .5) * 2); x.lineTo(-L / 2 + (R() - .5) * 5, 0); x.closePath();
     x.fillStyle = col; x.fill(); x.strokeStyle = dark; x.lineWidth = .9; x.stroke();
     x.restore();
-    b.save(); b.translate(cx / 2, cy / 2); b.rotate(a); const v = 120 + fr() * 70 | 0; b.fillStyle = `rgb(${v},${v},${v})`; b.fillRect(-L / 4, -Wd / 4, L / 2, Wd / 2);
+    b.save(); b.translate(cx / 2, cy / 2); b.rotate(a); const v = 120 + R() * 70 | 0; b.fillStyle = `rgb(${v},${v},${v})`; b.fillRect(-L / 4, -Wd / 4, L / 2, Wd / 2);
     b.strokeStyle = 'rgba(30,30,30,.7)'; b.lineWidth = .7; b.strokeRect(-L / 4, -Wd / 4, L / 2, Wd / 2); b.restore(); }
-  function base() {                                                // the strands: two of these, shared by the clean and the low sheets (the costly part)
+  function base(o = {}) {                                                // the strands: two of these, shared by the clean and the low sheets (the costly part)
     const [c, x] = can(PW, PH), [bc, b] = can(PW / 2, PH / 2);
-    x.fillStyle = 'rgb(120,94,62)'; x.fillRect(0, 0, PW, PH); b.fillStyle = '#505050'; b.fillRect(0, 0, PW / 2, PH / 2);   // dark resin-filled gaps between flakes
-    for (let i = 0; i < 6400; i++) {                                // strands, mostly along the sheet (vertical), a few cross ones from the core showing
-      const p = PAL[fr() * PAL.length | 0], j = (fr() - .5) * 14, L = (.045 + fr() * .085) * K, Wd = (.01 + fr() * .018) * K;
-      const a = fr() < .12 ? fr() * Math.PI : Math.PI / 2 + (fr() - .5) * .8;
-      strand(x, b, fr() * PW, fr() * PH, L, Wd, a, `rgb(${p[0] + j | 0},${p[1] + j | 0},${p[2] + j * .8 | 0})`, `rgba(80,58,32,${.18 + fr() * .25})`); }
-    for (let i = 0; i < 90; i++) { x.fillStyle = `rgba(${55 + fr() * 30 | 0},${38 + fr() * 20 | 0},${22},${.5 + fr() * .4})`; x.save(); x.translate(fr() * PW, fr() * PH); x.rotate(Math.PI / 2 + (fr() - .5)); x.fillRect(-6, -1.5, 8 + fr() * 14, 2 + fr() * 3); x.restore(); }   // bark and resin flecks
-    for (let i = 0; i < 10; i++) { const g = x.createRadialGradient(0, 0, 0, 0, 0, 1); x.save(); x.translate(fr() * PW, fr() * PH); x.scale(60 + fr() * 140, 80 + fr() * 200); const k = fr() < .5;   // big soft mottling: some sheets darker in patches
+    x.fillStyle = o.gap || 'rgb(120,94,62)'; x.fillRect(0, 0, PW, PH); b.fillStyle = o.bgap || '#505050'; b.fillRect(0, 0, PW / 2, PH / 2);   // dark resin-filled gaps between flakes
+    for (let i = 0, N = o.n || 6400; i < N; i++) {                                // strands, mostly along the sheet (vertical), a few cross ones from the core showing
+      const p0 = PAL[R() * PAL.length | 0], mx = o.mix || 0, p = p0.map((v, q) => v + ([156, 127, 90][q] - v) * mx), j = (R() - .5) * 14 * (1 - mx), L = ((o.L0 || .045) + R() * (o.L1 || .085)) * K, Wd = ((o.W0 || .01) + R() * (o.W1 || .018)) * K;
+      const a = R() < .12 ? R() * Math.PI : Math.PI / 2 + (R() - .5) * (o.spread || .8);
+      strand(x, b, R() * PW, R() * PH, L, Wd, a, `rgb(${p[0] + j | 0},${p[1] + j | 0},${p[2] + j * .8 | 0})`, `rgba(80,58,32,${(o.ol || .18) + R() * (o.ol ? o.ol : .25)})`); }
+    for (let i = 0; i < 90; i++) { x.fillStyle = `rgba(${55 + R() * 30 | 0},${38 + R() * 20 | 0},${22},${.5 + R() * .4})`; x.save(); x.translate(R() * PW, R() * PH); x.rotate(Math.PI / 2 + (R() - .5)); x.fillRect(-6, -1.5, 8 + R() * 14, 2 + R() * 3); x.restore(); }   // bark and resin flecks
+    for (let i = 0; i < 10; i++) { const g = x.createRadialGradient(0, 0, 0, 0, 0, 1); x.save(); x.translate(R() * PW, R() * PH); x.scale(60 + R() * 140, 80 + R() * 200); const k = R() < .5;   // big soft mottling: some sheets darker in patches
       g.addColorStop(0, k ? 'rgba(90,62,30,.10)' : 'rgba(255,240,210,.08)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.beginPath(); x.arc(0, 0, 1, 0, 7); x.fill(); x.restore(); }
     return [c, bc]; }
   const BASE = [base(), base()];
-  function sheet(bi, low, stamp) {
-    const [c, x] = can(PW, PH), [bc, b] = can(PW / 2, PH / 2); x.drawImage(BASE[bi][0], 0, 0); b.drawImage(BASE[bi][1], 0, 0);
-    if (fr() < .5) { x.fillStyle = `rgba(${fr() < .5 ? '255,236,200' : '80,56,30'},.06)`; x.fillRect(0, 0, PW, PH); }   // sheets differ a shade from each other
-    if (stamp) { x.save(); x.translate(PW * (.25 + fr() * .3), PH * (.25 + fr() * .4)); x.rotate((fr() - .5) * .08); x.globalAlpha = .45; x.fillStyle = '#2f4f8a'; x.strokeStyle = '#2f4f8a'; x.lineWidth = 2;   // the grade stamp, faded blue ink
+  function sheet(bi, low, stamp, BS = BASE) {
+    const [c, x] = can(PW, PH), [bc, b] = can(PW / 2, PH / 2); x.drawImage(BS[bi][0], 0, 0); b.drawImage(BS[bi][1], 0, 0);
+    if (R() < .5) { x.fillStyle = `rgba(${R() < .5 ? '255,236,200' : '80,56,30'},.06)`; x.fillRect(0, 0, PW, PH); }   // sheets differ a shade from each other
+    if (stamp) { x.save(); x.translate(PW * (.25 + R() * .3), PH * (.25 + R() * .4)); x.rotate((R() - .5) * .08); x.globalAlpha = .45; x.fillStyle = '#2f4f8a'; x.strokeStyle = '#2f4f8a'; x.lineWidth = 2;   // the grade stamp, faded blue ink
       x.strokeRect(0, 0, 150, 58); x.font = 'bold 19px Arial'; x.fillText('OSB/3', 10, 24); x.font = '13px Arial'; x.fillText('EN 300 · 18 mm', 10, 42); x.fillText('E1 · CE', 88, 24); x.globalAlpha = .3; x.fillRect(4, 49, 142, 4); x.restore(); }
     const scr = (px, py) => { x.fillStyle = 'rgba(60,45,30,.55)'; x.beginPath(); x.arc(px, py, 3.4, 0, 7); x.fill(); x.fillStyle = '#9a968e'; x.beginPath(); x.arc(px, py, 2.4, 0, 7); x.fill(); x.fillStyle = '#5c5a56'; x.fillRect(px - 1.4, py - .3, 2.8, .6); x.fillRect(px - .3, py - 1.4, .6, 2.8);   // screw head + its countersink
       b.fillStyle = '#e8e8e8'; b.beginPath(); b.arc(px / 2, py / 2, 1.3, 0, 7); b.fill(); };
     const e = .012 * K;                                             // screws: 12 mm in round the edges every 150 mm, every 300 mm down the middle stud
-    for (let y = .075 * K; y < PH; y += .15 * K) { scr(e + (fr() - .5), y + (fr() - .5) * 2); scr(PW - e + (fr() - .5), y + (fr() - .5) * 2); if ((y / (.15 * K) | 0) % 2 === 0) scr(PW / 2 + (fr() - .5) * 2, y); }
+    for (let y = .075 * K; y < PH; y += .15 * K) { scr(e + (R() - .5), y + (R() - .5) * 2); scr(PW - e + (R() - .5), y + (R() - .5) * 2); if ((y / (.15 * K) | 0) % 2 === 0) scr(PW / 2 + (R() - .5) * 2, y); }
     for (const y of [e, PH - e]) for (let xx = .15 * K; xx < PW - .1 * K; xx += .2 * K) scr(xx, y);
     if (low) {                                                      // bottom row: floor splash and grime, trolley/fork scuffs, a boot mark or two
       const g = x.createLinearGradient(0, PH, 0, PH - .45 * K); g.addColorStop(0, 'rgba(70,62,52,.55)'); g.addColorStop(.35, 'rgba(80,70,58,.22)'); g.addColorStop(1, 'rgba(80,70,58,0)'); x.fillStyle = g; x.fillRect(0, PH - .45 * K, PW, .45 * K);
-      for (let i = 0; i < 160; i++) { x.fillStyle = `rgba(${90 + fr() * 40 | 0},${85 + fr() * 30 | 0},${75 + fr() * 25 | 0},${.15 + fr() * .3})`; x.beginPath(); x.arc(fr() * PW, PH - Math.pow(fr(), 2) * .3 * K, .6 + fr() * 2.2, 0, 7); x.fill(); }   // splash
-      for (let i = 0; i < 7; i++) { const y = PH - (.08 + fr() * .5) * K, x0 = fr() * PW, len = (.1 + fr() * .45) * K; x.strokeStyle = `rgba(${fr() < .4 ? '70,70,72' : '230,220,200'},${.15 + fr() * .2})`; x.lineWidth = 1 + fr() * 3; x.beginPath(); x.moveTo(x0, y); x.lineTo(x0 + len, y + (fr() - .5) * 6); x.stroke(); }   // scuffs
-      for (let i = 0; i < 2; i++) { x.save(); x.translate(fr() * PW, PH - (.05 + fr() * .25) * K); x.rotate((fr() - .5) * .6); x.fillStyle = 'rgba(55,50,45,.16)'; x.beginPath(); x.ellipse(0, 0, 14, 34, 0, 0, 7); x.fill(); x.restore(); } }   // boot marks
+      for (let i = 0; i < 160; i++) { x.fillStyle = `rgba(${90 + R() * 40 | 0},${85 + R() * 30 | 0},${75 + R() * 25 | 0},${.15 + R() * .3})`; x.beginPath(); x.arc(R() * PW, PH - Math.pow(R(), 2) * .3 * K, .6 + R() * 2.2, 0, 7); x.fill(); }   // splash
+      for (let i = 0; i < 7; i++) { const y = PH - (.08 + R() * .5) * K, x0 = R() * PW, len = (.1 + R() * .45) * K; x.strokeStyle = `rgba(${R() < .4 ? '70,70,72' : '230,220,200'},${.15 + R() * .2})`; x.lineWidth = 1 + R() * 3; x.beginPath(); x.moveTo(x0, y); x.lineTo(x0 + len, y + (R() - .5) * 6); x.stroke(); }   // scuffs
+      for (let i = 0; i < 2; i++) { x.save(); x.translate(R() * PW, PH - (.05 + R() * .25) * K); x.rotate((R() - .5) * .6); x.fillStyle = 'rgba(55,50,45,.16)'; x.beginPath(); x.ellipse(0, 0, 14, 34, 0, 0, 7); x.fill(); x.restore(); } }   // boot marks
     x.fillStyle = 'rgba(40,28,16,.55)'; x.fillRect(0, 0, PW, 1.5); x.fillRect(0, PH - 1.5, PW, 1.5); x.fillRect(0, 0, 1.5, PH); x.fillRect(PW - 1.5, 0, 1.5, PH);   // the joint: a hair of dark gap round the sheet
     b.fillStyle = '#101010'; b.fillRect(0, 0, PW / 2, 1); b.fillRect(0, PH / 2 - 1, PW / 2, 1); b.fillRect(0, 0, 1, PH / 2); b.fillRect(PW / 2 - 1, 0, 1, PH / 2);
     const map = new THREE.CanvasTexture(c); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 8; const bump = new THREE.CanvasTexture(bc);
-    return STD({ map, bumpMap: bump, bumpScale: 1.4, roughness: .86 }); }
+    const m = STD({ map, bumpMap: bump, bumpScale: 1.4, roughness: .86 }); m.userData.stamp = !!stamp; return m; }
   const MAT = { up: [sheet(0, false, true), sheet(1, false, false)], low: [sheet(1, true, false), sheet(0, true, true)] };
-  // inside the workshop (28 Oct): the same sheets a shade lighter with a softer bump: under the gated lamps the full-strength look read dark and busy
-  const MIN = {}; for (const k of ['up', 'low']) MIN[k] = MAT[k].map(m => { const c = m.clone(); c.color.setScalar(1.14); c.bumpScale = .9; return c; });
+  // inside the workshop: 28 Oct 02:xx used MAT a shade lighter, but at phone size its thin bright flakes on dark resin read as matchsticks (wsboard).
+  // 28 Oct 03:xx: the inside gets its OWN sheets: wider, flatter flakes (2.5–5 cm × 6–14 cm, laid closer to the sheet's length), lighter gaps,
+  // softer outlines, tones pulled 45 % toward the scan's median (blind review 03:xx: full spread read as camouflage at board distance), and three strand bases instead of two so sheets don't pair up across the room. Own RNG (6007): nothing outside moves.
+  let si = 6007; const fi = () => (si = (si * 16807) % 2147483647) / 2147483647;
+  R = fi; const BI = [0, 1, 2].map(() => base({ n: 2900, L0: .06, L1: .08, W0: .025, W1: .025, spread: .5, gap: 'rgb(146,117,82)', bgap: '#6c6c6c', ol: .08, mix: .45 }));
+  const MIN = { up: [sheet(0, false, true, BI), sheet(1, false, false, BI), sheet(2, false, false, BI)], low: [sheet(1, true, false, BI), sheet(2, true, true, BI), sheet(0, true, false, BI)] };
+  R = fr; for (const k in MIN) for (const m of MIN[k]) { m.color.setScalar(1.22); m.bumpScale = .9; }
   // A wall of sheets: group at (ox, y0, oz) turned ry; sheets run along local +x for L metres, face local +z, H metres tall.
   // skip: [[s0, s1, y0, y1]] holes (local metres) where no sheet is drawn (openings).
   // turn (28 Oct, inside lining): clean sheets may also hang upside down (a 180° turn, strands still run up the sheet), so 2 strand bases give 4 looks
@@ -874,7 +880,7 @@ const OSB = (() => {
     for (let s = 0, i = 0; s < L - .001; s += SW, i++) {
       const w = Math.min(SW, L - s);
       for (let y = 0, r = 0; y < H - .001; y += SH, r++) {
-        const h = Math.min(SH, H - y), low = r === 0 && row0Low, ms = (low ? MAT.low : MAT.up), k2 = (i + r + (fr() < .3 ? 1 : 0)) % 2, m = turn ? (low ? MIN.low : MIN.up)[k2] : ms[k2], flip = fr() < .5, rot = turn && !low && ms[k2] !== MAT.up[0] && ((i * 5 + r * 3 + (ox * 7 | 0)) & 1);   // never turn the stamped sheet (upside-down ink)
+        const h = Math.min(SH, H - y), low = r === 0 && row0Low, ms = (low ? MAT.low : MAT.up), k2 = (i + r + (fr() < .3 ? 1 : 0)) % 2, m = turn ? (low ? MIN.low : MIN.up)[(i * 2 + r + k2) % 3] : ms[k2], flip = fr() < .5, rot = turn && !low && !m.userData.stamp && ((i * 5 + r * 3 + (ox * 7 | 0)) & 1);   // never turn the stamped sheet (upside-down ink)
         const geo = new THREE.PlaneGeometry(w, h), uv = geo.attributes.uv;
         for (let k = 0; k < uv.count; k++) { let u = uv.getX(k) * w / SW, v = uv.getY(k) * h / SH; if (flip) u = 1 - u; if (!low && r > 0) v = 1 - h / SH + v * 1; if (rot) { u = 1 - u; v = 1 - v; } uv.setXY(k, u, v); }
         const mesh = new THREE.Mesh(geo, m); mesh.position.set(s + w / 2, y + h / 2, 0); mesh.receiveShadow = true; g.add(mesh); } }
