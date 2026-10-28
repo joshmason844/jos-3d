@@ -1206,18 +1206,33 @@ function WSHOP(P) {
     for (const sx of [-1, 1]) { const m = new THREE.Mesh(new THREE.BoxGeometry(.012, Math.hypot(H * .5, D) , .02), STEEL); m.position.set(sx * (L / 2 - .02), H * .75, 0); m.rotation.x = Math.atan2(D, H * .5); g.add(m); }
     return g; }
   const cbox = (p, x, y, z, w, h, d, ry = 0) => { const b = box(p, w, h, d, CARDS[cardN++ % 3], x, y, z, ry); return b; };
-  // 27 Oct 23:xx (07:xx review: "the crate's texture is a low-res smear of scratches"): the mapless white tubs got the wear pass's paint tile
-  // stretched over each face. Now one moulded-polypropylene tile of their own (so the wear pass skips them): faint vertical draft ribs, a
-  // shade under the lid lip, grubby foot, finger smudges near the top, a few fine scuffs. Own RNG, nothing else moves.
-  const TUBM = (() => { let ts = 9157; const tr = () => (ts = (ts * 16807) % 2147483647) / 2147483647, tf = (a, b) => a + (b - a) * tr();
-    return STD({ roughness: .42, map: can(256, 256, (x, w, h) => { x.fillStyle = '#e9ecec'; x.fillRect(0, 0, w, h);
-      for (let i = 4; i < w; i += 21) { x.fillStyle = 'rgba(255,255,255,.35)'; x.fillRect(i, 0, 2, h); x.fillStyle = 'rgba(90,96,100,.10)'; x.fillRect(i + 2, 0, 1, h); }   // draft ribs
-      let g = x.createLinearGradient(0, 0, 0, 26); g.addColorStop(0, 'rgba(60,64,66,.30)'); g.addColorStop(1, 'rgba(60,64,66,0)'); x.fillStyle = g; x.fillRect(0, 0, w, 26);   // shade under the lid lip
-      g = x.createLinearGradient(0, h, 0, h - 40); g.addColorStop(0, 'rgba(92,80,62,.32)'); g.addColorStop(1, 'rgba(92,80,62,0)'); x.fillStyle = g; x.fillRect(0, h - 40, w, 40);   // grubby foot
-      for (let i = 0; i < 7; i++) { const cx = tf(20, w - 20), cy = tf(26, 90), r = tf(8, 18), gr = x.createRadialGradient(cx, cy, 0, cx, cy, r); gr.addColorStop(0, `rgba(110,98,82,${tf(.06, .13)})`); gr.addColorStop(1, 'rgba(110,98,82,0)'); x.fillStyle = gr; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }   // finger smudges
-      for (let i = 0; i < 22; i++) { const a = tf(0, w), b = tf(30, h - 8), t = tf(-.5, .5) + (tr() < .5 ? 0 : Math.PI / 2), l = tf(4, 16); x.strokeStyle = `rgba(120,124,126,${tf(.18, .4)})`; x.lineWidth = tf(.5, 1); x.beginPath(); x.moveTo(a, b); x.lineTo(a + Math.cos(t) * l, b + Math.sin(t) * l); x.stroke(); }   // fine scuffs
-      for (let i = 0; i < 900; i++) { x.fillStyle = `rgba(${tr() < .5 ? '255,255,255' : '120,120,118'},${tf(.03, .09)})`; x.fillRect(tf(0, w), tf(0, h), 1, 1); } }) }); })();
-  const tub = (p, x, y, z, w, h, d, lid) => { box(p, w, h, d, TUBM, x, y, z); box(p, w + .02, .03, d + .02, STD({ color: lid, roughness: .4 }), x, y + h, z); };
+  // 28 Oct 00:xx (07:xx review: "the white crate with the green lid has no contact shadow and its texture is a low-res smear of scratches"): a moulded
+  // polypropylene storage box instead of two boxes. Tapered body with rounded corners, a stacking rim under the lid, a lid with a raised centre panel and
+  // end grips, its own fine moulded-plastic map in metres (so the wear pass, which only dresses mapless meshes, leaves it alone). Its contact shadow comes from
+  // the 27 Oct 23:xx halo bake (a shadow plane of its own was tried first; dropped so the two don't stack). Replaces the 23:xx TUBM box tub (its 0–1-per-face tile doesn't fit metre UVs).
+  // Same call signature and footprint; no RNG draws (own seed), so nothing else in the workshop moves.
+  const TUB = (() => { let ts = 9311; const tr = () => (ts = (ts * 16807) % 2147483647) / 2147483647;
+    const cvs = (W, H, draw) => { const c = document.createElement('canvas'); c.width = W; c.height = H; draw(c.getContext('2d'), W, H); const t = new CT(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
+    const plastic = cvs(512, 512, (x, W, H) => { x.fillStyle = '#e9ebe8'; x.fillRect(0, 0, W, H);   // 1 m tile (side UVs are in metres): faint mould flow lines, soft grey handling marks, a few fine scuffs
+      for (let i = 0; i < 90; i++) { x.strokeStyle = `rgba(150,155,150,${.03 + tr() * .05})`; x.lineWidth = .6 + tr(); const a = tr() * W; x.beginPath(); x.moveTo(a, 0); x.bezierCurveTo(a + (tr() - .5) * 30, H * .3, a + (tr() - .5) * 30, H * .7, a + (tr() - .5) * 20, H); x.stroke(); }
+      for (let i = 0; i < 14; i++) { const cx = tr() * W, cy = tr() * H, r = 20 + tr() * 50, g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, `rgba(95,90,80,${.05 + tr() * .07})`); g.addColorStop(1, 'rgba(95,90,80,0)'); x.fillStyle = g; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }
+      for (let i = 0; i < 40; i++) { x.strokeStyle = `rgba(${tr() < .5 ? '255,255,255' : '120,118,110'},${.12 + tr() * .2})`; x.lineWidth = .5 + tr() * .6; const a = tr() * W, b = tr() * H, t = tr() * 6.28, L = 6 + tr() * 22; x.beginPath(); x.moveTo(a, b); x.lineTo(a + Math.cos(t) * L, b + Math.sin(t) * L * .4); x.stroke(); }
+      for (let i = 0; i < 3000; i++) { x.fillStyle = `rgba(${tr() < .5 ? '255,255,255' : '140,140,132'},${.03 + tr() * .05})`; x.fillRect(tr() * W, tr() * H, 1, 1); } });
+    const body = STD({ map: plastic, color: 0xffffff, roughness: .52 }), rim = STD({ map: plastic, color: 0xdfe1de, roughness: .48 }), lids = {};
+    const lidM = c => lids[c] || (lids[c] = STD({ map: plastic, color: c, roughness: .5 }));
+    const rrect = (w, d, r) => { const s = new THREE.Shape(), a = w / 2, b = d / 2; s.moveTo(-a + r, -b); s.lineTo(a - r, -b); s.quadraticCurveTo(a, -b, a, -b + r); s.lineTo(a, b - r); s.quadraticCurveTo(a, b, a - r, b); s.lineTo(-a + r, b); s.quadraticCurveTo(-a, b, -a, b - r); s.lineTo(-a, -b + r); s.quadraticCurveTo(-a, -b, -a + r, -b); return s; };
+    const slab = (w, d, r, h, taper = 0) => { const G = new THREE.ExtrudeGeometry(rrect(w, d, r), { depth: h, bevelEnabled: false, curveSegments: 4 }); G.rotateX(-Math.PI / 2);   // extruded up +y from y 0
+      if (taper) { const P_ = G.attributes.position; for (let i = 0; i < P_.count; i++) { const k = 1 - taper * (1 - P_.getY(i) / h); P_.setX(i, P_.getX(i) * k); P_.setZ(i, P_.getZ(i) * k); } }
+      G.computeVertexNormals(); return G; };
+    const mesh = (p, G, m, x, y, z) => { const o = new THREE.Mesh(G, m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; p.add(o); return o; };
+    return (p, x, y, z, w, h, d, lid) => { const r = Math.min(.03, w * .08, d * .08), hb = h - .022, L = lidM(lid);
+      mesh(p, slab(w - .012, d - .012, r, hb, .07), body, x, y, z);                       // tapered body, 7 % narrower at the foot
+      mesh(p, slab(w + .004, d + .004, r + .004, .016), rim, x, y + hb - .016, z);          // stacking rim just under the lid
+      mesh(p, slab(w + .016, d + .016, r + .008, .022), L, x, y + hb, z);                  // lid
+      mesh(p, slab(w * .72, d * .66, r * .8, .008), L, x, y + h, z);                       // raised centre panel
+      for (const s of [-1, 1]) { const g = mesh(p, new THREE.BoxGeometry(.012, .016, d * .42), L, x + s * (w / 2 + .012), y + hb + .006, z); g.position.y += .008; }   // end grips
+    }; })();
+  const tub = (p, x, y, z, w, h, d, lid) => TUB(p, x, y, z, w, h, d, lid);
   const tin = (p, x, y, z, r, h, col) => { cyl(p, r, h, STD({ color: 0xb5b9bc, metalness: .7, roughness: .35 }), x, y + h / 2, z); cyl(p, r * 1.01, h * .55, STD({ color: col, roughness: .5 }), x, y + h * .45, z); cyl(p, r * .95, .006, STEEL, x, y + h + .003, z); };
   const caseY = (p, x, y, z, w, h, d, ry = 0) => { const g = grp(p, x, y, z, ry); box(g, w, h * .5, d, YEL, 0, 0, 0); box(g, w, h * .5, d, BLK, 0, h * .5, 0); box(g, w + .008, .012, d + .008, BLK, 0, h * .5 - .006, 0);   // moulded seam rim
     for (const sx of [-1, 1]) { box(g, .022, .028, .03, BLK, sx * w * .2, h, 0); box(g, .05, .05, .018, YEL, sx * w * .35, h * .42, d / 2 + .009); box(g, .036, .014, .02, BLK, sx * w * .35, h * .5, d / 2 + .012); }   // handle posts, flip latches

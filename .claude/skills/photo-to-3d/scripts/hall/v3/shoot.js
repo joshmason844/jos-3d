@@ -98,6 +98,7 @@ const want = only ? only.split(',') : ['door', 'up', 'roofclose', 'far'];
     const died = new Promise((_, no) => p.on('pageerror', e => no(new Error(n + ' page error before ready: ' + e.message))));   // fail fast instead of a 300 s timeout
     await p.goto('file://' + path.resolve(page), { waitUntil: 'commit' }); await Promise.race([p.waitForFunction(() => window.__ready, null, { timeout: 300000 }), died]);
     log.push(`${n}: ready in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+    const dbg = await p.evaluate(() => ({ topShadows: window.__topShadow, pegShadowPx: window.__pegShadowPx })); if (dbg.topShadows) log.push(`${n}: worktop shadow sheets [x0, z0, x1, z1, y, items] ${JSON.stringify(dbg.topShadows)}`);   // 28 Oct: bake checks in the console file
     for (const v of want) {
       const V = VIEWS[v];
       if (typeof V === 'string') { await p.evaluate(k => window.__view(k), V); await p.waitForTimeout(1800); }
