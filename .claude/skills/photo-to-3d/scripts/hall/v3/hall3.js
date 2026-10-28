@@ -1276,7 +1276,15 @@ function WSHOP(P) {
     const yS = STD({ map: skin('#ffffff', '255,255,255', '255,255,240', '90,74,40'), color: 0xf2b705, roughness: .5 });
     const kS = STD({ map: skin('#2a2b2e', '120,120,124', '150,150,150', '110,104,94'), color: 0xffffff, roughness: .55 });
     const kR = STD({ color: 0x1d1e20, roughness: .78 });   // grip and posts: rubbery (the wear pass gives it a knurl and dust)
-    const stl = STD({ color: 0xb9bdc0, metalness: .6, roughness: .34 }), keep = STD({ map: yS.map, color: 0xd9a204, roughness: .55 });
+    // 28 Oct 07:xx (04:xx run's find: "the steel latches pick up rust specks and smudges from the wear pass"): the latches, hook lips and hinge pins get
+    // their own 256 px brushed-stainless map (fine brush lines one way, a soft thumb smudge, a darker edge where dirt sits), so the wear pass skips them.
+    // Drawn after yS/kS from the same case RNG, so nothing else moves.
+    const brush = cvs(256, 256, (x, W, H) => { x.fillStyle = '#ffffff'; x.fillRect(0, 0, W, H);
+      for (let i = 0; i < 700; i++) { const yy = cr() * H, a = .03 + cr() * .07; x.fillStyle = `rgba(${cr() < .5 ? '255,255,255' : '60,62,66'},${a})`; x.fillRect(0, yy, W, .5 + cr()); }
+      for (let i = 0; i < 4; i++) { const cx = cr() * W, cy = cr() * H, r = 30 + cr() * 50, g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, `rgba(90,86,80,${.08 + cr() * .06})`); g.addColorStop(1, 'rgba(90,86,80,0)'); x.fillStyle = g; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }
+      const e = x.createLinearGradient(0, 0, 0, H); e.addColorStop(0, 'rgba(70,66,60,.18)'); e.addColorStop(.12, 'rgba(70,66,60,0)'); e.addColorStop(.88, 'rgba(70,66,60,0)'); e.addColorStop(1, 'rgba(70,66,60,.18)'); x.fillStyle = e; x.fillRect(0, 0, W, H); });
+    brush.repeat.set(.25, .25);
+    const stl = STD({ map: brush, color: 0xc4c8cb, metalness: .6, roughness: .34 }), keep = STD({ map: yS.map, color: 0xd9a204, roughness: .55 });
     const rrect = (w, d, r) => { const s = new THREE.Shape(), a = w / 2, b = d / 2; s.moveTo(-a + r, -b); s.lineTo(a - r, -b); s.quadraticCurveTo(a, -b, a, -b + r); s.lineTo(a, b - r); s.quadraticCurveTo(a, b, a - r, b); s.lineTo(-a + r, b); s.quadraticCurveTo(-a, b, -a, b - r); s.lineTo(-a, -b + r); s.quadraticCurveTo(-a, -b, -a + r, -b); return s; };
     const slab = (w, d, r, h, taper = 0) => { const G = new THREE.ExtrudeGeometry(rrect(w, d, r), { depth: h, bevelEnabled: false, curveSegments: 4 }); G.rotateX(-Math.PI / 2);
       if (taper) { const P_ = G.attributes.position; for (let i = 0; i < P_.count; i++) { const k = 1 - taper * (1 - P_.getY(i) / h); P_.setX(i, P_.getX(i) * k); P_.setZ(i, P_.getZ(i) * k); } }
