@@ -84,6 +84,7 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   wsconc:   [[4.3, 1.25, -7.9], [3.4, 0, -9.6], true],       // low over the workshop floor between the benches: concrete grain, sawdust, contact shadows (28 Oct 01:xx)
   wsfloor: [[3.5, 3.45, -9.85], [3.5, 0, -9.9], true],      // straight down on the back half of the workshop floor: contact shadows under the compressor, bin and buckets
   wsboard: [[4.3, 1.75, -5.2], [4.3, 1.55, -2.5], true],    // the front wall over the front bench: whiteboard, calendar, notice; the window light on the floor (23 Oct, W5b)
+  wscal:   [[4.45, 1.45, -3.35], [4.78, 1.36, -2.5], true],     // close on the wall calendar from the front bench, a little to its left: curl, binding, nail, shadow (29 Oct 04:xx)
   wssigns: [[3.0, 2.8, -9.6], [3.2, 2.5, -12.9], true],     // the far wall above the tool wall: eye/ear signs, no smoking over the doorway
   tallface: [[6.8, 3.7, -26.4], [1.0, 3.3, -26.6], true],   // the left band's tall bay above the pale sheeted block, z −25…−28.2 (17 Oct 07:xx)
   tallclose:[[3.6, 4.1, -25.4], [0.9, 3.7, -27.0], true],   // up close on its two upper levels
