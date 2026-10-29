@@ -1294,6 +1294,17 @@ function WSHOP(P) {
       const e = x.createLinearGradient(0, 0, 0, H); e.addColorStop(0, 'rgba(70,66,60,.18)'); e.addColorStop(.12, 'rgba(70,66,60,0)'); e.addColorStop(.88, 'rgba(70,66,60,0)'); e.addColorStop(1, 'rgba(70,66,60,.18)'); x.fillStyle = e; x.fillRect(0, 0, W, H); });
     brush.repeat.set(.25, .25);
     const stl = STD({ map: brush, color: 0xc4c8cb, metalness: .6, roughness: .34 }), keep = STD({ map: yS.map, color: 0xd9a204, roughness: .55 });
+    // 29 Oct 01:xx (07:xx review: "lid and lower body flat matt black at phone size, grip posts plain cubes"): the lid shell becomes a satin charcoal moulding
+    // with rounded (bevelled) edges that catch a light line, and its top is a separate inset panel with a coarse moulded grain (map + bump, own RNG 7433,
+    // so the case RNG above is untouched) in a matt, slightly lighter tone, so the lid reads as rim + textured panel instead of one black field.
+    // Grip posts are round with a flared foot. Same signature, same footprint.
+    let gs = 7433; const gr = () => (gs = (gs * 16807) % 2147483647) / 2147483647;
+    const grain = cvs(256, 256, (x, W, H) => { x.fillStyle = '#808080'; x.fillRect(0, 0, W, H);
+      for (let i = 0; i < 5200; i++) { const l = gr() < .5; x.fillStyle = `rgba(${l ? '255,255,255' : '0,0,0'},${.08 + gr() * .12})`; const r = 1 + gr() * 1.2; x.beginPath(); x.arc(gr() * W, gr() * H, r, 0, 7); x.fill(); } });
+    grain.colorSpace = THREE.NoColorSpace; grain.repeat.set(12, 12);
+    const kL = STD({ map: kS.map, color: 0xe2e4e8, roughness: .4 });                                   // lid shell: satin, so the rounded edges pick up a highlight
+    const kP = STD({ map: grain, color: 0x4a4c51, roughness: .84, bumpMap: grain, bumpScale: 1.1, roughnessMap: grain });   // lid top panel: matt moulded grain (a map, so the wear pass leaves it)
+    const slabB = (w, d, r, h, bv) => { const G = new THREE.ExtrudeGeometry(rrect(w - 2 * bv, d - 2 * bv, Math.max(.002, r - bv)), { depth: h - 2 * bv, bevelEnabled: true, bevelThickness: bv, bevelSize: bv, bevelSegments: 3, curveSegments: 4 }); G.rotateX(-Math.PI / 2); G.translate(0, bv, 0); G.computeVertexNormals(); return G; };
     const rrect = (w, d, r) => { const s = new THREE.Shape(), a = w / 2, b = d / 2; s.moveTo(-a + r, -b); s.lineTo(a - r, -b); s.quadraticCurveTo(a, -b, a, -b + r); s.lineTo(a, b - r); s.quadraticCurveTo(a, b, a - r, b); s.lineTo(-a + r, b); s.quadraticCurveTo(-a, b, -a, b - r); s.lineTo(-a, -b + r); s.quadraticCurveTo(-a, -b, -a + r, -b); return s; };
     const slab = (w, d, r, h, taper = 0) => { const G = new THREE.ExtrudeGeometry(rrect(w, d, r), { depth: h, bevelEnabled: false, curveSegments: 4 }); G.rotateX(-Math.PI / 2);
       if (taper) { const P_ = G.attributes.position; for (let i = 0; i < P_.count; i++) { const k = 1 - taper * (1 - P_.getY(i) / h); P_.setX(i, P_.getX(i) * k); P_.setZ(i, P_.getZ(i) * k); } }
@@ -1303,8 +1314,8 @@ function WSHOP(P) {
       M(g, slab(w - .012, d - .012, r, hb - .006, .04), yS, 0, 0, 0);                                   // yellow base, a touch narrower at the foot
       for (const sx of [-1, 1]) for (const sz of [-1, 1]) M(g, new THREE.CylinderGeometry(r + .003, r + .001, hb - .014, 10), kS, sx * (w / 2 - r - .004), (hb - .014) / 2, sz * (d / 2 - r - .004));   // corner bumpers
       M(g, slab(w - .004, d - .004, r + .002, .007), kS, 0, hb - .008, 0);                            // dark parting rim
-      M(g, slab(w, d, r + .004, hl - .006), kS, 0, hb - .002, 0);                                     // lid
-      M(g, slab(w - .02, d - .02, r, .006), kS, 0, h - .008, 0);                                       // lid top, a step in from the edge
+      M(g, slabB(w, d, r + .004, hl - .006, .005), kL, 0, hb - .002, 0);                              // lid, rounded edges
+      M(g, slabB(w - .03, d - .03, r, .009, .002), kP, 0, h - .011, 0);                                // lid top: grained panel, a step in from the edge
       for (const s of [-1, 1]) M(g, slab(w * .82, .014, .006, .007), kS, 0, h - .002, s * d * .3);      // two stacking ribs along the top
       for (const sx of [-1, 1]) { const lx = sx * w * .33;
         box(g, .052, .044, .006, keep, lx, hb - .05, d / 2 - .004);                                       // recessed yellow keep on the base front
@@ -1312,7 +1323,7 @@ function WSHOP(P) {
         box(g, .042, .006, .01, stl, lx, hb - .034, d / 2 + .008);                                        // its hook lip over the base keep
         const pin = cyl(g, .005, .046, stl, lx, hb + .018, d / 2 + .004); pin.rotation.z = Math.PI / 2;     // hinge pin across the lid front
         const hg = cyl(g, .007, w * .14, kS, sx * w * .3, hb, -d / 2 - .002); hg.rotation.z = Math.PI / 2; }  // lid hinges at the back
-      for (const sx of [-1, 1]) box(g, .026, .03, .03, kR, sx * w * .2, h - .002, 0);                       // grip posts, standing on the lid
+      for (const sx of [-1, 1]) { cyl(g, .0125, .03, kR, sx * w * .2, h + .013, 0, 'y', 14); cyl(g, .018, .006, kR, sx * w * .2, h + .001, 0, 'y', 14); }   // round grip posts with a flared foot, standing on the lid
       const hd = tmesh(g, new THREE.CapsuleGeometry(.012, w * .4, 3, 10), kR, 0, h + .036, 0); hd.rotation.z = Math.PI / 2;   // grip, resting on the posts
       for (let i = 0; i < 3; i++) box(g, w * .7, .004, .006, kS, 0, hb + hl * .3 + i * .016, -d / 2 - .004);  // ribs on the lid back
       return g; }; })();
