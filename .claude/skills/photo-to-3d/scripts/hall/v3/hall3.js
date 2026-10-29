@@ -1870,7 +1870,22 @@ function WSHOP(P) {
       const bb = (z) => { box(g, .045, .085, .085, CND, CX - .006, CY - .045, z); box(g, .002, .07, .07, STD({ color: 0xf2f2ee, roughness: .4 }), CX - .029, CY - .037, z); };   // adaptable back box where a drop turns into a run
       const sock = (z) => { box(g, .04, .09, .15, CND, 5.94, CY - .045, z); for (const dz of [-.035, .035]) box(g, .005, .025, .015, BLK, 5.918, CY - .012, z + dz); box(g, .004, .008, .012, STD({ color: 0xc23b22, emissive: 0x802010, emissiveIntensity: .6 }), 5.919, CY + .022, z); };   // double socket, a little red neon by the switch
       drop(-7.47, 3.58); bb(-7.47); run(-7.47, -5.5); for (const z of [-6.1, -6.85]) sock(z); box(g, .045, .085, .085, CND, CX - .006, CY - .045, -5.5);   // door-end run: ends in a box at the window jamb
-      drop(-12.76, 3.58); bb(-12.76); run(-12.76, -7.86); for (const z of [-7.86, -9.0, -10.3, -11.6]) sock(z); }
+      drop(-12.76, 3.58); bb(-12.76); run(-12.76, -7.86); for (const z of [-7.86, -9.0, -10.3, -11.6]) sock(z);
+      // 29 Oct 02:xx (backlog: "the window bench has no socket at all" and "contact shadows under the conduit are weak"): a spur leaves the
+      // window-jamb box downwards, turns and runs under the sill to a double socket under the glass (y 1.0–1.09: clear of the 0.95 m bench top
+      // and the 1.13 m sill); and every run, drop, box and socket on this wall gets a soft baked shadow on the lining just below it (the light
+      // comes from the strip lights above). Shadow strips are planes 2 mm off the lining (x 5.958), no AO, no shadows. No RNG draws.
+      { const SY = 1.045, Z0 = -5.5, ZS = -4.62, zr = ZS + .075;
+        cyl(g, R, 1.11 - SY, CND, CX, (1.11 + SY) / 2, Z0, 'y', 10); const el = new THREE.Mesh(new THREE.SphereGeometry(R, 10, 8), CND); el.position.set(CX, SY, Z0); g.add(el);   // drop out of the box, a rounded bend
+        cyl(g, R, zr - Z0, CND, CX, SY, (Z0 + zr) / 2, 'z', 10); box(g, .004, .028, .016, SAD, CX - .012, SY - .014, -5.12); for (const y of [SY - .02, SY + .014]) box(g, .012, .006, .016, SAD, CX + .006, y, -5.12);
+        box(g, .04, .09, .15, CND, 5.94, SY - .045, ZS); for (const dz of [-.035, .035]) box(g, .005, .025, .015, BLK, 5.918, SY - .012, ZS + dz); box(g, .004, .008, .012, STD({ color: 0xc23b22, emissive: 0x802010, emissiveIntensity: .6 }), 5.919, SY + .022, ZS); }
+      { const sh = can(8, 64, (x, w, h) => { const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(30,22,14,.5)'); gr.addColorStop(.18, 'rgba(30,22,14,.32)'); gr.addColorStop(1, 'rgba(30,22,14,0)'); x.fillStyle = gr; x.fillRect(0, 0, w, h); });
+        const SHM = new THREE.MeshBasicMaterial({ map: sh, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+        const strip = (zA, zB, yTop, h) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(Math.abs(zB - zA), h), SHM); m.rotation.y = -Math.PI / 2; m.position.set(5.958, yTop - h / 2, (zA + zB) / 2); m.userData.noAO = true; m.renderOrder = 1; g.add(m); };
+        strip(-7.47, -5.5, CY - .008, .035); strip(-12.76, -7.86, CY - .008, .035); strip(-5.5, -4.695, 1.045 - .008, .03);   // under the runs
+        for (const z of [-6.1, -6.85, -7.86, -9.0, -10.3, -11.6]) strip(z - .085, z + .085, CY - .045, .05); strip(-4.705, -4.535, 1.0, .045);   // under the sockets (they stand 4 cm off)
+        for (const z of [-7.47, -12.76, -5.5]) strip(z - .05, z + .05, CY - .088, .04); }   // under the back boxes
+      }
     box(g, 2.8, .025, .025, CND, 3.25, 1.28, -12.92); for (const x of [2.2, 3.4, 4.5]) box(g, .15, .09, .04, CND, x, 1.24, -12.92);
     box(g, .08, .12, .03, CND, 4.75, 1.3, -12.92); box(g, .025, 1.3, .025, CND, 4.75, 1.42, -12.92);
     const dust = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 10.5), new THREE.MeshStandardMaterial({ transparent: true, depthWrite: false, roughness: 1, map: can(1024, 2048, (x, w, h) => { x.clearRect(0, 0, w, h);   // 28 Oct 01:xx: 4× the pixels (≈ 5 mm), same wr() draws
