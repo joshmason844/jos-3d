@@ -1319,8 +1319,21 @@ function WSHOP(P) {
       if (taper) { const P_ = G.attributes.position; for (let i = 0; i < P_.count; i++) { const k = 1 - taper * (1 - P_.getY(i) / h); P_.setX(i, P_.getX(i) * k); P_.setZ(i, P_.getZ(i) * k); } }
       G.computeVertexNormals(); return G; };
     const M = (p, G, m, x, y, z) => { const o = new THREE.Mesh(G, m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; p.add(o); return o; };
+    // 29 Oct 07:xx (03:xx review, wstop: "the case looks a touch floaty: its contact shadow on the bench is thin"): the bench bake darkens round each part's
+    // bounding box, but the base tapers in 4 % to its foot and the bumpers stand proud, so the bake's tight core sat hidden under the overhang. Each case now
+    // carries its own shadow sheet drawn from the real foot outline: a dark core right at the foot (≈ 5 mm) and a soft 2 cm spread. Transparent, so the
+    // bake, the merge and the wear pass all skip it; no RNG drawn. One texture per case size.
+    const fsTex = new Map(), FSM = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
+    const footShadow = (w, d) => { const pad = .05, PW = w + 2 * pad, PD = d + 2 * pad, key = w.toFixed(3) + ',' + d.toFixed(3); let m = fsTex.get(key);
+      if (!m) { const PPM = 400, W = Math.ceil(PW * PPM), H = Math.ceil(PD * PPM), fx = (w - .012) * .96 / 2, fz = (d - .012) * .96 / 2, c = document.createElement('canvas'); c.width = W; c.height = H;
+        const x = c.getContext('2d'), im = x.createImageData(W, H);
+        for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const px = (i + .5) / PPM - PW / 2, pz = (j + .5) / PPM - PD / 2, dd = Math.hypot(Math.max(0, Math.abs(px) - fx), Math.max(0, Math.abs(pz) - fz));
+          const a = dd <= 0 ? .9 : Math.min(.9, .62 * Math.exp(-dd / .0045) + .3 * Math.exp(-dd / .018)), q = (j * W + i) * 4; im.data[q] = 20; im.data[q + 1] = 14; im.data[q + 2] = 8; im.data[q + 3] = a * 255; }
+        x.putImageData(im, 0, 0); m = FSM.clone(); m.map = new CT(c); m.map.colorSpace = THREE.SRGBColorSpace; fsTex.set(key, m); }
+      const s = new THREE.Mesh(new THREE.PlaneGeometry(PW, PD), m); s.rotation.x = -Math.PI / 2; s.position.y = .0025; s.renderOrder = 2; s.userData.noAO = true; return s; };
     return (p, x, y, z, w, h, d, ry = 0) => { const g = grp(p, x, y, z, ry), r = Math.min(.022, w * .07, d * .07), hb = h * .56, hl = h - hb;
       M(g, slab(w - .012, d - .012, r, hb - .006, .04), yS, 0, 0, 0);                                   // yellow base, a touch narrower at the foot
+      g.add(footShadow(w, d));                                                                          // 29 Oct 07:xx: its own tight contact shadow round the foot
       // 29 Oct 03:xx (01:xx run's find: "bumpers and parting rim flat matt black, no edge light"): rubber corner caps turned on a lathe (rounded top and foot,
       // a slight belly) in a satin charcoal (kB), and the parting rim a bevelled band in the same satin, so both pick up a light line at phone size.
       for (const sx of [-1, 1]) for (const sz of [-1, 1]) M(g, bumpG(r, hb - .014), kB, sx * (w / 2 - r - .004), 0, sz * (d / 2 - r - .004));   // corner bumpers
