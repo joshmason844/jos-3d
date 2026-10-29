@@ -1883,12 +1883,21 @@ function WSHOP(P) {
     sg(.3, .2, 180, 120, (x, w, h) => { x.fillStyle = '#f7f6f2'; x.fillRect(0, 0, w, h); x.strokeStyle = '#d0201a'; x.lineWidth = 8; x.beginPath(); x.arc(46, 60, 36, 0, 7); x.stroke(); x.fillStyle = '#222'; x.fillRect(22, 56, 40, 9); x.fillStyle = '#d0201a'; x.fillRect(62, 56, 7, 9); x.strokeStyle = '#d0201a'; x.beginPath(); x.moveTo(21, 35); x.lineTo(71, 85); x.stroke(); txt(x, 'NO', 22, 132, 56); txt(x, 'SMOKING', 18, 132, 80); }, 5.4, 2.25, -12.896, 0);
     // front wall, the bare OSB over the front bench: a whiteboard of jobs, a calendar, a printed notice taped up
     const wb = grp(g, 3.75, 1.45, -2.492, Math.PI); box(wb, 1.2, .8, .02, STD({ color: 0xb9bcbf, metalness: .5, roughness: .4 }), 0, 0, 0);
-    box(wb, 1.16, .76, .004, STD({ roughness: .25, map: can(464, 304, (x, w, h) => { x.fillStyle = '#f4f5f3'; x.fillRect(0, 0, w, h);
+    box(wb, 1.16, .76, .004, STD({ roughness: .55, envMapIntensity: .6, map: can(464, 304, (x, w, h) => { x.fillStyle = '#f4f5f3'; x.fillRect(0, 0, w, h);
       for (let i = 0; i < 7; i++) { const cx = vf(0, w), cy = vf(0, h), r = vf(30, 90), gr = x.createRadialGradient(cx, cy, 0, cx, cy, r); gr.addColorStop(0, 'rgba(150,160,175,.12)'); gr.addColorStop(1, 'rgba(150,160,175,0)'); x.fillStyle = gr; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }   // ghosts of old writing
       x.font = 'bold 30px "Comic Sans MS", "Marker Felt", cursive'; x.fillStyle = '#1b3f8a'; x.fillText('JOBS', 18, 40); x.fillRect(18, 46, 70, 3);
-      x.lineCap = 'round'; for (let r = 0; r < 7; r++) { const y = 82 + r * 31, col = r === 3 ? '#b3261e' : r === 6 ? '#1d6b35' : '#1b2030'; x.strokeStyle = col; x.lineWidth = 2.6;   // scribbled lines of a list, not real words
-        x.beginPath(); x.arc(26, y - 6, 4, 0, 7); x.stroke(); let px = 40; x.beginPath(); x.moveTo(px, y); const L = vf(160, 360); while (px < 40 + L) { const step = vf(5, 11); x.quadraticCurveTo(px + step / 2, y - vf(4, 14), px + step, y + vf(-2, 2)); px += step; if (vr() < .12) { px += vf(6, 12); x.moveTo(px, y); } } x.stroke();
-        if (r < 3) { x.strokeStyle = '#1b2030'; x.beginPath(); x.moveTo(36, y - 5); x.lineTo(36 + L * .9, y - 7); x.stroke(); } }   // three jobs crossed off
+      // 29 Oct 00:xx (03:xx review: "the JOBS list is squiggles"): real marker words, letter by letter with a little tilt and bounce so it reads hand-written in any font;
+      // workshop jobs only, no people's names. Own RNG (5113); the old squiggles' vf()/vr() draws are burned below so nothing after the board moves.
+      { let ws = 5113; const wr = () => (ws = (ws * 16807) % 2147483647) / 2147483647, wf = (a, b) => a + (b - a) * wr();
+        const JOBS = [['16ft door hinges', 0], ['Re-stitch bell tent B4', 0], ['Sharpen chisels', 0], ['Planter straps x8 !!', 1], ['New mitre saw blade', 0], ['Order M8 bolts + washers', 0], ['SWEEP UP', 2]];
+        x.lineCap = x.lineJoin = 'round'; x.textBaseline = 'alphabetic';
+        JOBS.forEach(([t, k], r) => { const y = 84 + r * 31, col = k === 1 ? '#b3261e' : k === 2 ? '#1d6b35' : '#1b2030'; x.fillStyle = x.strokeStyle = col; x.lineWidth = 2.6;
+          x.beginPath(); x.arc(26, y - 8, 4, 0, 7); x.stroke(); let px = 40; const tilt = wf(-.025, .015);
+          x.font = 'bold 23px "Marker Felt", "Segoe Print", "Comic Sans MS", "Chalkboard SE", sans-serif';
+          for (const ch of t) { const cw = x.measureText(ch).width; x.save(); x.translate(px, y + wf(-1.2, 1.2) + (px - 40) * tilt); x.rotate(wf(-.07, .07)); x.globalAlpha = wf(.82, .97); x.fillText(ch, 0, 0); x.restore(); px += cw * wf(.9, 1.0); }
+          if (r < 3) { x.strokeStyle = '#1b2030'; x.lineWidth = 2.4; x.beginPath(); x.moveTo(34, y - 8 + wf(-1, 1)); x.lineTo(px + 4, y - 8 + (px - 40) * tilt + wf(-2, 1)); x.stroke(); } });   // first three crossed off
+        }   // (a 'done' note with an arrow was tried: the phone close-up crops the board's right side, so it read as a stray 'do')
+      for (let r = 0; r < 7; r++) { let px = 40; const L = vf(160, 360); while (px < 40 + L) { const step = vf(5, 11); vf(4, 14); vf(-2, 2); px += step; if (vr() < .12) px += vf(6, 12); } }   // burn the old squiggles' draws
       x.fillStyle = '#d0201a'; x.beginPath(); x.arc(420, 30, 9, 0, 7); x.fill(); x.fillStyle = '#1f5fae'; x.beginPath(); x.arc(392, 30, 9, 0, 7); x.fill(); }) }), 0, .02, .011);
     box(wb, .5, .03, .05, STD({ color: 0xb9bcbf, metalness: .5, roughness: .4 }), .2, -.03, .03); for (const [dx, c] of [[.05, 0x1b3f8a], [.15, 0xb3261e], [.25, 0x1b1c1e]]) cyl(wb, .009, .13, STD({ color: c, roughness: .4 }), dx, .0, .035, 'x', 8);
     const cal = grp(g, 4.75, 1.4, -2.49, Math.PI); box(cal, .3, .42, .003, STD({ roughness: .7, map: can(150, 210, (x, w, h) => { x.fillStyle = '#fbfaf6'; x.fillRect(0, 0, w, h); x.fillStyle = '#4c7a9a'; x.fillRect(0, 0, w, 92); x.fillStyle = 'rgba(255,255,255,.35)'; for (let i = 0; i < 6; i++) { x.beginPath(); x.moveTo(vf(0, w), 92); x.lineTo(vf(0, w), vf(10, 60)); x.lineTo(vf(0, w), 92); x.fill(); }   // a picture, then the month grid
