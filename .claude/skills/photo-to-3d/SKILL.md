@@ -76,6 +76,7 @@ After each build, before replying:
 - Watch: a racking row runs along its local +x, so on the right wall (ry −90°) it heads toward the door: start it at the far end.
 
 ## Traps learned
+- Small text on a canvas map (calendar day numbers, labels) needs the canvas drawn at 2–3× with `x.scale(k, k)` and the old units kept: same coordinates, same RNG draws, sharp text. At 150 px wide a 6 px number is mush (29 Oct).
 - A part that tapers to its foot (or has proud corner bumpers) hides the bench bake's tight shadow core under its overhang: give it its own transparent shadow sheet drawn from the real foot outline (`footShadow` in CASEY). Transparent keeps the bake, merge and wear pass off it (29 Oct).
 - A lamp's bloom dot on glass or gloss is direct specular: cut `reflectedLight.directSpecular` for that material (`dimSpec` in hall3.js), not roughness (rougher spreads it) and not env intensity (that kills the glass look). Find it first by mirroring the lamp in the surface's plane (29 Oct).
 - Yard page inputs (yard.jpg, bake.json, cam.json) aren't in the public repo: run `scripts/fetch_inputs.py <saved live page>` first (save it with the Artifact tool's read). Then `node scripts/shoot.js yard-3d.html <prefix>` for phone + desktop shots of photo / orbit / model / close (14 Oct).
