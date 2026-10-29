@@ -875,15 +875,20 @@ const OSB = (() => {
   // A wall of sheets: group at (ox, y0, oz) turned ry; sheets run along local +x for L metres, face local +z, H metres tall.
   // skip: [[s0, s1, y0, y1]] holes (local metres) where no sheet is drawn (openings).
   // turn (28 Oct, inside lining): clean sheets may also hang upside down (a 180° turn, strands still run up the sheet), so 2 strand bases give 4 looks
-  function wall(p, ox, y0, oz, ry, L, H, row0Low = true, turn = false) {
+  // holes (28 Oct 23:xx, see-through front window): [[s0, s1, y0, y1]] in wall metres; a sheet that overlaps one is drawn as up to 4 pieces round it, UVs as the whole sheet's, no extra draws
+  function wall(p, ox, y0, oz, ry, L, H, row0Low = true, turn = false, holes = []) {
     const g = grp(p, ox, y0, oz, ry);
     for (let s = 0, i = 0; s < L - .001; s += SW, i++) {
       const w = Math.min(SW, L - s);
       for (let y = 0, r = 0; y < H - .001; y += SH, r++) {
         const h = Math.min(SH, H - y), low = r === 0 && row0Low, ms = (low ? MAT.low : MAT.up), k2 = (i + r + (fr() < .3 ? 1 : 0)) % 2, m = turn ? (low ? MIN.low : MIN.up)[(i * 2 + r + k2) % 3] : ms[k2], flip = fr() < .5, rot = turn && !low && !m.userData.stamp && ((i * 5 + r * 3 + (ox * 7 | 0)) & 1);   // never turn the stamped sheet (upside-down ink)
-        const geo = new THREE.PlaneGeometry(w, h), uv = geo.attributes.uv;
-        for (let k = 0; k < uv.count; k++) { let u = uv.getX(k) * w / SW, v = uv.getY(k) * h / SH; if (flip) u = 1 - u; if (!low && r > 0) v = 1 - h / SH + v * 1; if (rot) { u = 1 - u; v = 1 - v; } uv.setXY(k, u, v); }
-        const mesh = new THREE.Mesh(geo, m); mesh.position.set(s + w / 2, y + h / 2, 0); mesh.receiveShadow = true; g.add(mesh); } }
+        let parts = [[0, w, 0, h]];
+        for (const [h0, h1, hy0, hy1] of holes) { const a = Math.max(0, h0 - s), b = Math.min(w, h1 - s), c = Math.max(0, hy0 - y), d = Math.min(h, hy1 - y);
+          if (a < b && c < d) parts = [[0, w, 0, c], [0, w, d, h], [0, a, c, d], [b, w, c, d]].filter(q => q[1] - q[0] > .001 && q[3] - q[2] > .001); }
+        for (const [a, b, c, d] of parts) {
+          const geo = new THREE.PlaneGeometry(b - a, d - c), uv = geo.attributes.uv, pos = geo.attributes.position; geo.translate((a + b - w) / 2, (c + d - h) / 2, 0);
+          for (let k = 0; k < uv.count; k++) { let u = (pos.getX(k) + w / 2) / w * w / SW, v = (pos.getY(k) + h / 2) / h * h / SH; if (flip) u = 1 - u; if (!low && r > 0) v = 1 - h / SH + v * 1; if (rot) { u = 1 - u; v = 1 - v; } uv.setXY(k, u, v); }
+          const mesh = new THREE.Mesh(geo, m); mesh.position.set(s + w / 2, y + h / 2, 0); mesh.receiveShadow = true; g.add(mesh); } } }
     return g; }
   MX.osb.map.dispose(); MX.osb.map = null; MX.osb.color.set(0x9a7c56); MX.osb.needsUpdate = true;   // box edges and inner faces: plain OSB tone (the old stretched blotchy map is gone)
   return { wall, MAT, SW, SH };
@@ -899,11 +904,13 @@ function layout() {
       const POSTM = STD({ color: 0x2c4a39, roughness: .4, metalness: .3 });   // satin moss-green paint, a shade lighter than the portal frames so the rounded corners catch the light
       const PG = new THREE.ExtrudeGeometry(sh, { depth: CH, bevelEnabled: false, curveSegments: 3 }); PG.rotateX(-Math.PI / 2); PG.translate(0, -CH / 2, 0);   // 27 Oct 06:xx: mezzanine posts are 140 SHS with rounded corners (were sharp boxes: a flat dark stripe at phone size), same material, same mesh count
       for (const [x, z] of [[.3, -.3], [MW - .1, -.3], [MW - .1, -ML / 2], [MW - .1, -ML], [.3, -ML]]) { const m = box(g, .14, CH, .14, POSTM, x, 0, z); m.geometry.dispose(); m.geometry = PG; } }
-    box(g, MW, CH, .05, MX.osb, MW / 2, 0, -.15); box(g, .05, CH, ML - .2, MX.osb, MW, 0, -ML / 2 - .1);   // workshop walls
-    box(g, .04, 1.4, 2.4, STD({ color: 0x8aa0ad, metalness: .4, roughness: .1 }), MW + .04, 1.2, -1.8); box(g, .04, .9, 1.6, STD({ color: 0x8aa0ad, metalness: .4, roughness: .1 }), MW + .04, 1.2, -9.5);   // windows clear of the yellow racking (scan: racking z -5.25…-10.85)
+    box(g, MW, CH, .05, MX.osb, MW / 2, 0, -.15);   // workshop walls; 28 Oct 23:xx: the aisle wall has a real opening for the front window (local z −.6…−3.0, y 1.2–2.6), was solid behind frosted panes
+    box(g, .05, CH, .4, MX.osb, MW, 0, -.4); box(g, .05, CH, ML - 3.0, MX.osb, MW, 0, -(ML + 3.0) / 2); box(g, .05, 1.2, 2.4, MX.osb, MW, 0, -1.8); box(g, .05, CH - 2.6, 2.4, MX.osb, MW, 2.6, -1.8);
+    { const GO = box(g, .012, 1.4, 2.4, STD({ color: 0xc4d2da, metalness: 0, roughness: .04, transparent: true, opacity: .14, depthWrite: false }), MW + .055, 1.2, -1.8); GO.castShadow = GO.receiveShadow = false; GO.userData.noAO = true; }   // clear glass you see the workshop through
+    box(g, .04, .9, 1.6, STD({ color: 0x8aa0ad, metalness: .4, roughness: .1 }), MW + .04, 1.2, -9.5);   // windows clear of the yellow racking (scan: racking z -5.25…-10.85)
     box(SPARE, .06, 2.0, .9, MX.osb, MW + .04, 0, -2.4);   // 17 Oct: no door here (the workshop scan has the long bench and a wide window on this stretch; the way in is in the far wall): drawn into SPARE. Was: door near the front, where the scan shows the way in                                                         // door
     { const sv = _seed, TR = STD({ map: grain('#c8a878', '120,85,45', 256, 32, 0), roughness: .7 }), _r = (_seed = sv), HW_ = STD({ color: 0x8e9196, metalness: .7, roughness: .35 });   // OSB sheets on every face you can see (16–17 Oct): front to the door, long wall to the aisle, sewing-room walls above
-      OSB.wall(g, 0, 0, -.122, 0, MW, CH); OSB.wall(g, MW + .028, 0, -.2, Math.PI / 2, ML - .2, CH);
+      OSB.wall(g, 0, 0, -.122, 0, MW, CH); OSB.wall(g, MW + .028, 0, -.2, Math.PI / 2, ML - .2, CH, true, false, [[.4, 2.8, 1.2, 2.6]]);
       OSB.wall(g, 0, DK, -.122, 0, MW, SH, false); OSB.wall(g, MW + .028, DK, -.2, Math.PI / 2, ML - .2, .62, false); OSB.wall(g, MW + .028, DK + 1.9, -.2, Math.PI / 2, ML - .2, .5, false);
       for (const [y, h] of [[0, CH], [DK, SH]]) box(g, .07, h, .07, TR, MW - .005, y, -.135);   // corner battens over the sheet edges
       for (const [zc, ww, y0, wh] of [[-1.8, 2.4, 1.2, 1.4], [-9.5, 1.6, 1.2, .9]]) { for (const s of [-1, 1]) box(g, .03, wh + .1, .06, TR, MW + .04, y0 - .05, zc + s * (ww / 2 + .03)); for (const y of [y0 - .08, y0 + wh]) box(g, .03, .06, ww + .12, TR, MW + .04, y, zc); }   // window architraves (front window 2.4 × 1.4 m from the workshop scan, 17 Oct)
@@ -1194,11 +1201,13 @@ function WSHOP(P) {
   const shell = grp(P);
   // 28 Oct 02:xx: the lining is real sheets from OSB.wall (2 strand bases, flipped/turned, stamps, a grubby bottom row, bump), not one
   // 1.22 × 2.44 tile repeated identically down every wall (07:xx review: "OSB grain repeated and overscaled up close"). OSBIN is still drawn (qr() draws) for the far-wall door leaf.
-  const lin = (L, H, x, z, ry) => OSB.wall(shell, x - Math.cos(ry) * L / 2, 0, z + Math.sin(ry) * L / 2, ry, L, H, true, true);
+  const lin = (L, H, x, z, ry, holes = []) => OSB.wall(shell, x - Math.cos(ry) * L / 2, 0, z + Math.sin(ry) * L / 2, ry, L, H, true, true, holes);
   lin(10.5, 3.8, .45, -7.7, Math.PI / 2);
-  { const w = grp(P), GL = STD({ color: 0x9fb4c2, metalness: .3, roughness: .08, emissive: 0x6f8798, emissiveIntensity: .35 }), FR = STD({ color: 0xc8a878, roughness: .7 });   // the front window from inside (scan: the aisle wall reads as glass at z −2.9…−5.3, 1.2–2.6 m)
-    box(w, .02, 1.4, 2.4, GL, 5.945, 1.2, -4.1); for (const s of [-1, 1]) box(w, .05, 1.5, .07, FR, 5.93, 1.15, -4.1 + s * 1.235); for (const y of [1.13, 2.6]) box(w, .05, .07, 2.54, FR, 5.93, y, -4.1); box(w, .05, 1.4, .05, FR, 5.93, 1.2, -4.1);
-    box(w, .16, .03, 2.54, FR, 5.86, 1.13, -4.1); } lin(5.5, 3.8, 3.2, -2.48, Math.PI); lin(10.4, 3.8, 5.96, -7.65, -Math.PI / 2);
+  { const w = grp(P), GL = STD({ color: 0xc4d2da, metalness: 0, roughness: .04, transparent: true, opacity: .16, depthWrite: false }), FR = STD({ color: 0xc8a878, roughness: .7 });   // 28 Oct 23:xx (07:xx review: "front window blown out white"): clear glass onto the hall, was an opaque frosted emissive pane with a hotspot   // the front window from inside (scan: the aisle wall reads as glass at z −2.9…−5.3, 1.2–2.6 m)
+    { const gi = box(w, .012, 1.4, 2.4, GL, 5.95, 1.2, -4.1); gi.castShadow = gi.receiveShadow = false; gi.userData.noAO = true; }
+    for (const z of [-2.9, -5.3]) box(w, .1, 1.4, .012, FR, 5.995, 1.2, z + (z > -4 ? -.006 : .006)); for (const y of [1.2, 2.6]) box(w, .1, .012, 2.4, FR, 5.995, y - (y > 2 ? .012 : 0), -4.1);   // timber reveals through the wall's depth
+    for (const s of [-1, 1]) box(w, .05, 1.5, .07, FR, 5.93, 1.15, -4.1 + s * 1.235); for (const y of [1.13, 2.6]) box(w, .05, .07, 2.54, FR, 5.93, y, -4.1); box(w, .05, 1.4, .05, FR, 5.93, 1.2, -4.1);
+    box(w, .16, .03, 2.54, FR, 5.86, 1.13, -4.1); } lin(5.5, 3.8, 3.2, -2.48, Math.PI); { const L = 10.4, z = -7.65, s0 = -2.9 - (z - L / 2); lin(L, 3.8, 5.96, z, -Math.PI / 2, [[s0 - 2.4, s0, 1.2, 2.6]]); }
   { const fw = grp(P, 0, 0, -12.95); const H = 3.8, D0 = 4.95, D1 = 5.85, DH = 2.05;   // far wall: OSB on studs, a doorway at the aisle corner (scan: gap at x ≈ 5.0–5.8)
     for (const [a, b, y0, y1] of [[.45, D0, 0, H], [D1, 6.0, 0, H], [D0, D1, DH, H]]) { box(fw, b - a, y1 - y0, .1, CARC, (a + b) / 2, y0, 0); for (const zz of [.052, -.052]) OSB.wall(fw, zz > 0 ? a : b, y0, zz, zz > 0 ? 0 : Math.PI, b - a, y1 - y0, y0 === 0, true); }   // 28 Oct: real sheets, as the lining
     const TR = STD({ color: 0xc8a878, roughness: .7 }); for (const x of [D0 - .03, D1 + .03]) box(fw, .06, DH + .06, .14, TR, x, 0, 0); box(fw, D1 - D0 + .12, .06, .14, TR, (D0 + D1) / 2, DH, 0);
