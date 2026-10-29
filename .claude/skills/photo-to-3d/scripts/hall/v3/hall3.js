@@ -1303,6 +1303,9 @@ function WSHOP(P) {
       for (let i = 0; i < 5200; i++) { const l = gr() < .5; x.fillStyle = `rgba(${l ? '255,255,255' : '0,0,0'},${.08 + gr() * .12})`; const r = 1 + gr() * 1.2; x.beginPath(); x.arc(gr() * W, gr() * H, r, 0, 7); x.fill(); } });
     grain.colorSpace = THREE.NoColorSpace; grain.repeat.set(12, 12);
     const kL = STD({ map: kS.map, color: 0xe2e4e8, roughness: .4 });                                   // lid shell: satin, so the rounded edges pick up a highlight
+    const kB = STD({ map: kS.map, color: 0xffffff, roughness: .36 });                                  // bumpers + parting rim: satin rubber, a touch darker than the lid
+    const bumpG = (r, H) => { const R = r + .003, P = [[0, 0], [R - .004, 0], [R - .001, .002], [R, .006], [R + .0007, H * .5], [R, H - .006], [R - .001, H - .002], [R - .004, H], [0, H]];
+      const G = new THREE.LatheGeometry(P.map(([a, b]) => new THREE.Vector2(a, b)), 14); G.computeVertexNormals(); return G; };
     const kP = STD({ map: grain, color: 0x4a4c51, roughness: .84, bumpMap: grain, bumpScale: 1.1, roughnessMap: grain });   // lid top panel: matt moulded grain (a map, so the wear pass leaves it)
     const slabB = (w, d, r, h, bv) => { const G = new THREE.ExtrudeGeometry(rrect(w - 2 * bv, d - 2 * bv, Math.max(.002, r - bv)), { depth: h - 2 * bv, bevelEnabled: true, bevelThickness: bv, bevelSize: bv, bevelSegments: 3, curveSegments: 4 }); G.rotateX(-Math.PI / 2); G.translate(0, bv, 0); G.computeVertexNormals(); return G; };
     const rrect = (w, d, r) => { const s = new THREE.Shape(), a = w / 2, b = d / 2; s.moveTo(-a + r, -b); s.lineTo(a - r, -b); s.quadraticCurveTo(a, -b, a, -b + r); s.lineTo(a, b - r); s.quadraticCurveTo(a, b, a - r, b); s.lineTo(-a + r, b); s.quadraticCurveTo(-a, b, -a, b - r); s.lineTo(-a, -b + r); s.quadraticCurveTo(-a, -b, -a + r, -b); return s; };
@@ -1312,11 +1315,13 @@ function WSHOP(P) {
     const M = (p, G, m, x, y, z) => { const o = new THREE.Mesh(G, m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; p.add(o); return o; };
     return (p, x, y, z, w, h, d, ry = 0) => { const g = grp(p, x, y, z, ry), r = Math.min(.022, w * .07, d * .07), hb = h * .56, hl = h - hb;
       M(g, slab(w - .012, d - .012, r, hb - .006, .04), yS, 0, 0, 0);                                   // yellow base, a touch narrower at the foot
-      for (const sx of [-1, 1]) for (const sz of [-1, 1]) M(g, new THREE.CylinderGeometry(r + .003, r + .001, hb - .014, 10), kS, sx * (w / 2 - r - .004), (hb - .014) / 2, sz * (d / 2 - r - .004));   // corner bumpers
-      M(g, slab(w - .004, d - .004, r + .002, .007), kS, 0, hb - .008, 0);                            // dark parting rim
+      // 29 Oct 03:xx (01:xx run's find: "bumpers and parting rim flat matt black, no edge light"): rubber corner caps turned on a lathe (rounded top and foot,
+      // a slight belly) in a satin charcoal (kB), and the parting rim a bevelled band in the same satin, so both pick up a light line at phone size.
+      for (const sx of [-1, 1]) for (const sz of [-1, 1]) M(g, bumpG(r, hb - .014), kB, sx * (w / 2 - r - .004), 0, sz * (d / 2 - r - .004));   // corner bumpers
+      M(g, slabB(w - .004, d - .004, r + .002, .007, .0025), kB, 0, hb - .008, 0);                    // dark parting rim, rounded edges
       M(g, slabB(w, d, r + .004, hl - .006, .005), kL, 0, hb - .002, 0);                              // lid, rounded edges
       M(g, slabB(w - .03, d - .03, r, .009, .002), kP, 0, h - .011, 0);                                // lid top: grained panel, a step in from the edge
-      for (const s of [-1, 1]) M(g, slab(w * .82, .014, .006, .007), kS, 0, h - .002, s * d * .3);      // two stacking ribs along the top
+      for (const s of [-1, 1]) { const rb = M(g, new THREE.CapsuleGeometry(.008, w * .76, 3, 10), kL, 0, h - .002, s * d * .3); rb.rotation.z = Math.PI / 2; rb.scale.set(.55, 1, 1); }   // two stacking ribs: wide, low, rounded satin ridges half-sunk into the lid top
       for (const sx of [-1, 1]) { const lx = sx * w * .33;
         box(g, .052, .044, .006, keep, lx, hb - .05, d / 2 - .004);                                       // recessed yellow keep on the base front
         const L = box(g, .04, .046, .007, stl, lx, hb - .03, d / 2 + .006); L.rotation.x = -.04;           // steel flip latch, lying over the parting line
