@@ -1330,9 +1330,18 @@ function WSHOP(P) {
       for (const s of [-1, 1]) { const rb = M(g, new THREE.CapsuleGeometry(.008, w * .76, 3, 10), kL, 0, h - .002, s * d * .3); rb.rotation.z = Math.PI / 2; rb.scale.set(.55, 1, 1); }   // two stacking ribs: wide, low, rounded satin ridges half-sunk into the lid top
       for (const sx of [-1, 1]) { const lx = sx * w * .33;
         box(g, .052, .044, .006, keep, lx, hb - .05, d / 2 - .004);                                       // recessed yellow keep on the base front
-        const L = box(g, .04, .046, .007, stl, lx, hb - .03, d / 2 + .006); L.rotation.x = -.04;           // steel flip latch, lying over the parting line
-        box(g, .042, .006, .01, stl, lx, hb - .034, d / 2 + .008);                                        // its hook lip over the base keep
-        const pin = cyl(g, .005, .046, stl, lx, hb + .018, d / 2 + .004); pin.rotation.z = Math.PI / 2;     // hinge pin across the lid front
+        // 29 Oct 06:xx (03:xx review, wscase: "the steel flip latches are flat grey slabs: no hinge barrel, no hook detail"): each latch is a pressed
+        // plate with rounded corners and a pressed rib down its middle, rolled round a barrel at the top that turns on a pin held by two lugs on the lid,
+        // and curled into a hook lip at the foot that sits over a catch tongue on the yellow keep. All parts mapped (stl / kL / keep), so the wear pass
+        // still skips them; no RNG drawn, so nothing else moves.
+        const L = M(g, slabB(.04, .044, .007, .0045, .0015), stl, lx, hb - .006, d / 2 + .0035); L.rotation.x = Math.PI / 2 - .04;   // pressed latch plate over the parting line
+        const rib = M(g, new THREE.CapsuleGeometry(.0035, .02, 3, 8), stl, lx, hb - .008, d / 2 + .0082); rib.scale.set(1, 1, .45);   // pressed stiffening rib
+        const bar = cyl(g, .0068, .04, stl, lx, hb + .018, d / 2 + .0062); bar.rotation.z = Math.PI / 2;     // the plate rolled round its pin: hinge barrel
+        for (const s of [-1, 1]) box(g, .005, .018, .011, kL, lx + s * .0235, hb + .009, d / 2 + .004);     // pivot lugs moulded on the lid, either side of the barrel
+        const lip = cyl(g, .0034, .04, stl, lx, hb - .03, d / 2 + .0075); lip.rotation.z = Math.PI / 2;     // hook lip curled at the foot
+        box(g, .04, .0035, .007, stl, lx, hb - .0335, d / 2 + .0035);                                      // the hook turning in under the lip
+        box(g, .03, .006, .007, keep, lx, hb - .0405, d / 2 + .0005);                                      // catch tongue on the keep, the hook sits over it
+        const pin = cyl(g, .003, .052, stl, lx, hb + .018, d / 2 + .0062); pin.rotation.z = Math.PI / 2;     // hinge pin, ends showing through the lugs
         const hg = cyl(g, .007, w * .14, kS, sx * w * .3, hb, -d / 2 - .002); hg.rotation.z = Math.PI / 2; }  // lid hinges at the back
       for (const sx of [-1, 1]) { cyl(g, .0125, .03, kR, sx * w * .2, h + .013, 0, 'y', 14); cyl(g, .018, .006, kR, sx * w * .2, h + .001, 0, 'y', 14); }   // round grip posts with a flared foot, standing on the lid
       const hd = tmesh(g, new THREE.CapsuleGeometry(.012, w * .4, 3, 10), kR, 0, h + .036, 0); hd.rotation.z = Math.PI / 2;   // grip, resting on the posts
