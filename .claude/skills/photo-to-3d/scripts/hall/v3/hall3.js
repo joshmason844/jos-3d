@@ -9,6 +9,12 @@ let ZONE = null; const zone = name => { ZONE = { name, items: [] }; ZONES.push(Z
 const T = (obj, name, what, size, sure = 'sure') => { tag(obj, name, what, size, [], sure); if (ZONE) ZONE.items.push(obj); return obj; };
 
 // ---------------- materials ----------------
+// 29 Oct 05:xx (03:xx review: "blown point-light glare on the window frame and the glass"): scale a material's DIRECT specular only (lamp and
+// spot highlights), leaving its env reflection and diffuse alone. Roughness can't do it (.04 → .14 spread the dot into a bigger bloom, 29 Oct 02:xx).
+// Chains any onBeforeCompile already set; wsLightGate() later chains on top of this and still finds its own include.
+const dimSpec = (m, k) => { const prev = m.onBeforeCompile, pk = m.customProgramCacheKey;
+  m.onBeforeCompile = (sh, r) => { if (prev) prev.call(m, sh, r); sh.fragmentShader = sh.fragmentShader.replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\nreflectedLight.directSpecular *= ' + k.toFixed(3) + ';'); };
+  m.customProgramCacheKey = () => (pk ? pk.call(m) : '') + '|ds' + k; return m; };
 // Stretch-wrap film: one shared 512² map + alpha map, own RNG (the layout seed must not move). Front faces only, so a pile is wrapped once, not twice.
 function filmMat(top) { let q = top ? 57 : 91; const r = () => (q = (q * 16807) % 2147483647) / 2147483647;
   const draw = alphaOnly => (x, w, h) => {
@@ -906,7 +912,7 @@ function layout() {
       for (const [x, z] of [[.3, -.3], [MW - .1, -.3], [MW - .1, -ML / 2], [MW - .1, -ML], [.3, -ML]]) { const m = box(g, .14, CH, .14, POSTM, x, 0, z); m.geometry.dispose(); m.geometry = PG; } }
     box(g, MW, CH, .05, MX.osb, MW / 2, 0, -.15);   // workshop walls; 28 Oct 23:xx: the aisle wall has a real opening for the front window (local z −.6…−3.0, y 1.2–2.6), was solid behind frosted panes
     box(g, .05, CH, .4, MX.osb, MW, 0, -.4); box(g, .05, CH, ML - 3.0, MX.osb, MW, 0, -(ML + 3.0) / 2); box(g, .05, 1.2, 2.4, MX.osb, MW, 0, -1.8); box(g, .05, CH - 2.6, 2.4, MX.osb, MW, 2.6, -1.8);
-    { const GO = box(g, .012, 1.4, 2.4, STD({ color: 0xc4d2da, metalness: 0, roughness: .04, transparent: true, opacity: .14, depthWrite: false }), MW + .055, 1.2, -1.8); GO.castShadow = GO.receiveShadow = false; GO.userData.noAO = true; }   // clear glass you see the workshop through
+    { const GO = box(g, .012, 1.4, 2.4, dimSpec(STD({ color: 0xc4d2da, metalness: 0, roughness: .04, transparent: true, opacity: .14, depthWrite: false }), .03), MW + .055, 1.2, -1.8); GO.castShadow = GO.receiveShadow = false; GO.userData.noAO = true; }   // clear glass you see the workshop through
     box(g, .04, .9, 1.6, STD({ color: 0x8aa0ad, metalness: .4, roughness: .1 }), MW + .04, 1.2, -9.5);   // windows clear of the yellow racking (scan: racking z -5.25…-10.85)
     box(SPARE, .06, 2.0, .9, MX.osb, MW + .04, 0, -2.4);   // 17 Oct: no door here (the workshop scan has the long bench and a wide window on this stretch; the way in is in the far wall): drawn into SPARE. Was: door near the front, where the scan shows the way in                                                         // door
     { const sv = _seed, TR = STD({ map: grain('#c8a878', '120,85,45', 256, 32, 0), roughness: .7 }), _r = (_seed = sv), HW_ = STD({ color: 0x8e9196, metalness: .7, roughness: .35 });   // OSB sheets on every face you can see (16–17 Oct): front to the door, long wall to the aisle, sewing-room walls above
@@ -1203,7 +1209,7 @@ function WSHOP(P) {
   // 1.22 × 2.44 tile repeated identically down every wall (07:xx review: "OSB grain repeated and overscaled up close"). OSBIN is still drawn (qr() draws) for the far-wall door leaf.
   const lin = (L, H, x, z, ry, holes = []) => OSB.wall(shell, x - Math.cos(ry) * L / 2, 0, z + Math.sin(ry) * L / 2, ry, L, H, true, true, holes);
   lin(10.5, 3.8, .45, -7.7, Math.PI / 2);
-  { const w = grp(P), GL = STD({ color: 0xc4d2da, metalness: 0, roughness: .04, transparent: true, opacity: .16, depthWrite: false }), FR = STD({ color: 0xc8a878, roughness: .7 });   // 28 Oct 23:xx (07:xx review: "front window blown out white"): clear glass onto the hall, was an opaque frosted emissive pane with a hotspot   // the front window from inside (scan: the aisle wall reads as glass at z −2.9…−5.3, 1.2–2.6 m)
+  { const w = grp(P), GL = dimSpec(STD({ color: 0xc4d2da, metalness: 0, roughness: .04, transparent: true, opacity: .16, depthWrite: false }), .03), FR = dimSpec(STD({ color: 0xc8a878, roughness: .7 }), .3);   // 28 Oct 23:xx (07:xx review: "front window blown out white"): clear glass onto the hall, was an opaque frosted emissive pane with a hotspot   // the front window from inside (scan: the aisle wall reads as glass at z −2.9…−5.3, 1.2–2.6 m)
     { const gi = box(w, .012, 1.4, 2.4, GL, 5.95, 1.2, -4.1); gi.castShadow = gi.receiveShadow = false; gi.userData.noAO = true; }
     for (const z of [-2.9, -5.3]) box(w, .1, 1.4, .012, FR, 5.995, 1.2, z + (z > -4 ? -.006 : .006)); for (const y of [1.2, 2.6]) box(w, .1, .012, 2.4, FR, 5.995, y - (y > 2 ? .012 : 0), -4.1);   // timber reveals through the wall's depth
     for (const s of [-1, 1]) box(w, .05, 1.5, .07, FR, 5.93, 1.15, -4.1 + s * 1.235); for (const y of [1.13, 2.6]) box(w, .05, .07, 2.54, FR, 5.93, y, -4.1); box(w, .05, 1.4, .05, FR, 5.93, 1.2, -4.1);

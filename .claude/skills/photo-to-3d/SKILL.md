@@ -76,6 +76,7 @@ After each build, before replying:
 - Watch: a racking row runs along its local +x, so on the right wall (ry −90°) it heads toward the door: start it at the far end.
 
 ## Traps learned
+- A lamp's bloom dot on glass or gloss is direct specular: cut `reflectedLight.directSpecular` for that material (`dimSpec` in hall3.js), not roughness (rougher spreads it) and not env intensity (that kills the glass look). Find it first by mirroring the lamp in the surface's plane (29 Oct).
 - Yard page inputs (yard.jpg, bake.json, cam.json) aren't in the public repo: run `scripts/fetch_inputs.py <saved live page>` first (save it with the Artifact tool's read). Then `node scripts/shoot.js yard-3d.html <prefix>` for phone + desktop shots of photo / orbit / model / close (14 Oct).
 - Floating labels need real box overlap (measure offsetWidth once, re-measure on fonts.ready) and keep-out zones for the title and button bar; a fixed small overlap box lets long labels stack. In photo mode, drop labels outside the photo camera's frustum or they float in the void (14 Oct).
 - Small kit up close: a flush dark dot reads as a hole, so knots, bolts and screw heads need to stand proud (~5 mm) with a bit of sheen. Plain cubes become believable fast with 3–4 cues each: tape + label (cardboard), batten frame + screws (crate), rim + ribs (tote). Builders are `cardBox`, `plyCrate`, `tote`, `jerryCan` in model.js (15 Oct).
