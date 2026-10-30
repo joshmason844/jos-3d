@@ -1131,6 +1131,7 @@ function WSHOP(P) {
     specks(x, w, h, 4000, .12); const g = x.createRadialGradient(w / 2, h / 2, h * .2, w / 2, h / 2, w * .6); g.addColorStop(0, 'rgba(70,45,25,.12)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); }) });
   const BACKB = STD({ color: 0x5e4a34, roughness: .96 }), PLINTH = STD({ color: 0x3e3428, roughness: .96 }); const NOTCHE = STD({ color: 0xc8ad84, roughness: .96 });   // 27 Oct 06:xx: raw ply on the worktop's notch cut   // 27 Oct 05:xx: carcass back (hardboard) and kick plinth; roughness ≥ .95 keeps them out of the wear pass
   const CARC = STD({ color: 0x9a7c56, roughness: .85 }), EDGE = STD({ color: 0x6b5236, roughness: .8 });
+  const FRW = STD({ color: 0x8a6c48, roughness: .96 }), FOOT = STD({ color: 0x4a3e30, roughness: .97 }), WASH = STD({ color: 0x9a9fa4, metalness: .5, roughness: .45 }), BOLTM = STD({ color: 0x55595e, metalness: .5, roughness: .5 });   // 30 Oct 07:xx: open-bench frame (rails a shade darker than the legs, grubby feet, zinc washers, dark bolt heads)
   const STEEL = STD({ color: 0x7c8186, metalness: .6, roughness: .45 }), DARK = STD({ color: 0x24272b, roughness: .55, metalness: .3 }), CHIP = STD({ color: 0xc9b48f, roughness: .85 });
   const RED = STD({ color: 0xb8231d, roughness: .4, metalness: .2 }), YEL = STD({ color: 0xf2b705, roughness: .45 }), BLK = STD({ color: 0x1b1c1e, roughness: .6 }), ORA = STD({ color: 0xe0661c, roughness: .45, metalness: .2 });
   // W5b (23 Oct): grime. Cupboard doors: finger marks round the pull, boot scuffs at the foot, dirty edges; bench front edges: dings, dark worn patches
@@ -1247,6 +1248,15 @@ function WSHOP(P) {
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, .07, H - .04, .07, CARC, sx * (L / 2 - .05), 0, sz * (D / 2 - .05));
     for (let k = 1; k < Math.floor(L / 1.4); k++) for (const sz of [-1, 1]) box(g, .07, H - .04, .07, CARC, -L / 2 + k * L / Math.floor(L / 1.4), 0, sz * (D / 2 - .05));
     box(g, L - .1, .022, D - .1, CHIP, 0, .16, 0); box(g, L, .07, .04, CARC, 0, H - .14, -D / 2 + .03);
+    if (!opts.doors) {   // 30 Oct 07:xx (03:xx review: "bench frames are plain blocks"): open benches get a real frame: shelf bearers along both long sides, cross rails
+      // at each leg (low under the shelf and high under the top), a coach bolt + washer where each rail meets a leg, and grubby leg feet. Own materials, no RNG drawn.
+      // FRW/FOOT roughness ≥ .95 so the wear pass leaves them alone; bolts are small steel, which the wear pass dresses as it does every other bolt.
+      const n = Math.floor(L / 1.4), xs = [-(L / 2 - .05), L / 2 - .05]; for (let k = 1; k < n; k++) xs.push(-L / 2 + k * L / n);
+      for (const sz of [-1, 1]) box(g, L - .06, .055, .022, FRW, 0, .095, sz * (D / 2 - .004));   // bearers on the legs' outer faces, the shelf sits on them
+      for (const lx of xs) { box(g, .045, .055, D - .14, FRW, lx, .095, 0); box(g, .045, .07, D - .14, FRW, lx, H - .14, 0);   // cross rails between each leg pair
+        box(g, .074, .035, .074, FOOT, lx, 0, D / 2 - .05); box(g, .074, .035, .074, FOOT, lx, 0, -(D / 2 - .05));   // floor grime on the leg feet
+        for (const sz of [-1, 1]) { cyl(g, .014, .003, WASH, lx, .1225, sz * (D / 2 + .0085), 'z', 12); cyl(g, .0085, .007, BOLTM, lx, .1225, sz * (D / 2 + .013), 'z', 10); }   // coach bolt through bearer and leg
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) cyl(g, .012, .003, WASH, lx + sx * .0365, H - .105, sz * (D / 2 - .05), 'x', 12); } }   // the high rail's bolts show on the legs' sides
     if (opts.doors) {   // 27 Oct 05:xx (03:xx review: "black gaps behind the rails, bare wall behind the doors"): close the carcass: hardboard back, ply ends, a rail over the doors, a dark kick plinth
       box(g, L - .02, H - .06, .006, BACKB, 0, .02, -D / 2 + .008); for (const sx of [-1, 1]) box(g, .018, H - .06, D - .02, CARC, sx * (L / 2 - .009), .02, 0);
       box(g, L - .02, .09, .02, railMat(L - .02), 0, H - .16, D / 2 - .012); box(g, L - .04, .1, .018, PLINTH, 0, 0, D / 2 - .035); }
