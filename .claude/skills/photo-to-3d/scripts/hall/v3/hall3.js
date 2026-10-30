@@ -843,10 +843,10 @@ const OSB = (() => {
     const [c, x] = can(PW, PH), [bc, b] = can(PW / 2, PH / 2);
     x.fillStyle = o.gap || 'rgb(120,94,62)'; x.fillRect(0, 0, PW, PH); b.fillStyle = o.bgap || '#505050'; b.fillRect(0, 0, PW / 2, PH / 2);   // dark resin-filled gaps between flakes
     for (let i = 0, N = o.n || 6400; i < N; i++) {                                // strands, mostly along the sheet (vertical), a few cross ones from the core showing
-      const p0 = PAL[R() * PAL.length | 0], mx = o.mix || 0, p = p0.map((v, q) => v + ([156, 127, 90][q] - v) * mx), j = (R() - .5) * 14 * (1 - mx), L = ((o.L0 || .045) + R() * (o.L1 || .085)) * K, Wd = ((o.W0 || .01) + R() * (o.W1 || .018)) * K;
+      const p0 = PAL[R() * PAL.length | 0], mx = o.mix || 0, p = p0.map((v, q) => v + ((o.to || [156, 127, 90])[q] - v) * mx), j = (R() - .5) * 14 * (1 - mx), L = ((o.L0 || .045) + R() * (o.L1 || .085)) * K, Wd = ((o.W0 || .01) + R() * (o.W1 || .018)) * K;
       const a = R() < .12 ? R() * Math.PI : Math.PI / 2 + (R() - .5) * (o.spread || .8);
       strand(x, b, R() * PW, R() * PH, L, Wd, a, `rgb(${p[0] + j | 0},${p[1] + j | 0},${p[2] + j * .8 | 0})`, `rgba(80,58,32,${(o.ol || .18) + R() * (o.ol ? o.ol : .25)})`); }
-    for (let i = 0; i < 90; i++) { x.fillStyle = `rgba(${55 + R() * 30 | 0},${38 + R() * 20 | 0},${22},${.5 + R() * .4})`; x.save(); x.translate(R() * PW, R() * PH); x.rotate(Math.PI / 2 + (R() - .5)); x.fillRect(-6, -1.5, 8 + R() * 14, 2 + R() * 3); x.restore(); }   // bark and resin flecks
+    for (let i = 0; i < 90; i++) { x.fillStyle = `rgba(${55 + R() * 30 | 0},${38 + R() * 20 | 0},${22},${(.5 + R() * .4) * (o.fk || 1)})`; x.save(); x.translate(R() * PW, R() * PH); x.rotate(Math.PI / 2 + (R() - .5)); x.fillRect(-6, -1.5, 8 + R() * 14, 2 + R() * 3); x.restore(); }   // bark and resin flecks
     for (let i = 0; i < 10; i++) { const g = x.createRadialGradient(0, 0, 0, 0, 0, 1); x.save(); x.translate(R() * PW, R() * PH); x.scale(60 + R() * 140, 80 + R() * 200); const k = R() < .5;   // big soft mottling: some sheets darker in patches
       g.addColorStop(0, k ? 'rgba(90,62,30,.10)' : 'rgba(255,240,210,.08)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.beginPath(); x.arc(0, 0, 1, 0, 7); x.fill(); x.restore(); }
     return [c, bc]; }
@@ -875,7 +875,9 @@ const OSB = (() => {
   // 28 Oct 03:xx: the inside gets its OWN sheets: wider, flatter flakes (2.5–5 cm × 6–14 cm, laid closer to the sheet's length), lighter gaps,
   // softer outlines, tones pulled 45 % toward the scan's median (blind review 03:xx: full spread read as camouflage at board distance), and three strand bases instead of two so sheets don't pair up across the room. Own RNG (6007): nothing outside moves.
   let si = 6007; const fi = () => (si = (si * 16807) % 2147483647) / 2147483647;
-  R = fi; const BI = [0, 1, 2].map(() => base({ n: 2900, L0: .06, L1: .08, W0: .025, W1: .025, spread: .5, gap: 'rgb(146,117,82)', bgap: '#6c6c6c', ol: .08, mix: .45 }));
+  // 30 Oct 04:xx (review: "at phone size the inside OSB's flakes are big and orange, the wall reads close to cork"): smaller strands (4–10 cm × 1.2–2.8 cm,
+  // more of them so the cover stays the same), tones pulled 60 % toward a slightly cooler median (154/128/96, the scan's 148/123/90 lit), fainter outlines.
+  R = fi; const BI = [0, 1, 2].map(() => base({ n: 6400, L0: .04, L1: .06, W0: .012, W1: .016, spread: .45, gap: 'rgb(150,124,92)', bgap: '#6c6c6c', ol: .06, mix: .6, to: [154, 128, 96], fk: .4 }));   // fk: the bark flecks at 40 %: on the finer strands they read as dark rice grains
   const MIN = { up: [sheet(0, false, true, BI), sheet(1, false, false, BI), sheet(2, false, false, BI)], low: [sheet(1, true, false, BI), sheet(2, true, true, BI), sheet(0, true, false, BI)] };
   R = fr; for (const k in MIN) for (const m of MIN[k]) { m.color.setScalar(1.22); m.bumpScale = .9; }
   // A wall of sheets: group at (ox, y0, oz) turned ry; sheets run along local +x for L metres, face local +z, H metres tall.
