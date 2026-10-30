@@ -1555,7 +1555,10 @@ function WSHOP(P) {
            blobs. Now a part further off throws a lighter, softer shadow, and the tight dark core only comes from parts close to the board */
         /* 27 Oct 04:xx (blind review: "no contact shadows, the hammers look stuck on"): meet halfway. Keep the lighter wide pass, but every band gets a
            tight dark core again (alpha .4–.49, small blur, short drop) so heads and grips sit on the board without the old wide smear */
-        for (const [al, bl, dy] of [[Math.max(.2, .46 - off * 5), 2 + off * k * .8, 1.6], [Math.max(.4, .5 - off * 2), 1 + off * k * .12, .7]]) {   // a wide soft shadow, then a tighter darker core nearer the part
+        /* 30 Oct 05:xx (review: "tools read stuck on, their shadows on the board are faint at phone size"): the core used to drop .7 × stand-off with a 1 px
+           blur, so it hid almost wholly behind the part. Now a soft all-round contact halo (no drop) outlines every part, and the core is darker
+           (.55–.68), a touch softer and drops 1.05 × stand-off so a dark rim shows under each head, grip and blade */
+        for (const [al, bl, dy] of [[Math.max(.2, .46 - off * 5), 2 + off * k * .8, 1.6], [.3, 2.5, .2], [Math.max(.55, .68 - off * 2.5), 1.5 + off * k * .15, 1.05]]) {   // a wide soft shadow, a contact halo, then a tighter darker core nearer the part
           if (al <= 0) continue;
           sx.save(); sx.globalAlpha = al; sx.shadowColor = 'rgba(20,12,6,1)'; sx.shadowBlur = bl; sx.shadowOffsetX = -PX; sx.shadowOffsetY = off * k * dy;   // the image goes in the right half, its shadow lands in the left half
           sx.drawImage(lay[bi], PX, 0, PX, PY); sx.restore(); } });   // (drawing it fully off-canvas and keeping only the shadow, as the box version did, draws nothing in Chrome: drawImage off the canvas is skipped)

@@ -76,6 +76,7 @@ After each build, before replying:
 - Watch: a racking row runs along its local +x, so on the right wall (ry −90°) it heads toward the door: start it at the far end.
 
 ## Traps learned
+- A baked drop shadow whose offset is smaller than the part's own outline hides behind it: the pegboard core dropped .7 × stand-off with a 1 px blur and showed nothing on a phone. Drop it ≥ 1 × stand-off and add a no-drop contact halo (alpha ≈ .3, 2–3 px) so every hung part gets an outline (30 Oct).
 - A corner where a bench top meets a wall gets no shadow from the floor or worktop bakes (they only darken round things resting on a surface) and GTAO barely reaches it on a phone: bake it as two transparent sheets, one on the wall and one on the top, each a tight 1 cm core plus a soft 5–7 cm fade (`10c`). Under .5 core alpha it doesn't show at phone size (30 Oct).
 - Small text on a canvas map (calendar day numbers, labels) needs the canvas drawn at 2–3× with `x.scale(k, k)` and the old units kept: same coordinates, same RNG draws, sharp text. At 150 px wide a 6 px number is mush (29 Oct).
 - A part that tapers to its foot (or has proud corner bumpers) hides the bench bake's tight shadow core under its overhang: give it its own transparent shadow sheet drawn from the real foot outline (`footShadow` in CASEY). Transparent keeps the bake, merge and wear pass off it (29 Oct).

@@ -975,3 +975,14 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS: page errors [] in every load; only the known font `ERR_FAILED` line; pixel diff almost all on the wall panels; after.html 0.44 MB.
 - Published: yes (version 96; publish copy = live v95 + my `diff -u`, wrapper lines stripped; first send refused as unviewed, its diff showed only my lines; resent).
 - Score (self, on the reviewer's scale): wsboard (phone) Shape 7 · Detail 7 · Surface 7.25 · Light 7 · Truth 7 · Works 7.25 ≈ 7.1 (BEFORE ≈ 6.9 on my eye; reviewer 6.7 at 03:xx). Page row 7.27 → 7.28, review due.
+
+
+## 2026-10-30 05:xx · WW: pegboard tools cast a shadow you can see on the phone (Josh's request: workshop inside, more detail) · run 7 of the night
+- Meeting: top open Josh's request (forklift in Blender) is for a page Josh has dropped, so skipped; took the workshop request. Last two runs were bench joints and the OSB, so took the 03:xx reviewer's open find "tools on the pegboard read stuck on: shadows faint at phone size" (wstool). Not a review run (run 7; the 07:xx run reviews 04:xx–06:xx). No team change. Shortcut: publish copy made by patching the live page with my `diff -u` while the AFTER shots rendered, so the publish went straight after the checker.
+- Team: Opus 5.5 (boss + builder) built it, shot BEFORE/AFTER (phone: wstool, wspeg, wsham; desktop: wstool), made the publish copy. Haiku checker PASS (returned as text; I wrote errors.md). No researcher, no reviewer. Self-scored, review due.
+- Changed (hall3.js, `pegBoard()` bake): each stand-off band now draws three passes: the wide soft pass as before, a new contact halo (alpha .3, blur 2.5 px, drop .2) and a darker core (alpha .55–.68, was .4–.49; blur 1.5 + off·k·.15; drop 1.05 × stand-off, was .7) so the core peeks out below each part instead of hiding behind it.
+- Better: wsham: a soft shadow under each grip and beside the heads, the hammers hang off the board; wspeg: dark rim under the saw blades and spanner jaws, a faint outline round each spanner. Still weak: the grip shadow is a fairly wide blob; the spanner rim is only 1–2 px (board map ≈ 3 mm a pixel); saw blades read pale and flat.
+- Checker (Haiku): PASS: page errors [] on phone and desk; only the known font `ERR_FAILED` line; after.html 0.45 MB.
+- Published: yes (version 97; first send refused as unviewed, its diff showed only my lines and the trailing wrapper; stripped it and resent).
+- Score (self, on the reviewer's scale): wsham (phone) Shape 7 · Detail 7 · Surface 7 · Light 7.25 · Truth 7 · Works 7.25 ≈ 7.1 (BEFORE ≈ 6.9); wspeg ≈ 6.8 → 6.95. Page row 7.28 → 7.29, review due.
+
