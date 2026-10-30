@@ -1968,7 +1968,28 @@ function WSHOP(P) {
         const m = new THREE.Mesh(geo, mat); m.position.set(0, .21 + dy, dz); cal.add(m); return m; };
     const CALPG = STD({ color: 0xf3f1ea, roughness: .8, side: THREE.DoubleSide });
     calSheet(.298, .41, .010, .006, CALPG, -.006, .0015); calSheet(.299, .415, .013, .009, CALPG, -.003, .0028);   // the pages under the top one
-    calSheet(.3, .42, .016, .014, STD({ roughness: .7, side: THREE.DoubleSide, map: can(450, 630, (x, W, H) => { x.scale(3, 3); const w = W / 3, h = H / 3; x.fillStyle = '#fbfaf6'; x.fillRect(0, 0, w, h); x.fillStyle = '#4c7a9a'; x.fillRect(0, 0, w, 92); x.fillStyle = 'rgba(255,255,255,.35)'; for (let i = 0; i < 6; i++) { x.beginPath(); x.moveTo(vf(0, w), 92); x.lineTo(vf(0, w), vf(10, 60)); x.lineTo(vf(0, w), 92); x.fill(); }   // a picture, then the month grid
+    calSheet(.3, .42, .016, .014, STD({ roughness: .7, side: THREE.DoubleSide, map: can(450, 630, (x, W, H) => { x.scale(3, 3); const w = W / 3, h = H / 3; x.fillStyle = '#fbfaf6'; x.fillRect(0, 0, w, h); for (let i = 0; i < 6; i++) { vf(0, w); vf(0, w); vf(10, 60); vf(0, w); }   // burn the old triangles' draws (same order), then a picture, then the month grid
+      // 30 Oct 01:xx (backlog: "the picture is abstract white triangles on blue, reads as a placeholder"): a summer festival field, fixed (no RNG): sky,
+      // two clouds, far and near hills, a mown field, a yurt and four bell tents getting smaller towards the hills.
+      { const sk = x.createLinearGradient(0, 0, 0, 56); sk.addColorStop(0, '#5f97c4'); sk.addColorStop(1, '#d6e7ef'); x.fillStyle = sk; x.fillRect(0, 0, w, 92);
+        x.fillStyle = 'rgba(255,255,255,.75)'; for (const [cx, cy, s] of [[34, 16, 1], [108, 24, .8]]) { x.beginPath(); x.ellipse(cx, cy, 13 * s, 4.5 * s, 0, 0, 7); x.ellipse(cx - 7 * s, cy + 1.5 * s, 8 * s, 3.5 * s, 0, 0, 7); x.ellipse(cx + 8 * s, cy + 1.8 * s, 9 * s, 3.2 * s, 0, 0, 7); x.fill(); }
+        const hill = (y0, pts, c) => { x.fillStyle = c; x.beginPath(); x.moveTo(0, 92); x.lineTo(0, y0); for (const [a, b, c2, d] of pts) x.quadraticCurveTo(a, b, c2, d); x.lineTo(w, 92); x.closePath(); x.fill(); };
+        hill(50, [[25, 40, 55, 47], [85, 53, 112, 44], [135, 38, 150, 46]], '#8aa596');   // far hills, hazy
+        hill(58, [[30, 50, 70, 57], [110, 62, 150, 54]], '#6d9a4c');                     // near rise
+        const fd = x.createLinearGradient(0, 60, 0, 92); fd.addColorStop(0, '#8cb85c'); fd.addColorStop(1, '#5d8c37'); x.fillStyle = fd; x.beginPath(); x.moveTo(0, 92); x.lineTo(0, 64); x.quadraticCurveTo(75, 58, 150, 63); x.lineTo(150, 92); x.fill();
+        x.strokeStyle = 'rgba(255,255,255,.10)'; x.lineWidth = 3; for (let i = -3; i < 8; i++) { x.beginPath(); x.moveTo(75 + i * 6, 61); x.lineTo(75 + i * 30, 92); x.stroke(); }   // mowing stripes
+        const bell = (cx, by, r) => { const hw = r, wh = r * .32, top = by - wh - r * 1.05;   // a bell tent: short wall, cone, door, pole tip, shadow
+          x.fillStyle = 'rgba(30,50,20,.28)'; x.beginPath(); x.ellipse(cx + r * .25, by + r * .06, hw * 1.15, r * .16, 0, 0, 7); x.fill();
+          x.fillStyle = '#f2ede0'; x.beginPath(); x.moveTo(cx - hw, by); x.lineTo(cx - hw, by - wh); x.quadraticCurveTo(cx - hw * .45, by - wh - r * .55, cx, top); x.quadraticCurveTo(cx + hw * .45, by - wh - r * .55, cx + hw, by - wh); x.lineTo(cx + hw, by); x.closePath(); x.fill();
+          x.fillStyle = 'rgba(90,80,60,.22)'; x.beginPath(); x.moveTo(cx + hw * .15, top + r * .1); x.quadraticCurveTo(cx + hw * .55, by - wh - r * .5, cx + hw, by - wh); x.lineTo(cx + hw, by); x.lineTo(cx + hw * .35, by); x.closePath(); x.fill();   // shade side
+          x.fillStyle = '#5b5446'; x.beginPath(); x.moveTo(cx - r * .2, by); x.lineTo(cx - r * .02, by - wh - r * .55); x.lineTo(cx + r * .16, by); x.fill();   // door
+          x.strokeStyle = '#6b5a40'; x.lineWidth = Math.max(.5, r * .07); x.beginPath(); x.moveTo(cx, top); x.lineTo(cx, top - r * .18); x.stroke(); };
+        const yurt = (cx, by, r) => { x.fillStyle = 'rgba(30,50,20,.28)'; x.beginPath(); x.ellipse(cx + r * .2, by + r * .05, r * 1.15, r * .14, 0, 0, 7); x.fill();
+          x.fillStyle = '#e8dcc0'; x.fillRect(cx - r, by - r * .55, 2 * r, r * .55); x.fillStyle = 'rgba(90,70,40,.2)'; x.fillRect(cx + r * .3, by - r * .55, r * .7, r * .55);
+          x.fillStyle = '#d9cba8'; x.beginPath(); x.moveTo(cx - r * 1.08, by - r * .55); x.lineTo(cx - r * .14, by - r * 1.05); x.lineTo(cx + r * .14, by - r * 1.05); x.lineTo(cx + r * 1.08, by - r * .55); x.closePath(); x.fill();
+          x.fillStyle = '#7a5530'; x.fillRect(cx - r * .17, by - r * .45, r * .34, r * .45); };   // wall, roof, timber door
+        bell(124, 66.5, 4); bell(101, 69, 5.5); yurt(36, 70, 8.5); bell(70, 75, 7.5); bell(16, 82, 9.5);   // far to near
+        x.strokeStyle = 'rgba(255,255,255,.9)'; x.lineWidth = 2; x.strokeRect(4, 4, w - 8, 84); }   // a white border round the photo
       // 29 Oct 23:xx (07:xx review: "the month grid has no day numbers, the crossed-off days stop near the 22nd"): drawn at 3× (was 150 × 210 px, too soft
       // for numbers), October 2026 laid out Monday-first (the 1st is a Thursday), a weekday row, a small number in every day box, the days up to the 28th
       // crossed off in red, MOT pencilled in on the 20th and the 31st ringed. Same six vf() draws above, nothing else drawn from the RNG.
@@ -1976,9 +1997,9 @@ function WSHOP(P) {
       for (let k = 0; k < 35; k++) { const d = k - 2, i = k % 7, j = Math.floor(k / 7), cx = 8 + i * 19.1, cy = 118 + j * 16.8;
         if (d < 1 || d > 31) { x.fillStyle = 'rgba(0,0,0,.06)'; x.fillRect(cx, cy, 19.1, 16.8); continue; }
         x.font = 'bold 6px Arial'; x.textAlign = 'left'; x.fillStyle = i > 4 ? '#b3261e' : '#333'; x.fillText(String(d), cx + 1.6, cy + 6.4);
-        if (d <= 28) { x.strokeStyle = 'rgba(179,38,30,.9)'; x.lineWidth = 1.3; x.beginPath(); x.moveTo(cx + 3, cy + 15); x.lineTo(cx + 17, cy + 3); x.stroke(); } }
+        if (d <= 28) { x.strokeStyle = 'rgba(179,38,30,.9)'; x.lineWidth = 1.3; x.beginPath(); x.moveTo(cx + 8, cy + 15); x.lineTo(cx + 17.5, cy + 4.5); /* 30 Oct: starts right of the number */ x.stroke(); } }
       x.strokeStyle = 'rgba(0,0,0,.35)'; x.lineWidth = .7; for (let i = 0; i <= 7; i++) { x.beginPath(); x.moveTo(8 + i * 19.1, 118); x.lineTo(8 + i * 19.1, 202); x.stroke(); } for (let j = 0; j <= 5; j++) { x.beginPath(); x.moveTo(8, 118 + j * 16.8); x.lineTo(142, 118 + j * 16.8); x.stroke(); }
-      x.font = 'italic bold 5px Arial'; x.fillStyle = '#1b3f8a'; x.textAlign = 'left'; x.fillText('MOT', 8 + 1 * 19.1 + 6, 118 + 3 * 16.8 + 13);   // the 20th
+      x.font = 'italic bold 6.5px Arial'; x.fillStyle = '#1b3f8a'; x.textAlign = 'left'; x.fillText('MOT', 8 + 3 * 19.1 + 2.5, 118 + 4 * 16.8 + 14);   // the 29th, not crossed off yet (30 Oct: was 5 px under the 20th's cross-off)
       x.strokeStyle = '#1b3f8a'; x.lineWidth = .9; x.beginPath(); x.ellipse(8 + 5 * 19.1 + 9.5, 118 + 4 * 16.8 + 8.4, 8.5, 7, -.15, 0, 7); x.stroke();   // the 31st ringed
       const gw = x.createLinearGradient(0, h - 14, 0, h); gw.addColorStop(0, 'rgba(120,100,70,0)'); gw.addColorStop(1, 'rgba(120,100,70,.18)'); x.fillStyle = gw; x.fillRect(0, h - 14, w, 14); }) }), 0, .004);   // month page, thumb-worn foot
     { const WIRE = STD({ color: 0x2a2d32, metalness: .6, roughness: .3 }); for (let i = 0; i < 17; i++) { const r = new THREE.Mesh(new THREE.TorusGeometry(.005, .0012, 5, 12, Math.PI * 1.6), WIRE); r.rotation.set(0, Math.PI / 2, -Math.PI * .3); r.position.set(-.136 + i * .017, .417, .004); cal.add(r); }   // wire-o binding
