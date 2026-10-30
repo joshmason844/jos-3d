@@ -1007,3 +1007,12 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS: page errors [] before and after; only the known font `ERR_FAILED` line; after.html 0.45 MB; changes on the bench frames (wsfrontin 1.25 %, wstool 2.18 % of pixels).
 - Published: yes (version 99; first send refused as unviewed, its diff showed only my lines; resent).
 - Score (reviewer): wstool Shape 7.25 · Detail 7.25 · Surface 7.25 · Light 7 · Truth 7 · Works 8 = 7.29. Page row 7.30 (self) → 7.25 (reviewer, mean of 7 views).
+
+## 2026-10-30 23:xx · WW: reverts due from the 07:xx blind review (Josh's request: workshop inside) · run 1 of the night
+- Meeting: top open Josh's request was the reverts the 07:xx review called; one run, both reverts (small, same file). Not a review run (1st of the night). No team change. Shortcut: `git show <commit> -- hall3.js | git apply -R` per bad build, and the publish copy made by patching the live page with `diff -u before.html hall3.html` (keeps the live keycaps block).
+- Team: Opus 5.5 (boss + builder) reverted, rebuilt, shot BEFORE (v99 code) / AFTER (phone: wsboard, wsham, wspeg), made the publish copy. Haiku checker: FAIL then PASS (it flagged the restored OSB grade stamp as a clipped label; shown the code, it withdrew it). No researcher, no reviewer. Self-scored, review due. Desk shots dropped: a single phone wspeg frame took > 300 s with two shots in parallel; desk HQ can't finish in a run here.
+- Changed (hall3.js): `OSB` inside sheets back to n 2900, 6–14 × 2.5–5 cm strands, mix .45, full-strength flecks (the `to`/`fk` options dropped with them); pegboard shadow back to the 27 Oct two bands (wide soft + tight core alpha .4–.5, drop .7). 06:xx D-pull shadows and 07:xx bench frames untouched.
+- Better: wsboard reads as OSB with its faint OSB/3 stamp again instead of fine mush; wsham's grips lose the black blob under them; wspeg's shadows lighter. Still weak: the sheet joint cuts through the stamp; pegboard tools still a touch stuck-on; cloned hammers; flat floor in wsfrontin.
+- Checker (Haiku): PASS: page errors [] before and after (known font ERR_FAILED only); 0.45 MB; >8-level pixel change wsboard 33.9 %, wsham 8.5 %, wspeg 8.6 %.
+- Published: yes (version 100; first send refused as unviewed, its diff showed only my lines; resent).
+- Score (self, from the reviewer's own 8fa0e25 numbers for the restored views): wsboard 7.38, wsham 7.42, wspeg 7.42; page row 7.25 → 7.30 (mean of 7 views), review due.
