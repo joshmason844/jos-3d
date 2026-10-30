@@ -2070,6 +2070,19 @@ function WSHOP(P) {
       for (let q = 0; q < W * H; q++) { im.data[q * 4] = 20; im.data[q * 4 + 1] = 14; im.data[q * 4 + 2] = 8; im.data[q * 4 + 3] = Math.min(255, A[q] * 255); }   // row 0 = low z, as the floor bake
       x.putImageData(im, 0, 0); const m = SM.clone(); m.map = new CT(c); m.map.colorSpace = THREE.SRGBColorSpace;
       const pl = new THREE.Mesh(new THREE.PlaneGeometry(sf.max.x - sf.min.x, sf.max.z - sf.min.z), m); pl.rotation.x = -Math.PI / 2; pl.position.set((sf.min.x + sf.max.x) / 2, y + .002, (sf.min.z + sf.max.z) / 2); pl.renderOrder = 1; P.add(pl); } }
+  // --- 10c. 30 Oct 02:xx (29 Oct 03:xx review, wsboard: "no contact shadow where the front bench meets the wall"): the corner where the front bench's
+  //     top meets the OSB gets a baked shadow on both faces: a tight dark core at the joint (≈ 1 cm) and a soft fade (≈ 7 cm on the wall, 4.5 cm on the
+  //     top), a little uneven along its length (sines, no RNG, so nothing else moves), faded out over the last 6 cm at each end. Two transparent sheets.
+  { const X0 = .5, X1 = 5.9, ZW = -2.4772, YT = 1.0, HW = .24, DT = .14;
+    const sheet = (W, H, f) => { const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'), im = x.createImageData(W, H);
+      for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const q = (j * W + i) * 4, u = i / (W - 1), wx = X0 + u * (X1 - X0), end = Math.min(1, (wx - X0) / .06, (X1 - wx) / .06);
+        const wob = 1 + .14 * Math.sin(wx * 7.3) * Math.sin(wx * 2.1 + 1) + .06 * Math.sin(wx * 31);
+        im.data[q] = 20; im.data[q + 1] = 14; im.data[q + 2] = 8; im.data[q + 3] = Math.min(255, Math.max(0, end) * wob * f(j / (H - 1)) * 255); }
+      x.putImageData(im, 0, 0); const t = new CT(c); t.colorSpace = THREE.SRGBColorSpace; return new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }); };
+    const wall = new THREE.Mesh(new THREE.PlaneGeometry(X1 - X0, HW), sheet(432, 96, v => { const d = (1 - v) * HW; return .62 * Math.exp(-d / .011) + .42 * Math.exp(-d / .07); }));   // canvas row 0 = the top
+    wall.rotation.y = Math.PI; wall.position.set((X0 + X1) / 2, YT + HW / 2, ZW - .0008); wall.renderOrder = 1; P.add(wall);
+    const top = new THREE.Mesh(new THREE.PlaneGeometry(X1 - X0, DT), sheet(432, 64, v => { const d = (1 - v) * DT; return .55 * Math.exp(-d / .009) + .34 * Math.exp(-d / .045); }));   // row 0 = low z (into the room)
+    top.rotation.x = -Math.PI / 2; top.position.set((X0 + X1) / 2, YT + .0025, ZW - DT / 2); top.renderOrder = 1; P.add(top); }
   // --- W5 (22 Oct): sawdust heaped under the mitre-saw bench and the vice, and swept against the wall foot (own RNG)
   { const SD = STD({ color: 0xd2b07a, roughness: 1 }), heap = (x, z, r, h) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 6, 0, Math.PI * 2, 0, Math.PI / 2), SD); m.scale.set(r * qf(.8, 1.2), h, r * qf(.8, 1.2)); m.position.set(x, 0, z); m.rotation.y = qf(0, 6); m.receiveShadow = true; P.add(m); };
     for (let i = 0; i < 7; i++) heap(3.1 + qf(-.5, .5), -6.75 + qf(-.25, .25), qf(.08, .22), qf(.012, .035));   // under the mitre saw
