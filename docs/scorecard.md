@@ -986,3 +986,13 @@ One row per build, so each run gets measurably better.
 - Published: yes (version 97; first send refused as unviewed, its diff showed only my lines and the trailing wrapper; stripped it and resent).
 - Score (self, on the reviewer's scale): wsham (phone) Shape 7 · Detail 7 · Surface 7 · Light 7.25 · Truth 7 · Works 7.25 ≈ 7.1 (BEFORE ≈ 6.9); wspeg ≈ 6.8 → 6.95. Page row 7.28 → 7.29, review due.
 
+
+
+## 2026-10-30 06:xx · WW: cupboard-door pulls cast a shadow (Josh's request: workshop inside, more detail) · run 8 of the night
+- Meeting: top open Josh's request (forklift in Blender) is for a page Josh has dropped, so skipped; took the workshop request. Last two runs were the OSB and the pegboard shadows, so took the 03:xx reviewer's other open find: "cupboard doors uniform white, no handle shadows" (backlog). Not a review run (run 8; the 07:xx run reviews 04:xx–06:xx). No team change. Shortcut: a new `wsadoor` camera straight on the long bench's doors, and BEFORE/AFTER queued as `setsid` chains so a timed-out Bash call can't kill them.
+- Team: Opus 5.5 (boss + builder) built it, shot BEFORE/AFTER (phone: wsadoor, wsdoor, wsrail; desktop: wsadoor), made the publish copy. Haiku checker PASS. No researcher, no reviewer. Self-scored, review due.
+- Changed (hall3.js, `doorSheet()` for the panelled bench doors only; drawn after every RNG draw, nothing else moves): a baked shadow under the D-pull (dark core ≈ 2 cm below the bar, soft fall-off), a dark dot at each post foot, a faint greasy patch where fingers hook behind the bar, a thin light catch above it. First try grew each soft ring 45 % and read as a wide dark swoosh on the phone; rings now grow 8–25 %.
+- Better: wsadoor (phone + desk): the pulls stand off the doors with a shadow under them instead of floating on flat white; wsdoor: same on the vice bench doors. Still weak: the shadow's tails run ≈ 1 cm past the bar ends; the light catch reads as a faint scratch close up; the shadow is placed for 0.95 m benches only.
+- Checker (Haiku): PASS: page errors [] on phone and desk; only the known font `ERR_FAILED` line; after.html 0.45 MB.
+- Published: yes (version 98; first send refused as unviewed; its diff caught a stray comment edit of mine in the floor-shadow block (a replace-all), put back before resending; publish copy = live v97 + my `diff -u`, wrapper lines stripped).
+- Score (self, on the reviewer's scale): wsadoor (phone) Shape 7 · Detail 7 · Surface 7.25 · Light 7 · Truth 7 · Works 7.25 ≈ 7.1 (BEFORE ≈ 6.9); wsdoor ≈ 6.9 → 7.0. Page row 7.29 → 7.30, review due.

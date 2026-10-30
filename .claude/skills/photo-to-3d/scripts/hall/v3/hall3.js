@@ -1147,7 +1147,15 @@ function WSHOP(P) {
         x.strokeStyle = 'rgba(70,60,48,.22)'; x.beginPath(); x.moveTo(m + 3, h - m - 3); x.lineTo(w - m - 3, h - m - 3); x.lineTo(w - m - 3, m + 3); x.stroke(); }
       for (let i = 0; i < 16; i++) { const cx = w / 2 + f(-34, 34), cy = f(30, 78), r = f(5, 13), g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, `rgba(84,70,54,${f(.04, .1)})`); g.addColorStop(1, 'rgba(84,70,54,0)'); x.fillStyle = g; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }   // fingers round the pull
       const g = x.createLinearGradient(0, h, 0, h - 34); g.addColorStop(0, 'rgba(78,64,48,.2)'); g.addColorStop(1, 'rgba(78,64,48,0)'); x.fillStyle = g; x.fillRect(0, h - 34, w, 34);   // grubby foot
-      for (let i = 0; i < 6; i++) { x.strokeStyle = `rgba(60,50,40,${f(.07, .16)})`; x.lineWidth = f(1, 2.2); x.beginPath(); const a = q() * w, b = h - f(3, 26); x.moveTo(a, b); x.lineTo(a + f(-24, 24), b + f(-3, 3)); x.stroke(); } });   // light boot scuffs
+      for (let i = 0; i < 6; i++) { x.strokeStyle = `rgba(60,50,40,${f(.07, .16)})`; x.lineWidth = f(1, 2.2); x.beginPath(); const a = q() * w, b = h - f(3, 26); x.moveTo(a, b); x.lineTo(a + f(-24, 24), b + f(-3, 3)); x.stroke(); }   // light boot scuffs
+      // 30 Oct 06:xx (03:xx review: "cupboard doors uniform white, no handle shadows"): the D-pull's own shade baked on the door, drawn after every q() draw so
+      // nothing else moves. The pull sits ≈ 12.4 cm under the door top (≈ 47 px on a 0.95 m bench), bar 13 cm (≈ 56 px), posts ±5.5 cm (±24 px), 2.7 cm proud;
+      // the workshop lamps are overhead, so the bar's shadow drops ≈ 2 cm below it. Soft ellipses stacked (no ctx.filter: slow under SwiftShader); a first try grew each ring 45 % and read as a wide smear on the phone, so rings grow 8–25 %.
+      if (panel) { const cx = w / 2, py = 47, soft = (ex, ey, rx, ry, a, rgb = '40,32,24', gr = .12) => { for (let k = 0; k < 6; k++) { const s = 1 + k * gr; x.fillStyle = `rgba(${rgb},${a / 6})`; x.beginPath(); x.ellipse(ex, ey, rx * s, ry * s, 0, 0, 7); x.fill(); } };
+        soft(cx, py + 7, 22, 7, .13, '78,64,48', .2);   // grubby, a little greasy, where fingers hook behind the bar
+        soft(cx, py + 6, 25, 2.2, .42, '40,32,24', .25); soft(cx, py + 4, 26, 1.3, .34, '40,32,24', .08);   // the bar's shadow, a dark core with a soft fall-off below
+        for (const sx of [-24, 24]) { soft(cx + sx, py + 2.5, 2.4, 3, .45, '40,32,24', .2); soft(cx + sx, py + .5, 1.6, 1.6, .5, '24,20,16'); }   // each post's foot and its short drop
+        x.fillStyle = 'rgba(255,253,246,.35)'; x.fillRect(cx - 27, py - 4, 54, 1); } });   // a thin catch of light on the door just above the bar
     const bump = can(N, N, (x, w, h) => { x.fillStyle = '#9a9a9a'; x.fillRect(0, 0, w, h); if (panel) { const m = 30; x.strokeStyle = '#404040'; x.lineWidth = 5; x.strokeRect(m, m, w - 2 * m, h - 2 * m); x.strokeStyle = '#6a6a6a'; x.lineWidth = 11; x.globalAlpha = .5; x.strokeRect(m, m, w - 2 * m, h - 2 * m); x.globalAlpha = 1; }
       x.fillStyle = '#7a7a7a'; for (const [a, b, c, d] of [[0, 0, w, 3], [0, h - 3, w, 3], [0, 0, 3, h], [w - 3, 0, 3, h]]) x.fillRect(a, b, c, d); });   // eased edges
     bump.colorSpace = THREE.NoColorSpace; return STD({ roughness: .58, map, bumpMap: bump, bumpScale: 1.2 }); };

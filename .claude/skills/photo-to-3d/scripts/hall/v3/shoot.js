@@ -69,6 +69,7 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   wscompc:  [[3.85, .98, -11.92], [4.2, .45, -11.2], true],   // the compressor from its gauge side (tool-wall side): pump, crankcase, discharge pipe, gauges, switch (25 Oct 03:xx)
   wsvice:   [[1.75, 1.55, -3.0], [.85, 1.0, -3.5], true],       // close on the vice at the front of the left-wall bench (23 Oct 06:xx)
   wsdoor:   [[2.15, 1.05, -3.75], [1.15, .5, -4.55], true],      // close on the cupboard doors under the vice bench: panels, pulls, grime (27 Oct 00:xx)
+  wsadoor:  [[4.55, .98, -5.55], [5.3, .5, -6.3], true],      // close on the long aisle bench's cupboard doors: pulls, their shadows, grime (30 Oct 06:xx)
   wsvicec:  [[1.72, 1.36, -2.98], [1.22, 1.0, -3.5], true],      // closer, the whole vice in a phone frame: casting, jaws, screw, tommy bar (25 Oct 01:xx)
   wsdrill:  [[1.95, 1.55, -3.55], [1.85, 1.02, -2.75], true],   // close on the front bench: two drills, a tool case (23 Oct)
   wsaisle: [[2.6, 1.9, -9.0], [5.9, 1.1, -7.2], true],       // the long aisle bench and its shelves, the window
