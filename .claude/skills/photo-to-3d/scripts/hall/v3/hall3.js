@@ -1827,10 +1827,11 @@ function WSHOP(P) {
   // --- 5. the long bench down the aisle wall, cupboards under it, shelves over the far half (scan: top ≈ 0.9–1.1 m at x 5.25–5.8 the whole length; stock to ≈ 1.7 m and 2.6 m over z −9…−12.7)
   { const g = grp(P), b = bench(g, 5.62, -7.6, 9.6, .62, .95, -Math.PI / 2, { doors: true, notch: { x: 0, w: .15, d: .105 } });   /* notch: the mezzanine post (x 5.83–5.97, z −7.6) stands in the back of this bench */ const t = grp(g, 5.62, .95, 0);   // 27 Oct: −π/2 (was +π/2: the doors and front edge faced the wall)
     let z = -3.4; const kinds = ['case', 'drill', 'tins', 'box', 'reel', 'tub', 'case', 'box', 'drill', 'tins', 'tub', 'box', 'case'];
-    for (const k of kinds) { z -= wf(.55, .8); if (z < -12.3) break;
+    let prev = '';   // 30 Oct 00:xx (07:xx review: "a hard black wedge between the case and the box beside it" in wstop): a box straight after a case sits 10 cm further off it, so the ≈ 12 cm gap the AO filled black opens to ≈ 22 cm; nothing after it moves, no RNG drawn
+    for (const k of kinds) { z -= wf(.55, .8); if (z < -12.3) break; const zb = k === 'box' && prev === 'case' ? z - .1 : z; prev = k;
       if (k === 'case') caseY(t, 0, 0, z, .35, .13, .5, -Math.PI / 2 + wf(-.1, .1)); else if (k === 'drill') drill(t, -.05, 0, z, wf(0, 6), wr() < .5 ? YEL : 0x2a5aa8);   // 28 Oct 04:xx: cases −π/2, latches and front to the room (were to the wall)
       else if (k === 'tins') for (let i = 0; i < 3; i++) tin(t, -.12 + (i % 2) * .14, 0, z + i * .13, .05, .1 + wr() * .06, [0xe8e2d0, 0x3b6b3a, 0xb8231d][i]);
-      else if (k === 'box') cbox(t, 0, 0, z, .35, .25, .45, wf(-.2, .2)); else if (k === 'tub') tub(t, 0, 0, z, .32, .22, .45, [0x2a5aa8, 0xb8231d, 0x3b6b3a][Math.floor(wr() * 3)]);
+      else if (k === 'box') cbox(t, 0, 0, zb, .35, .25, .45, wf(-.2, .2)); else if (k === 'tub') tub(t, 0, 0, z, .32, .22, .45, [0x2a5aa8, 0xb8231d, 0x3b6b3a][Math.floor(wr() * 3)]);
       else benchReel(t, -.02, 0, z, Math.PI / 2); }   // 05:xx: a real site cable reel
     const s = shelving(g, 5.74, -10.85, 3.6, .38, 1.75, Math.PI / 2, [.6, 1.15, 1.65]); s.position.y = .95;
     for (let i = 0; i < 6; i++) { cbox(s, -1.55 + i * .55, .62, 0, .45, .3, .32, wf(-.1, .1)); if (i % 2) tub(s, -1.5 + i * .55, 1.17, 0, .42, .24, .3, 0x2a5aa8); else caseY(s, -1.5 + i * .55, 1.17, 0, .4, .14, .3); }
