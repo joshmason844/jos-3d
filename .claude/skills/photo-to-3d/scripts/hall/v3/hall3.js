@@ -1497,16 +1497,34 @@ function WSHOP(P) {
     const U = u => (u + .065) / .13 * W, V = y => (1 - (y + .455) / .48) * H;   // blade metres → canvas px (same mapping as the blade's UVs)
     const g = x.createLinearGradient(0, 0, W, 0); g.addColorStop(0, '#80878c'); g.addColorStop(.6, '#949a9f'); g.addColorStop(1, '#8a9095'); x.fillStyle = g; x.fillRect(0, 0, W, H);
     for (let i = 0; i < 160; i++) { x.fillStyle = `rgba(${sr() < .5 ? '255,255,255' : '60,62,66'},${.03 + sr() * .06})`; x.fillRect(sr() * W, 0, .6 + sr() * 1.2, H); }   // brushed along the length
+    { const sg = x.createLinearGradient(0, H * .15, W, H * .55); sg.addColorStop(.3, 'rgba(255,255,255,0)'); sg.addColorStop(.5, 'rgba(255,255,255,.16)'); sg.addColorStop(.7, 'rgba(255,255,255,0)'); x.fillStyle = sg; x.fillRect(0, 0, W, H); }   // 31 Oct 04:xx: a soft diagonal sheen so the blade reads as steel, not a flat grey card (no RNG)
     for (let i = 0; i < 40; i++) { const cx = sr() * W, cy = sr() * H, r = 2 + sr() * 6, rg = x.createRadialGradient(cx, cy, 0, cx, cy, r); rg.addColorStop(0, `rgba(40,36,32,${.05 + sr() * .09})`); rg.addColorStop(1, 'rgba(40,36,32,0)'); x.fillStyle = rg; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); }   // small faint finger smudges
     for (let i = 0; i < 14; i++) { x.fillStyle = `rgba(120,64,30,${.2 + sr() * .3})`; x.fillRect(sr() * W, sr() * H, 1, 1); }   // a few rust pin-pricks
     const ax = U(.06), ay = V(.02), bx = U(.01), by = V(-.45), L = Math.hypot(bx - ax, by - ay), dx = (bx - ax) / L, dy = (by - ay) / L, nx = -dy, ny = dx;   // the toothed edge; n points into the blade (−x)
     const strip = (off, w, col) => { x.strokeStyle = col; x.lineWidth = w; x.beginPath(); x.moveTo(ax - nx * off, ay - ny * off); x.lineTo(bx - nx * off, by - ny * off); x.stroke(); };
-    strip(3.2, 3.2, 'rgba(232,236,238,.95)'); strip(5.4, 1.4, 'rgba(70,74,78,.55)');   // ground bright edge, a thin dark line where the set starts
+    strip(4.2, 5.2, 'rgba(236,240,242,.95)'); strip(7.6, 1.8, 'rgba(60,64,68,.6)');   /* 31 Oct 04:xx: strip 3.2 → 5.2 px (≈ 5 mm), so the tooth line reads on a phone */   // ground bright edge, a thin dark line where the set starts
     const n = 110; x.lineWidth = 1.6; for (let i = 0; i < n; i++) { const t = (i + .5) / n * L, px = ax + dx * t, py = ay + dy * t; x.strokeStyle = i % 2 ? 'rgba(40,44,48,.7)' : 'rgba(255,255,255,.8)';
       x.beginPath(); x.moveTo(px - nx * .5, py - ny * .5); x.lineTo(px - nx * 3.5, py - ny * 3.5); x.stroke(); }   // alternate tooth ticks (set left/right catches the light)
     x.save(); x.translate(U(-.02), V(-.05)); x.rotate(-Math.PI / 2); x.fillStyle = 'rgba(40,44,50,.35)'; x.fillRect(-2, -9, 64, 13); x.fillStyle = 'rgba(200,205,210,.45)'; x.font = 'bold 9px Arial'; x.fillText('HARDPOINT 8', 1, 1); x.restore();   // faint etched mark at the heel
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return SAWTEX = STD({ map: t, metalness: .6, roughness: .52, side: THREE.DoubleSide }); };   // satin, not mirror: at .8/.32 the room light blew it out white
-  const SAWH = STD({ color: 0xa8321f, roughness: .5 });
+  // 31 Oct 04:xx (03:xx review: "handles blobby red with white speckles, melted plastic"): the handle had no map, so the wear pass gave it the paint
+  // chip tile (white speckles). It now has its own moulded-plastic canvas (so the wear pass skips it): satin red, light from the top, a fine
+  // orange-peel grain, a slightly darker moulded border round the outline, a ribbed thumb pad by the horn and a small raised maker's mark.
+  // Handle metres → canvas: u = (x + .1) / .2, v = y / .16 (set on the geometry below). Own RNG, nothing else moves.
+  const SAWSCR = STD({ color: 0x9c8a5a, metalness: .6, roughness: .5 });   // 31 Oct 04:xx: dull brass handle screws, 9 mm (were 12 mm mirror-bright BRIGHT: read as two white blobs on the phone)
+  let SAWHM = null; const sawHandle = () => { if (SAWHM) return SAWHM; let hs = 5531; const hr = () => (hs = (hs * 16807) % 2147483647) / 2147483647;
+    const c = document.createElement('canvas'), W = 256, H = 205; c.width = W; c.height = H; const x = c.getContext('2d'), U = u => (u + .1) / .2 * W, V = y => (1 - y / .16) * H;
+    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#c4402a'); g.addColorStop(.55, '#ad3320'); g.addColorStop(1, '#962a1a'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 3000; i++) { x.fillStyle = `rgba(${hr() < .5 ? '255,200,180' : '70,10,5'},${.025 + hr() * .035})`; x.fillRect(hr() * W, hr() * H, 1 + hr(), 1 + hr()); }   // orange peel, low contrast
+    const out = () => { x.beginPath(); x.moveTo(U(-.075), V(0)); x.lineTo(U(.07), V(0)); x.lineTo(U(.072), V(.05)); x.quadraticCurveTo(U(.092), V(.075), U(.086), V(.112));
+      x.quadraticCurveTo(U(.06), V(.148), U(0), V(.142)); x.quadraticCurveTo(U(-.06), V(.138), U(-.08), V(.118)); x.quadraticCurveTo(U(-.094), V(.085), U(-.085), V(.05)); x.closePath(); };
+    const hole = () => { x.beginPath(); x.moveTo(U(-.04), V(.03)); x.lineTo(U(.035), V(.03)); x.quadraticCurveTo(U(.045), V(.1), U(0), V(.095)); x.quadraticCurveTo(U(-.05), V(.1), U(-.04), V(.03)); x.closePath(); };
+    x.lineJoin = 'round'; out(); x.strokeStyle = 'rgba(90,20,10,.28)'; x.lineWidth = 9; x.stroke(); x.strokeStyle = 'rgba(255,190,170,.18)'; x.lineWidth = 3; x.stroke();   // moulded border: darker band just inside the bevel, light lip on it
+    hole(); x.strokeStyle = 'rgba(90,20,10,.3)'; x.lineWidth = 7; x.stroke();
+    x.save(); x.translate(U(.068), V(.085)); x.rotate(-.35); for (let i = 0; i < 7; i++) { x.fillStyle = 'rgba(80,16,8,.35)'; x.fillRect(-9, -14 + i * 4.4, 18, 1.6); x.fillStyle = 'rgba(255,200,180,.2)'; x.fillRect(-9, -12.6 + i * 4.4, 18, 1); } x.restore();   // ribbed thumb pad by the horn
+    x.font = 'bold 11px Arial'; x.textAlign = 'center'; x.fillStyle = 'rgba(255,190,170,.22)'; x.fillText('HARDPOINT', U(0) + .7, V(.113) + .7); x.fillStyle = 'rgba(80,14,6,.38)'; x.fillText('HARDPOINT', U(0), V(.113));   // raised mark above the hole
+    for (let i = 0; i < 6; i++) { x.strokeStyle = `rgba(255,230,220,${.06 + hr() * .06})`; x.lineWidth = .8; x.beginPath(); const a = hr() * W, b = hr() * H; x.moveTo(a, b); x.lineTo(a + 6 + hr() * 14, b + (hr() - .5) * 4); x.stroke(); }   // a few fine scuffs
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return SAWHM = STD({ map: t, roughness: .42 }); };
   const saw = (p, x, y, z) => { const g = grp(p, x, y, z), sh = new THREE.Shape(); sh.moveTo(-.06, .02);   // hand saw hung by its handle: blade tapers to the toe, teeth down the front edge
     const n = 110; for (let i = 0; i <= n; i++) { const t = i / n; sh.lineTo(.06 - .05 * t + (i % 2 ? .0032 : 0), .02 - .47 * t); }
     sh.lineTo(-.06, -.45); sh.lineTo(-.06, .02);
@@ -1517,11 +1535,12 @@ function WSHOP(P) {
     hs.quadraticCurveTo(.06, .148, .0, .142); hs.quadraticCurveTo(-.06, .138, -.08, .118); hs.quadraticCurveTo(-.094, .085, -.085, .05); hs.lineTo(-.075, 0);   // round top, sloping back
     const hole = new THREE.Path(); hole.moveTo(-.04, .03); hole.lineTo(.035, .03); hole.quadraticCurveTo(.045, .1, .0, .095); hole.quadraticCurveTo(-.05, .1, -.04, .03); hs.holes.push(hole);
     const hg = new THREE.ExtrudeGeometry(hs, { depth: .022, bevelEnabled: true, bevelSize: .004, bevelThickness: .004, bevelSegments: 3, curveSegments: 14 }); hg.translate(0, 0, -.011);
-    tmesh(g, hg, SAWH, 0, -.01, .005);
+    { const pa = hg.attributes.position, uv = hg.attributes.uv; for (let i = 0; i < pa.count; i++) uv.setXY(i, (pa.getX(i) + .1) / .2, pa.getY(i) / .16); uv.needsUpdate = true; }
+    tmesh(g, hg, sawHandle(), 0, -.01, .005);
     const gp = new THREE.Shape(); gp.moveTo(-.079, .012); gp.lineTo(-.05, .03); gp.quadraticCurveTo(-.052, .07, -.05, .095); gp.quadraticCurveTo(-.062, .118, -.078, .112); gp.quadraticCurveTo(-.088, .08, -.081, .045); gp.lineTo(-.079, .012);   // soft-grip pad on the back bar, proud of both faces
     const gg = new THREE.ExtrudeGeometry(gp, { depth: .028, bevelEnabled: true, bevelSize: .002, bevelThickness: .002, bevelSegments: 2, curveSegments: 10 }); gg.translate(0, 0, -.014);
     tmesh(g, gg, GRIP, 0, -.01, .005);
-    for (const sx of [-.035, .035]) { const r = tmesh(g, new THREE.CylinderGeometry(.006, .006, .03, 10), BRIGHT, sx, .01, .005); r.rotation.x = Math.PI / 2; }   // brass-ish screws through handle and blade
+    for (const sx of [-.035, .035]) { const r = tmesh(g, new THREE.CylinderGeometry(.0045, .0045, .03, 10), SAWSCR, sx, .01, .005); r.rotation.x = Math.PI / 2; }   // brass-ish screws through handle and blade
     peg(g, 0, SAWHOOK, -.012, .04);   /* 24 Oct 07:xx: the hook it hangs on, through the top of the handle's hole (it hung on nothing) */
     return g; };
   const SAWHOOK = .079;   // the saw's hook height above its origin: top of the handle hole (−.01 + .095) less the hook's radius and a little
