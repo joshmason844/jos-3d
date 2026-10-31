@@ -1562,8 +1562,11 @@ function WSHOP(P) {
   // an I-beam web (a darker recessed panel inside a raised rim on both faces), a jaw pad and swivel pad, a thicker threaded spindle and a fat
   // two-tone handle. Hook and footprint unchanged
   const CLRD = STD({ color: 0x8e1712, roughness: .55, metalness: .2, side: THREE.DoubleSide });
+  let FCH = null;   // the F-clamp handle's lathe geometry, shared
   const fclamp = (p, x, y, z, L = .45, R = .1) => { const g = grp(p, x, y, z); R *= .88;   // jaws a touch shorter so neighbours 13 cm apart don't touch
-    box(g, .025, L, .008, BRIGHT, 0, -L, 0); for (let i = 0; i < 14; i++) box(g, .0265, .0022, .009, DARK, 0, -L + .02 + i * L / 15, 0);   // the bar and its notches
+    // 31 Oct 05:xx (04:xx run's look at wsclamp: "the bar reads as a ladder"): the notches were 14 dark bars right across the 25 mm face; on a real
+    // F-clamp bar the face is plain bright steel and the serrations are small nicks cut into both narrow edges, so they're now 3 mm nicks on each edge
+    box(g, .025, L, .008, BRIGHT, 0, -L, 0); for (let i = 0; i < 22; i++) for (const ex of [-1, 1]) box(g, .003, .0026, .0086, DARK, ex * .0112, -L + .02 + i * L / 23, 0);   // the bar and the nicks in its edges
     const jaw = (yy, len, top) => { const k = top ? -1 : 1, sh = new THREE.Shape();   // side profile: thick at the bar, a rounded back curving out to the pad end
       sh.moveTo(-.016, 0); sh.lineTo(len + .004, k * .003); sh.quadraticCurveTo(len + .01, k * .004, len + .01, k * .014); sh.lineTo(len + .006, k * .026);
       sh.quadraticCurveTo(len * .55, k * .028, .028, k * .044); sh.quadraticCurveTo(-.012, k * .05, -.018, k * .036); sh.lineTo(-.016, 0);
@@ -1576,8 +1579,10 @@ function WSHOP(P) {
     tmesh(g, new THREE.CylinderGeometry(.0065, .0065, .12, 10), BRIGHT, R - .006, sy + .03, 0);   // spindle up through the sliding jaw
     for (let i = 0; i < 9; i++) { const t = tmesh(g, new THREE.TorusGeometry(.0065, .0011, 3, 10), DARK, R - .006, sy + .04 + i * .007, 0); t.rotation.x = Math.PI / 2; }   // thread
     tmesh(g, new THREE.CylinderGeometry(.012, .012, .006, 14), BRIGHT, R - .006, sy + .09, 0);   // swivel pad
-    const hn = tmesh(g, new THREE.CylinderGeometry(.0155, .0175, .085, 14), WOODH, R - .006, sy - .052, 0);   // handle
-    for (const t of [-.02, .005]) { const r = tmesh(g, new THREE.TorusGeometry(.0166, .0012, 4, 16), DARK, R - .006, sy - .052 + t, 0); r.rotation.x = Math.PI / 2; }   // turned grooves
+    // 31 Oct 05:xx: the handle was a plain tapered cylinder (read as a dowel); now a turned barrel (LatheGeometry): slim at the ferrule, swelling
+    // through the palm, rounded off at the end, with two dark turned grooves sitting on its surface. Same length and spot.
+    const hn = tmesh(g, FCH || (FCH = new THREE.LatheGeometry([[0, -.0425], [.008, -.0418], [.0128, -.0392], [.0156, -.034], [.0174, -.022], [.0179, -.006], [.0173, .01], [.0156, .024], [.0136, .035], [.0124, .0425]].map(([r, y]) => new THREE.Vector2(r, y)), 18)), WOODH, R - .006, sy - .052, 0);   // handle
+    for (const [t, rr] of [[-.02, .0172], [.016, .0162]]) { const r = tmesh(g, new THREE.TorusGeometry(rr, .0011, 4, 18), DARK, R - .006, sy - .052 + t, 0); r.rotation.x = Math.PI / 2; }   // turned grooves
     tmesh(g, new THREE.CylinderGeometry(.0105, .0125, .012, 12), BRIGHT, R - .006, sy - .004, 0);   // ferrule
     peg(p, x + .01, y + .012, z - .02, .04); return g; };
   // 24 Oct 06:xx: a real pegboard instead of a flat plane with soft blurred holes: 6 mm tempered hardboard (box, dark core on its edges) on 16 mm battens
