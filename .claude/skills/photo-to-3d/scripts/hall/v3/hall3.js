@@ -854,8 +854,12 @@ const OSB = (() => {
   function sheet(bi, low, stamp, BS = BASE) {
     const [c, x] = can(PW, PH), [bc, b] = can(PW / 2, PH / 2); x.drawImage(BS[bi][0], 0, 0); b.drawImage(BS[bi][1], 0, 0);
     if (R() < .5) { x.fillStyle = `rgba(${R() < .5 ? '255,236,200' : '80,56,30'},.06)`; x.fillRect(0, 0, PW, PH); }   // sheets differ a shade from each other
-    if (stamp) { x.save(); x.translate(PW * (.25 + R() * .3), PH * (.25 + R() * .4)); x.rotate((R() - .5) * .08); x.globalAlpha = .45; x.fillStyle = '#2f4f8a'; x.strokeStyle = '#2f4f8a'; x.lineWidth = 2;   // the grade stamp, faded blue ink
-      x.strokeRect(0, 0, 150, 58); x.font = 'bold 19px Arial'; x.fillText('OSB/3', 10, 24); x.font = '13px Arial'; x.fillText('EN 300 · 18 mm', 10, 42); x.fillText('E1 · CE', 88, 24); x.globalAlpha = .3; x.fillRect(4, 49, 142, 4); x.restore(); }
+    if (stamp) {   // the grade stamp, faded blue ink. 31 Oct 01:xx (review: "oversized, ghostly, paired"): real size ≈ 26 × 10 cm (was 42 × 16), crisper broken ink, kept 37–50 % down the sheet: a 3.8 m wall's top row shows the top 56 % of a sheet, so the joint never splits it and it still shows under the front soffit; same three R() draws
+      const tx = PW * (.2 + R() * .3), ty = PH * (.37 + R() * .1), ta = (R() - .5) * .08, [sc, s] = can(160, 64); let hs = (tx * 7 + ty * 13) | 0; const hr = () => ((hs = (hs * 16807) % 2147483647) / 2147483647);
+      s.fillStyle = s.strokeStyle = '#27457e'; s.lineWidth = 2.6; s.strokeRect(3, 3, 150, 58); s.font = 'bold 20px Arial'; s.fillText('OSB/3', 12, 27); s.font = 'bold 13px Arial'; s.fillText('EN 300 · 18 mm', 12, 45); s.fillText('E1 · CE', 90, 27); s.fillRect(8, 51, 140, 4);
+      s.globalCompositeOperation = 'destination-out'; for (let i = 0; i < 260; i++) { s.globalAlpha = .4 + hr() * .6; s.beginPath(); s.arc(hr() * 160, hr() * 64, .5 + hr() * 1.6, 0, 7); s.fill(); }   // ink skips where the strands stand proud
+      const lg = s.createLinearGradient(0, 0, 160, 0), le = .25 + hr() * .3; lg.addColorStop(0, `rgba(0,0,0,${le})`); lg.addColorStop(.6, 'rgba(0,0,0,0)'); s.globalAlpha = 1; s.fillStyle = lg; s.fillRect(0, 0, 160, 64);   // one end inked lighter: the stamp rocked
+      x.save(); x.translate(tx, ty); x.rotate(ta); x.scale(.62, .62); x.globalAlpha = .62; x.drawImage(sc, 0, 0); x.restore(); }
     const scr = (px, py) => { x.fillStyle = 'rgba(60,45,30,.55)'; x.beginPath(); x.arc(px, py, 3.4, 0, 7); x.fill(); x.fillStyle = '#9a968e'; x.beginPath(); x.arc(px, py, 2.4, 0, 7); x.fill(); x.fillStyle = '#5c5a56'; x.fillRect(px - 1.4, py - .3, 2.8, .6); x.fillRect(px - .3, py - 1.4, .6, 2.8);   // screw head + its countersink
       b.fillStyle = '#e8e8e8'; b.beginPath(); b.arc(px / 2, py / 2, 1.3, 0, 7); b.fill(); };
     const e = .012 * K;                                             // screws: 12 mm in round the edges every 150 mm, every 300 mm down the middle stud
@@ -883,11 +887,12 @@ const OSB = (() => {
   // turn (28 Oct, inside lining): clean sheets may also hang upside down (a 180° turn, strands still run up the sheet), so 2 strand bases give 4 looks
   // holes (28 Oct 23:xx, see-through front window): [[s0, s1, y0, y1]] in wall metres; a sheet that overlaps one is drawn as up to 4 pieces round it, UVs as the whole sheet's, no extra draws
   function wall(p, ox, y0, oz, ry, L, H, row0Low = true, turn = false, holes = []) {
-    const g = grp(p, ox, y0, oz, ry);
+    const g = grp(p, ox, y0, oz, ry), st = new Set();   // st: rows whose last sheet carried a stamp (31 Oct: two stamped sheets side by side read as a mirrored pair)
     for (let s = 0, i = 0; s < L - .001; s += SW, i++) {
       const w = Math.min(SW, L - s);
       for (let y = 0, r = 0; y < H - .001; y += SH, r++) {
-        const h = Math.min(SH, H - y), low = r === 0 && row0Low, ms = (low ? MAT.low : MAT.up), k2 = (i + r + (fr() < .3 ? 1 : 0)) % 2, m = turn ? (low ? MIN.low : MIN.up)[(i * 2 + r + k2) % 3] : ms[k2], flip = fr() < .5, rot = turn && !low && !m.userData.stamp && ((i * 5 + r * 3 + (ox * 7 | 0)) & 1);   // never turn the stamped sheet (upside-down ink)
+        const h = Math.min(SH, H - y), low = r === 0 && row0Low, ms = (low ? MAT.low : MAT.up), k2 = (i + r + (fr() < .3 ? 1 : 0)) % 2, m0 = turn ? (low ? MIN.low : MIN.up)[(i * 2 + r + k2) % 3] : ms[k2], m = m0.userData.stamp && st.has(r) ? (turn ? (low ? MIN.low : MIN.up)[(i * 2 + r + k2 + 1) % 3] : ms[1 - k2]) : m0, flip = fr() < .5 && !m.userData.stamp, rot = turn && !low && !m.userData.stamp && ((i * 5 + r * 3 + (ox * 7 | 0)) & 1);   // never turn or mirror the stamped sheet (upside-down or mirrored ink; 31 Oct: a mirrored pair read as twins in wstool)
+        if (m.userData.stamp) st.add(r); else st.delete(r);
         let parts = [[0, w, 0, h]];
         for (const [h0, h1, hy0, hy1] of holes) { const a = Math.max(0, h0 - s), b = Math.min(w, h1 - s), c = Math.max(0, hy0 - y), d = Math.min(h, hy1 - y);
           if (a < b && c < d) parts = [[0, w, 0, c], [0, w, d, h], [0, a, c, d], [b, w, c, d]].filter(q => q[1] - q[0] > .001 && q[3] - q[2] > .001); }
