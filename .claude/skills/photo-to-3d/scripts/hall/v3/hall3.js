@@ -1450,7 +1450,25 @@ function WSHOP(P) {
   // 31 Oct 00:xx (30 Oct 07:xx review: "the five hammers are identical clones"): a variant per hammer. v 0 is the old ash + black rubber grip (bench hammers keep
   // it); 1 plain ash with no grip and a smaller 16 oz head; 2 yellow fibreglass shaft with a black grip; 3 ash with a red grip; 4 a one-piece steel hammer with a
   // blue vinyl grip and a bigger head. The head is built in its own group at (0, hy) so it can be scaled about its centre; the hooks under it don't move.
-  const HMV = [{ h: WOODH, g: GRIP, r: BLK, hs: 1 }, { h: STD({ color: 0xb98a55, roughness: .55 }), g: null, hs: .9 },
+  // 31 Oct 06:xx (03:xx review: "the plain-ash handle splits into a light upper half and a dark lower band with a hard edge, a texture seam"): the plain-ash
+  // handle gets its own map (so the wear pass skips it): ash with fine lengthwise grain, darkening into a hand-worn, slightly glossier grip over the bottom
+  // third with a ≈ 4 cm soft, uneven fade (no separate band mesh). Canvas top = v 1 = the head end. Own RNG (6061); nothing else draws.
+  const ashWorn = (() => { let hs = 6061; const hr = () => (hs = (hs * 16807) % 2147483647) / 2147483647;
+    const mkc = () => { const c = document.createElement('canvas'); c.width = 64; c.height = 512; return [c, c.getContext('2d')]; };
+    const [c, x] = mkc(), [rc, rx] = mkc(), W = 64, H = 512;
+    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#e2c08e'); g.addColorStop(.5, '#d9b47f'); g.addColorStop(.6, '#c39a66'); g.addColorStop(.68, '#a77c4c');   // pale ash (the 06:xx first try at the old #b98a55 sat as dark as the pegboard)
+    g.addColorStop(.76, '#93683d'); g.addColorStop(1, '#8a5f37'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 26; i++) { const y = H * (.56 + hr() * .16), r = 10 + hr() * 22, a = .08 + hr() * .1, cx = hr() * W;   // uneven fade: a few soft darker patches where fingers sit
+      for (const ox of [-W, 0, W]) { const rg = x.createRadialGradient(cx + ox, y, 0, cx + ox, y, r); rg.addColorStop(0, `rgba(110,72,40,${a})`); rg.addColorStop(1, 'rgba(110,72,40,0)'); x.fillStyle = rg; x.fillRect(cx + ox - r, y - r * 2.4, 2 * r, r * 4.8); } }
+    for (let i = 0; i < 70; i++) { const gx = hr() * W, w = .5 + hr() * 1.3, a = .05 + hr() * .1, dark = hr() < .7; x.strokeStyle = dark ? `rgba(90,58,30,${a})` : `rgba(235,205,160,${a * .8})`; x.lineWidth = w;   // lengthwise grain, wavering a little
+      x.beginPath(); x.moveTo(gx, 0); for (let y = 0; y <= H; y += 32) x.lineTo(gx + Math.sin(y * .011 + i) * 1.6 + (hr() - .5) * .8, y); x.stroke(); }
+    for (let i = 0; i < 1400; i++) { x.fillStyle = `rgba(${hr() < .5 ? '240,215,175' : '80,50,25'},${.03 + hr() * .04})`; x.fillRect(hr() * W, hr() * H, 1, 1 + hr() * 3); }   // pores along the grain
+    const rgr = rx.createLinearGradient(0, 0, 0, H); rgr.addColorStop(0, '#9a9a9a'); rgr.addColorStop(.58, '#949494'); rgr.addColorStop(.74, '#707070'); rgr.addColorStop(1, '#666');   // hand-polished grip: smoother
+    rx.fillStyle = rgr; rx.fillRect(0, 0, W, H); for (let i = 0; i < 900; i++) { rx.fillStyle = `rgba(${hr() < .5 ? '255,255,255' : '0,0,0'},.06)`; rx.fillRect(hr() * W, hr() * H, 1, 2); }
+    const t = new THREE.CanvasTexture(c), rt = new THREE.CanvasTexture(rc); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+    return STD({ map: t, roughness: .62, roughnessMap: rt }); })();
+  const vUV = (geo, v0, v1) => { const u = geo.attributes.uv; for (let i = 0; i < u.count; i++) u.setY(i, v0 + (v1 - v0) * u.getY(i)); return geo; };   // squeeze a part's v into one band of the handle map
+  const HMV = [{ h: WOODH, g: GRIP, r: BLK, hs: 1 }, { h: ashWorn, g: null, hs: .9, ash: true },
     { h: STD({ color: 0xe2b21c, roughness: .35 }), g: STD({ color: 0x1e1f21, roughness: .8 }), r: STD({ color: 0xe2b21c, roughness: .35 }), hs: 1.04 },
     { h: WOODH, g: STD({ color: 0xa3281f, roughness: .75 }), r: STD({ color: 0x5a1410, roughness: .7 }), hs: 1 },
     { h: STD({ color: 0x9aa1a8, roughness: .35, metalness: .55 }), g: STD({ color: 0x2b5590, roughness: .6 }), r: STD({ color: 0x1d3d6c, roughness: .6 }), hs: 1.08, steel: true }];
@@ -1459,8 +1477,7 @@ function WSHOP(P) {
     if (V.g) { const gr = tmesh(g, new THREE.CylinderGeometry(.0185, .0205, .12, 16), V.g, 0, .062, 0); gr.scale.set(1.25, 1, 1);   // moulded grip
       const bt = tmesh(g, new THREE.CylinderGeometry(.0225, .02, .014, 16), V.g, 0, .007, 0); bt.scale.set(1.25, 1, 1);   // flared butt
       for (let i = 0; i < 4; i++) { const r = tmesh(g, new THREE.TorusGeometry(.0198, .0016, 4, 18), V.r, 0, .03 + i * .024, 0); r.rotation.x = Math.PI / 2; r.scale.set(1.25, 1, 1); } }   // grip rings
-    else { const bt = tmesh(g, new THREE.CylinderGeometry(.0175, .0155, .016, 14), V.h, 0, .008, 0); bt.scale.set(1.35, 1, 1);   // bare ash: a swelled butt end and a darker hand-worn band
-      const wb = tmesh(g, new THREE.CylinderGeometry(.0156, .0162, .09, 14), STD({ color: 0x7c5531, roughness: .45 }), 0, .065, 0); wb.scale.set(1.35, 1, 1); }
+    else { const bt = tmesh(g, vUV(new THREE.CylinderGeometry(.0175, .0155, .016, 14), .005, .05), V.h, 0, .008, 0); bt.scale.set(1.35, 1, 1); }   // bare ash: a swelled butt end; the hand-worn grip is in the handle's own map (31 Oct 06:xx)
     const H = grp(g, 0, hy, 0); H.scale.setScalar(V.hs);   // the head, scaled about its own centre
     const ey = new THREE.Shape(); ey.moveTo(-.018, -.021); ey.lineTo(.016, -.021); ey.quadraticCurveTo(.022, -.021, .022, -.014); ey.lineTo(.022, .014); ey.quadraticCurveTo(.022, .02, .016, .02);
     ey.lineTo(-.018, .02); ey.quadraticCurveTo(-.023, .02, -.023, .014); ey.lineTo(-.023, -.014); ey.quadraticCurveTo(-.023, -.021, -.018, -.021);
@@ -1471,7 +1488,7 @@ function WSHOP(P) {
     const CO = [[-.02, .016], [-.07, .02], [-.104, -.026]], CI = [[-.098, -.032], [-.07, -.004], [-.02, -.012]], TT = .8;   // claw outer / inner curves; the last 20 % ground bright
     const cl = new THREE.Shape([...quadPts(...CO, 0, TT, 10), ...quadPts(...CI, 1 - TT, 1, 10)]), ct = new THREE.Shape([...quadPts(...CO, TT, 1, 4), ...quadPts(...CI, 0, 1 - TT, 4)]);
     for (const sz of [-1, 1]) { tmesh(H, ex2(cl, .0075, .0015, 1), HEADM, 0, 0, sz * .0062); tmesh(H, ex2(ct, .0075, .0015, 1), POLISH, 0, 0, sz * .0062); }   // split claw, curving back and down, bright tips
-    const wd = tmesh(H, new THREE.CylinderGeometry(.009, .009, .004, 12), V.steel ? HEADM : V.h, 0, .0225, 0); wd.scale.set(1.35, 1, 1);   // handle end through the eye
+    const wd = tmesh(H, V.ash ? vUV(new THREE.CylinderGeometry(.009, .009, .004, 12), .95, 1) : new THREE.CylinderGeometry(.009, .009, .004, 12), V.steel ? HEADM : V.h, 0, .0225, 0); wd.scale.set(1.35, 1, 1);   // handle end through the eye
     if (!V.steel) box(H, .016, .002, .0025, POLISH, 0, .0245, 0);   // steel wedge (none on a one-piece steel hammer)
     return g; };
   const spanner = (p, x, y, z, L) => { const g = grp(p, x, y, z);   // 24 Oct 05:xx: a real combination spanner (was a bar with a torus and two jaw stubs): 12-point ring at the top, open jaw at 15° at the bottom, tapered I-section shaft; hung by its ring on a hook

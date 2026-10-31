@@ -62,6 +62,7 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   wsbin:    [[3.95, 1.35, -7.55], [3.25, .35, -8.45], true],     // close on the offcuts bin (23 Oct 05:xx)
   wshook:   [[3.62, 1.92, -12.5], [3.68, 1.86, -12.88], true],    // close on the hand-saw handles and their hooks (24 Oct 07:xx: hooks on the hole grid)
   wsham:    [[2.35, 1.72, -12.38], [2.35, 1.64, -12.88], true],    // close on the five hammers (25 Oct 00:xx)
+  wsash:    [[2.24, 1.66, -12.5], [2.24, 1.6, -12.88], true],      // close on the plain-ash hammer, left of wsham's centre (31 Oct 06:xx)
   wsclamp:  [[4.05, 1.6, -11.95], [4.15, 1.5, -12.9], true],     // close on the pegboard's right half: F-clamps, saws (23 Oct 05:xx)
   wssaw:    [[3.75, 1.6, -7.45], [3.2, 1.15, -6.7], true],      // close on the mitre-saw bench (23 Oct 06:xx)
   wsmitre:  [[2.62, 1.42, -7.05], [3.22, 1.15, -6.66], true],    // the mitre saw from its blade side: blade, hood, lower guard, fence, pivot casting (25 Oct 02:xx)
