@@ -1266,8 +1266,29 @@ function WSHOP(P) {
     if (opts.doors) { const n = Math.round(L / .6); for (let i = 0; i < n; i++) { box(g, L / n - .01, H - .272, .018, DOORM, -L / 2 + (i + .5) * L / n, .106, D / 2 - .01);   // 6 mm reveals under the rail and over the plinth (07:xx)
       const px = -L / 2 + (i + .5) * L / n; cyl(g, .0055, .13, PULLD, px, H - .29, D / 2 + .026, 'x', 10); for (const sx of [-.055, .055]) cyl(g, .0045, .026, PULLD, px + sx, H - .29, D / 2 + .012, 'z', 8); } }   // 27 Oct: slim D-pull (bar on two posts) instead of a 10 cm steel block
     return g; }
+  // slotted-angle upright map: one 40 × 300 mm tile (64 × 512 px), grey stove enamel, long slots and round holes punched through (alpha 0), rolled-edge
+  // highlight, faint scuffs and rub marks. UVs are scaled so the tile repeats every 30 cm up the angle.
+  const SLOTM = (() => { let ss = 5023; const sr = () => (ss = (ss * 16807) % 2147483647) / 2147483647;
+    const c = document.createElement('canvas'); c.width = 64; c.height = 512; const x = c.getContext('2d');
+    x.fillStyle = '#8b9095'; x.fillRect(0, 0, 64, 512);
+    for (let i = 0; i < 60; i++) { x.fillStyle = `rgba(${sr() < .5 ? '60,62,64' : '190,194,196'},${.05 + sr() * .08})`; x.fillRect(sr() * 64, sr() * 512, 1 + sr() * 4, 1 + sr() * 14); }
+    x.fillStyle = 'rgba(205,210,214,.55)'; x.fillRect(0, 0, 3, 512); x.fillStyle = 'rgba(40,42,45,.35)'; x.fillRect(61, 0, 3, 512);   // rolled edge + the corner's shade
+    const rr = (cx, cy, w, h) => { const r = w / 2; x.beginPath(); x.moveTo(cx - r, cy - h / 2 + r); x.arc(cx, cy - h / 2 + r, r, Math.PI, 0); x.lineTo(cx + r, cy + h / 2 - r); x.arc(cx, cy + h / 2 - r, r, 0, Math.PI); x.closePath(); };
+    for (let k = 0; k < 8; k++) { const y0 = 32 + k * 64;   // every 37.5 mm: a 22 × 8 mm slot near the free edge, an 8 mm hole nearer the corner, offset half a pitch
+      x.fillStyle = 'rgba(30,32,34,.5)'; rr(26, y0 + 1.5, 16, 40); x.fill(); rr(46, y0 - 30.5, 15, 15); x.fill();   // dark lip round each punch
+      x.globalCompositeOperation = 'destination-out'; rr(25, y0, 13, 37); x.fill(); rr(45, y0 - 32, 13, 13); x.fill(); x.globalCompositeOperation = 'source-over'; }
+    const t = new CT(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
+    return STD({ map: t, alphaTest: .5, metalness: .45, roughness: .5 }); })();
+  const SLOTFOOT = STD({ color: 0x1b1c1e, roughness: .97 }), SLOTNUT = STD({ color: 0x9a9fa3, metalness: .7, roughness: .38 });
+  const slotUV = (m, H) => { const uv = m.geometry.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setY(i, uv.getY(i) * H / .3); uv.needsUpdate = true; return m; };
   function shelving(p, x, z, L, D, H, ry, levels) { const g = grp(p, x, 0, z, ry);   // grey slotted-angle shelving, chipboard shelves
-    for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, .04, H, .04, STEEL, sx * (L / 2 - .02), 0, sz * (D / 2 - .02));
+    // 31 Oct 02:xx (07:xx review: "the near-right shelf upright is a plain grey slab" in wsfrontin): each upright is a real slotted angle, two 40 mm
+    // flanges 2 mm thick meeting at the outer corner, punched right through (long slots and round holes on a 37.5 mm pitch, see-through via alphaTest,
+    // shadows too), a black plastic foot cap, and a hex bolt + washer where each shelf angle is bolted to the upright. No RNG drawn (own map seed).
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const cx = sx * L / 2, cz = sz * D / 2;
+      slotUV(box(g, .04, H, .002, SLOTM, cx - sx * .02, 0, cz - sz * .001), H); slotUV(box(g, .002, H, .04, SLOTM, cx - sx * .001, 0, cz - sz * .02), H);
+      box(g, .046, .012, .046, SLOTFOOT, cx - sx * .021, 0, cz - sz * .021);
+      for (const y of levels) { const bz = cz + sz * .0085; cyl(g, .0085, .0012, SLOTNUT, cx - sx * .02, y - .003, bz, 'z', 14); cyl(g, .0062, .0045, SLOTNUT, cx - sx * .02, y - .003, bz + sz * .0028, 'z', 6); } }
     for (const y of levels) { box(g, L, .018, D, CHIP, 0, y, 0); for (const sz of [-1, 1]) box(g, L, .035, .015, STEEL, 0, y - .02, sz * D / 2); }
     for (const sx of [-1, 1]) { const m = new THREE.Mesh(new THREE.BoxGeometry(.012, Math.hypot(H * .5, D) , .02), STEEL); m.position.set(sx * (L / 2 - .02), H * .75, 0); m.rotation.x = Math.atan2(D, H * .5); g.add(m); }
     return g; }
