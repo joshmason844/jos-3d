@@ -1580,6 +1580,9 @@ function WSHOP(P) {
   // two-tone handle. Hook and footprint unchanged
   const CLRD = STD({ color: 0x8e1712, roughness: .55, metalness: .2, side: THREE.DoubleSide });
   let FCH = null;   // the F-clamp handle's lathe geometry, shared
+  // 31 Oct 07:xx (05:xx find: "a hard white glint on the fixed jaw's pad"): the jaw pad and swivel pad were mirror-bright steel (metalness .85, rough .28)
+  // and caught the lamp as a white blob; now dull, scuffed cast steel that only gives a soft sheen. Bar, spindle and ferrule stay bright
+  const FCPAD = STD({ color: 0x8a8f93, metalness: .55, roughness: .62 });
   const fclamp = (p, x, y, z, L = .45, R = .1) => { const g = grp(p, x, y, z); R *= .88;   // jaws a touch shorter so neighbours 13 cm apart don't touch
     // 31 Oct 05:xx (04:xx run's look at wsclamp: "the bar reads as a ladder"): the notches were 14 dark bars right across the 25 mm face; on a real
     // F-clamp bar the face is plain bright steel and the serrations are small nicks cut into both narrow edges, so they're now 3 mm nicks on each edge
@@ -1591,11 +1594,11 @@ function WSHOP(P) {
       const w = new THREE.Shape(); w.moveTo(.004, k * .008); w.lineTo(len - .006, k * .009); w.lineTo(len - .006, k * .02); w.quadraticCurveTo(len * .55, k * .022, .03, k * .034); w.lineTo(.004, k * .034); w.lineTo(.004, k * .008);
       for (const sz of [-1, 1]) tmesh(g, new THREE.ShapeGeometry(w), CLRD, 0, yy, sz * .0111);   // recessed web, both faces
       for (const sz of [-1, 1]) { const rim = box(g, len - .01, .003, .002, CLR, len / 2 - .002, yy + k * .005 - .0015, sz * .0118); } };
-    jaw(0, R, true); box(g, .026, .007, .02, BRIGHT, R - .006, -.033, 0);   // fixed jaw at the top and its pad
+    jaw(0, R, true); box(g, .026, .007, .02, FCPAD, R - .006, -.033, 0);   // fixed jaw at the top and its pad
     const sy = -L * .62; jaw(sy, R, false);   // sliding jaw
     tmesh(g, new THREE.CylinderGeometry(.0065, .0065, .12, 10), BRIGHT, R - .006, sy + .03, 0);   // spindle up through the sliding jaw
     for (let i = 0; i < 9; i++) { const t = tmesh(g, new THREE.TorusGeometry(.0065, .0011, 3, 10), DARK, R - .006, sy + .04 + i * .007, 0); t.rotation.x = Math.PI / 2; }   // thread
-    tmesh(g, new THREE.CylinderGeometry(.012, .012, .006, 14), BRIGHT, R - .006, sy + .09, 0);   // swivel pad
+    tmesh(g, new THREE.CylinderGeometry(.012, .012, .006, 14), FCPAD, R - .006, sy + .09, 0);   // swivel pad
     // 31 Oct 05:xx: the handle was a plain tapered cylinder (read as a dowel); now a turned barrel (LatheGeometry): slim at the ferrule, swelling
     // through the palm, rounded off at the end, with two dark turned grooves sitting on its surface. Same length and spot.
     const hn = tmesh(g, FCH || (FCH = new THREE.LatheGeometry([[0, -.0425], [.008, -.0418], [.0128, -.0392], [.0156, -.034], [.0174, -.022], [.0179, -.006], [.0173, .01], [.0156, .024], [.0136, .035], [.0124, .0425]].map(([r, y]) => new THREE.Vector2(r, y)), 18)), WOODH, R - .006, sy - .052, 0);   // handle
