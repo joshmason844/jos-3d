@@ -1289,8 +1289,17 @@ function WSHOP(P) {
       slotUV(box(g, .04, H, .002, SLOTM, cx - sx * .02, 0, cz - sz * .001), H); slotUV(box(g, .002, H, .04, SLOTM, cx - sx * .001, 0, cz - sz * .02), H);
       box(g, .046, .012, .046, SLOTFOOT, cx - sx * .021, 0, cz - sz * .021);
       for (const y of levels) { const bz = cz + sz * .0085; cyl(g, .0085, .0012, SLOTNUT, cx - sx * .02, y - .003, bz, 'z', 14); cyl(g, .0062, .0045, SLOTNUT, cx - sx * .02, y - .003, bz + sz * .0028, 'z', 6); } }
-    for (const y of levels) { box(g, L, .018, D, CHIP, 0, y, 0); for (const sz of [-1, 1]) box(g, L, .035, .015, STEEL, 0, y - .02, sz * D / 2); }
-    for (const sx of [-1, 1]) { const m = new THREE.Mesh(new THREE.BoxGeometry(.012, Math.hypot(H * .5, D) , .02), STEEL); m.position.set(sx * (L / 2 - .02), H * .75, 0); m.rotation.x = Math.atan2(D, H * .5); g.add(m); }
+    // 31 Oct 03:xx (02:xx run's find: "the shelf-edge angles and diagonal braces are still plain bars"): the front and back shelf bearers are slotted
+    // angle too (a 35 mm flange down the face, a 40 mm flange under the board, slots running along the length, bolted to each upright's inner flange),
+    // and the two end braces are 30 mm flat slotted strip bolted at both ends, set just outside the uprights so they don't cut through them. No RNG drawn.
+    const slotBar = (w, len, px, py, pz) => { const m = slotUV(new THREE.Mesh(new THREE.BoxGeometry(w, len, .002), SLOTM), len); m.position.set(px, py, pz); m.castShadow = m.receiveShadow = true; g.add(m); return m; };
+    for (const y of levels) { box(g, L - .006, .018, D - .01, CHIP, 0, y, 0);
+      for (const sz of [-1, 1]) { const fz = sz * (D / 2 - .003);   // inside the uprights' face flanges, ending inside their side flanges
+        slotBar(.035, L - .006, 0, y - .0175, fz).rotation.set(0, 0, Math.PI / 2);                        // the face flange, 35 mm down from the board's underside line
+        slotBar(.04, L - .006, 0, y - .001, fz - sz * .02).rotation.set(Math.PI / 2, 0, Math.PI / 2); } }   // the flange the board sits on
+    for (const sx of [-1, 1]) { const len = Math.hypot(H * .5, D - .02), a = Math.atan2(D - .02, H * .5), bx = sx * (L / 2 + .002);
+      slotBar(.03, len, bx, H * .75, 0).rotation.set(a, Math.PI / 2, 0);   // flat strip in the end's plane, just outside the uprights
+      for (const e of [-1, 1]) cyl(g, .007, .004, SLOTNUT, bx + sx * .003, H * .75 + e * H * .25 * .92, e * (D / 2 - .01) * .92, 'x', 6); }
     return g; }
   const cbox = (p, x, y, z, w, h, d, ry = 0) => { const b = box(p, w, h, d, CARDS[cardN++ % 3], x, y, z, ry); return b; };
   // 28 Oct 00:xx (07:xx review: "the white crate with the green lid has no contact shadow and its texture is a low-res smear of scratches"): a moulded

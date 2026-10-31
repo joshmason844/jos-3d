@@ -76,6 +76,7 @@ After each build, before replying:
 - Watch: a racking row runs along its local +x, so on the right wall (ry −90°) it heads toward the door: start it at the far end.
 
 ## Traps learned
+- An L-section along a shelf edge is two thin `BoxGeometry(w, len, .002)` bars built upright (so `slotUV` scales v by length) and then rotated (z 90° for the face flange, x 90° + z 90° for the flat one); keep them 3 mm inside the uprights' own flanges or they z-fight with them (31 Oct).
 - Punched sheet steel (slotted angle, pegboard-style racks) reads best as thin boxes with an alpha-punched map and `alphaTest` (holes see-through, and three's shadow pass copies map + alphaTest so the shadows are holed too); BoxGeometry UVs are 0–1 per face, so scale v by length/tile on the geometry (`slotUV`) instead of a repeat per material (31 Oct).
 - Self-scores drift up on small texture/shadow tweaks: the 30 Oct 07:xx blind review found 2 of 3 self-scored builds worse (finer OSB read as mush, a darker pegboard core read as a black blob). For any change that makes a texture finer or a shadow darker, put the BEFORE and AFTER crops side by side at phone size before scoring, and prefer geometry (rails, bolts, feet) over another shading pass (30 Oct).
 - A baked drop shadow whose offset is smaller than the part's own outline hides behind it: the pegboard core dropped .7 × stand-off with a 1 px blur and showed nothing on a phone. Drop it ≥ 1 × stand-off and add a no-drop contact halo (alpha ≈ .3, 2–3 px) so every hung part gets an outline (30 Oct).
