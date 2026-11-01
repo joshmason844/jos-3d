@@ -76,6 +76,7 @@ After each build, before replying:
 - Watch: a racking row runs along its local +x, so on the right wall (ry −90°) it heads toward the door: start it at the far end.
 
 ## Traps learned
+- To sharpen a canvas texture without moving anything, draw it at k× by `x.scale(k, k)` and dividing w: same strokes, same RNG draws; but any `drawImage(x.canvas, …)` self-copy runs under `setTransform(1,0,0,1,0,0)` and must scale its source/dest rects by k too. At phone size the gain is small: a 128 px label already sits near one texel per screen pixel (1 Nov 23:xx).
 - When varying props whose layout code draws from the shared RNG (a shelf loop calling wf() per item), keep the draw count fixed (draw 3 even for a 2-item group) or everything after shuffles; and pick a variant by a stepped index (cardN·3 mod 8), not a position hash, which clusters (1 Nov 05:xx: four MIXED boxes in one view on the hash try).
 - A darker "finish" variant on small hung steel (black oxide on a spanner) reads as flat plastic at phone size against brown pegboard; vary used tools by wear, lean and one dull chrome, not by a dark finish (1 Nov 04:xx revert of v110).
 - Painted steel (slotted angle, cabinets) wants metalness ≈ .1, not .45: with a dim room environment a half-metal paint mirrors the dark and goes near-black in shade, which reads blue-dark next to warm OSB. Sample the scan for hue only (its textures carry baked light), then go a step lighter than the sample if the first try is too subtle at phone size (1 Nov).

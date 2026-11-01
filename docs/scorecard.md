@@ -1176,3 +1176,13 @@ One row per build, so each run gets measurably better.
 - Review (fresh Opus, blind, phone, v113 → v117): wsspan 6.8 → 6.8 (same; v114 chrome revert fine) · wsleft 6.8 → 6.9 (better: varied labels, no FIXINGS clones) · wsfoot 6.6 → 6.6 (same; detail/surface a hair down: the big WASHERS label blurs close up). Mean 6.7 → 6.8. Worst problems: no shadows of the spanners on the pegboard; label canvas blurry close up, no contact shadow under the shelving feet; tins are plain cylinders.
 - Published: yes (version 117; first send refused as unviewed, its diff showed only my lines; resent with a "(v117)" comment).
 - Score: reviewer 6.7 → 6.8 on these three close-ups; page row 7.41 → 7.42. Not at standard.
+
+## 2026-11-01 23:xx · WW: shelf-box labels sharp close up (4× label canvases; 07:xx review find) · run 1 of the night
+- Meeting: huddle: docs/team.md already matches the overnight brief, no team change. Top open Josh's request (forklift in Blender) is for a page Josh dropped, skipped; took the workshop request and the 07:xx reviewer's worst find on wsfoot (the only view whose detail line dropped): "label canvas blurry close up". Also split "bring the yard in" into four run-sized steps (Y1–Y4) in the backlog, as the 05:xx note asked. Not a review run (run 1). Fresh container: ./setup.sh first.
+- Team: Opus 5.5 (boss + builder) built it in one pass, shot BEFORE/AFTER (phone: wsfoot, wsleft), made the publish copy from the live page (keycaps block carried over). Haiku checker PASS. No researcher, no reviewer. Self-scored, review due.
+- Changed (hall3.js): `CS = 4`; all 8 CARDS canvases are 512 × 1024 with the context scaled ×4, so every stroke, RNG draw and layout is the same and only the print comes out sharper; the plain-half self-copy scaled to match. Phones (LITE) still shrink each to the 200 k px budget (≈ 316 × 632, still 2.5× the old 128 × 256). Page 0.47 MB; phone load 28.5 → 32.4 s.
+- Better: wsfoot: the WASHERS / M10 label edges crisper on a zoomed crop (checker: edge contrast ≈ +11 %). Honest: a small gain at phone size; wsleft looks the same. Still weak: half the WASHERS label hides behind the near upright and the part behind it looks smeared; no contact shadow under the shelving feet; tins plain cylinders.
+- Checker (Haiku): PASS: page errors [] before and after (font ERR_FAILED only); after.html 0.47 MB; nothing moved, bake counts identical; AFTER slightly sharper.
+- Published: yes (version 118; first send refused as unviewed, rebuilt from the live page + my lines and resent).
+- Score (self, on the 07:xx reviewer's scale): wsfoot ≈ 6.6 → 6.65, wsleft level. Page row 7.42 → 7.42, review due.
+

@@ -1202,9 +1202,12 @@ function WSHOP(P) {
   // 1 Nov 06:xx (05:xx self-critique: "every face of a box shows the same label"): each card canvas is now 128 × 256: the LOWER half is the labelled
   // face (as before), the UPPER half a copy of the plain board and tape taken just before the label goes on. cbox() maps the ±z faces to the lower half
   // and the sides and top to the upper, so a box seen corner-on shows one label, not two. Same RNG draws as before, label whites a step duller.
-  const CARDS = [0, 1, 2].map(k => STD({ roughness: .9, map: can(128, 256, (x, w, H) => { const h = 128; x.translate(0, 128); x.fillStyle = ['#b88d5c', '#a87f52', '#c29a68'][k]; x.fillRect(0, 0, w, h); qspecks(x, w, h, 900, .08);   // three kinds of box: label, tape and print differ
+  // 1 Nov 23:xx (07:xx review: "the 128 px label canvas blurs close up", wsfoot detail down): every card canvas drawn at CS = 4× (512 × 1024) by scaling
+  // the context, so the same strokes, same RNG draws and same layout, only the labels and print come out sharp. The self-copy for the plain half scales too.
+  const CS = 4;
+  const CARDS = [0, 1, 2].map(k => STD({ roughness: .9, map: can(128 * CS, 256 * CS, (x, w, H) => { x.scale(CS, CS); w /= CS; const h = 128; x.translate(0, 128); x.fillStyle = ['#b88d5c', '#a87f52', '#c29a68'][k]; x.fillRect(0, 0, w, h); qspecks(x, w, h, 900, .08);   // three kinds of box: label, tape and print differ
     x.fillStyle = 'rgba(205,170,115,.9)'; x.fillRect(w / 2 - 8, 0, 16, h); if (k === 1) { x.fillStyle = 'rgba(160,150,140,.55)'; x.fillRect(0, h / 2 - 7, w, 14); }
-    x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.drawImage(x.canvas, 0, 128, 128, 128, 0, 0, 128, 128); x.restore();   // plain sides and top
+    x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.drawImage(x.canvas, 0, 128 * CS, 128 * CS, 128 * CS, 0, 0, 128 * CS, 128 * CS); x.restore();   // plain sides and top
     if (k === 0) { x.fillStyle = '#e0dbcf'; x.fillRect(14, 70, 40, 26); x.fillStyle = '#333'; for (let i = 0; i < 4; i++) x.fillRect(18, 75 + i * 5, 20 + qr() * 14, 2); }
     else if (k === 1) { x.fillStyle = '#1a1a1a'; x.font = 'bold 15px Arial'; x.fillText('FIXINGS', 34, 100); x.fillText('M8', 52, 116); }   // 07:xx: centred (at x 72 it ran off the canvas edge; with labels now at true size a narrow box cut it to 'FIXI')
     else { x.strokeStyle = 'rgba(40,40,40,.8)'; x.lineWidth = 2; x.beginPath(); x.moveTo(20, 40); x.lineTo(20, 22); x.moveTo(14, 28); x.lineTo(20, 22); x.lineTo(26, 28); x.moveTo(36, 40); x.lineTo(36, 22); x.moveTo(30, 28); x.lineTo(36, 22); x.lineTo(42, 28); x.stroke(); x.fillStyle = '#2a2a2a'; x.fillRect(74, 84, 40, 4); x.fillRect(74, 92, 30, 3); } }) }));
@@ -1214,10 +1217,10 @@ function WSHOP(P) {
   { let sc = 5105; const cr = () => (sc = (sc * 16807) % 2147483647) / 2147483647, cf = (a, b) => a + (b - a) * cr();
     const KINDS = [['#b48a58', 'SCREWS', '5 × 60', '#e3ddcf', '#1d1d1d', 1], ['#a9845a', 'CABLE TIES', '300 mm BLACK', '#ebe7de', '#b8231d', 0], ['#bf9764', 'WASHERS', 'M10', '#ddd6ba', '#1d1d1d', 1],
       ['#9f7a50', 'COACH BOLTS', 'M8 × 100', '#e5e1d6', '#2a4f8f', 0], ['#c4a070', 'MIXED', 'odds + ends', null, '#222', 2]];
-    for (const [bg, t1, t2, lab, ink, st] of KINDS) CARDS.push(STD({ roughness: .9, map: can(128, 256, (x, w, H) => { const h = 128; x.translate(0, 128); x.fillStyle = bg; x.fillRect(0, 0, w, h);
+    for (const [bg, t1, t2, lab, ink, st] of KINDS) CARDS.push(STD({ roughness: .9, map: can(128 * CS, 256 * CS, (x, w, H) => { x.scale(CS, CS); w /= CS; const h = 128; x.translate(0, 128); x.fillStyle = bg; x.fillRect(0, 0, w, h);
       for (let i = 0; i < 900; i++) { x.fillStyle = `rgba(${cr() > .5 ? '255,255,255' : '0,0,0'},${.08 * cr()})`; x.fillRect(cr() * w, cr() * h, 1 + cr() * 2, 1 + cr() * 2); }   // board specks
       const tx = cf(30, 70); x.fillStyle = st === 1 ? 'rgba(150,140,128,.6)' : 'rgba(205,170,115,.85)'; x.fillRect(tx, 0, cf(14, 20), h);   // tape strip: brown or clear, never in the same place
-      x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.drawImage(x.canvas, 0, 128, 128, 128, 0, 0, 128, 128); x.restore();   // plain sides and top (06:xx)
+      x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.drawImage(x.canvas, 0, 128 * CS, 128 * CS, 128 * CS, 0, 0, 128 * CS, 128 * CS); x.restore();   // plain sides and top (06:xx)
       if (st === 0) { x.fillStyle = 'rgba(40,36,30,.7)'; x.fillRect(8, 8, 46, 5); x.fillRect(8, 16, 30, 3); }   // maker's print, top left
       if (lab) { const lx = cf(8, 22), ly = cf(62, 74), lw = 96 - lx + cf(0, 16); x.fillStyle = lab; x.fillRect(lx, ly, lw, 38); x.fillStyle = 'rgba(0,0,0,.12)'; x.fillRect(lx, ly + 36, lw, 2);
         x.fillStyle = ink; x.font = `bold ${t1.length > 8 ? 13 : 16}px Arial`; x.fillText(t1, lx + 5, ly + 17); x.font = '11px Arial'; x.fillStyle = '#333'; x.fillText(t2, lx + 5, ly + 32); }
