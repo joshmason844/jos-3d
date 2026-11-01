@@ -463,3 +463,6 @@ Runs alternate: one People item, then one Warehouse item (Main hall, sections, y
 - [ ] WW boxes (1 Nov 06:xx): labels stretch with the box: each face maps the whole 128 px tile, so on a wide box (CABLE TIES, 0.55 m) the label and its text are pulled wide and on a narrow one squashed; scale the face UVs to the box's metres (repeat the board, fix the label at real size ≈ 15 × 8 cm).
 - [ ] WW boxes (1 Nov 06:xx): every box is a perfect sharp-edged cube; real stored cardboard has a slightly bulged top, a flap gap on the top seam and soft dented corners. A bevel or a few displaced verts per box (own RNG) would carry "cardboard" at phone size.
 - [ ] WW boxes (1 Nov 06:xx): the back (−z) face shows the same label as the front, so a box turned round on a shelf still faces its label out both ways; give the back face a plainer print (maker's mark only) by using a third strip of the canvas.
+- [ ] WW (07:xx 1 Nov review): shelf-box label canvases are 128 px: close up (wsfoot) the WASHERS label blurs; draw CARDS at 256 px a half (same RNG draws).
+- [ ] WW (07:xx 1 Nov review): the shelving feet and the bucket have no contact shadow on the concrete in wsfoot, only the black pads.
+- [ ] WW (07:xx 1 Nov review): the tins on the tall shelving are plain banded cylinders: rims, a printed label wrap, a dent or two.

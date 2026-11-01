@@ -1166,3 +1166,13 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS (after one false FAIL, see Team): page errors [] before and after (font ERR_FAILED only); after.html 0.47 MB.
 - Published: yes (version 116; first send refused as unviewed, its diff showed only my lines; resent with a "(v116)" comment).
 - Score (self, on the 03:xx reviewer's scale): wsleft ≈ 6.70 → 6.73, wsfoot ≈ 6.90 → 6.98. Page row 7.40 → 7.41, review due.
+
+## 2026-11-01 07:xx · WW: shelf-box labels at true size, not stretched (06:xx self-critique) + blind review of v114–v117 · run 9 of the night
+- Meeting: top open Josh's request (forklift in Blender) is for a page Josh dropped, skipped; took the workshop request and the 06:xx run's own worst find ("CABLE TIES pulled wide"), small and plain at phone size, so the summary run has time for the review. Review run (07:xx: always). No team change. Fresh container: ./setup.sh first. Shortcut: BEFORE, AFTER and the v113 baseline (git worktree of 43bce2a) shot back to back from one queue script, so the reviewer's pairs were ready the minute AFTER finished.
+- Team: Opus 5.5 (boss + builder) built it in two passes (my AFTER look caught FIXINGS cut to "FIXI" on narrow boxes: the text sat at x 72 on a 128 px canvas), shot BEFORE/AFTER/baseline (phone: wsleft, wsfoot, wsspan), made the publish copy. Haiku checker PASS. Fresh Opus reviewer, blind (X = now, Y = v113): reviewer-scored.
+- Changed (hall3.js): `cbox()` maps the labelled ±z faces to a w × h window of the label half (the half = a 0.5 m square of board, square texels, centred on u .5, v .33, shrunk to fit over 0.5 m), so labels keep their printed proportions; FIXINGS M8 text moved to x 34/52. No RNG drawn, layout unchanged, 0.47 MB.
+- Better: wsleft: SCREWS, WASHERS, CABLE TIES and MIXED all read as real printed labels in proportion; FIXINGS M8 whole. Still weak: close up (wsfoot) the 128 px label canvas blurs; labels can sit large on short boxes; tins plain cylinders.
+- Checker (Haiku): PASS: page errors [] (font ERR_FAILED only); after2.html 0.47 MB, publish copy 0.48 MB; labels better.
+- Review (fresh Opus, blind, phone, v113 → v117): wsspan 6.8 → 6.8 (same; v114 chrome revert fine) · wsleft 6.8 → 6.9 (better: varied labels, no FIXINGS clones) · wsfoot 6.6 → 6.6 (same; detail/surface a hair down: the big WASHERS label blurs close up). Mean 6.7 → 6.8. Worst problems: no shadows of the spanners on the pegboard; label canvas blurry close up, no contact shadow under the shelving feet; tins are plain cylinders.
+- Published: yes (version 117; first send refused as unviewed, its diff showed only my lines; resent with a "(v117)" comment).
+- Score: reviewer 6.7 → 6.8 on these three close-ups; page row 7.41 → 7.42. Not at standard.

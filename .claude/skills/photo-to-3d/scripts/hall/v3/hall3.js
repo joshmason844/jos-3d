@@ -1206,7 +1206,7 @@ function WSHOP(P) {
     x.fillStyle = 'rgba(205,170,115,.9)'; x.fillRect(w / 2 - 8, 0, 16, h); if (k === 1) { x.fillStyle = 'rgba(160,150,140,.55)'; x.fillRect(0, h / 2 - 7, w, 14); }
     x.save(); x.setTransform(1, 0, 0, 1, 0, 0); x.drawImage(x.canvas, 0, 128, 128, 128, 0, 0, 128, 128); x.restore();   // plain sides and top
     if (k === 0) { x.fillStyle = '#e0dbcf'; x.fillRect(14, 70, 40, 26); x.fillStyle = '#333'; for (let i = 0; i < 4; i++) x.fillRect(18, 75 + i * 5, 20 + qr() * 14, 2); }
-    else if (k === 1) { x.fillStyle = '#1a1a1a'; x.font = 'bold 15px Arial'; x.fillText('FIXINGS', 72, 100); x.fillText('M8', 80, 116); }
+    else if (k === 1) { x.fillStyle = '#1a1a1a'; x.font = 'bold 15px Arial'; x.fillText('FIXINGS', 34, 100); x.fillText('M8', 52, 116); }   // 07:xx: centred (at x 72 it ran off the canvas edge; with labels now at true size a narrow box cut it to 'FIXI')
     else { x.strokeStyle = 'rgba(40,40,40,.8)'; x.lineWidth = 2; x.beginPath(); x.moveTo(20, 40); x.lineTo(20, 22); x.moveTo(14, 28); x.lineTo(20, 22); x.lineTo(26, 28); x.moveTo(36, 40); x.lineTo(36, 22); x.moveTo(30, 28); x.lineTo(36, 22); x.lineTo(42, 28); x.stroke(); x.fillStyle = '#2a2a2a'; x.fillRect(74, 84, 40, 4); x.fillRect(74, 92, 30, 3); } }) }));
   // 1 Nov 05:xx (03:xx review: "the same FIXINGS M8 box on several shelves"): five more kinds of box, each its own maker's print and its own contents
   // label (different words, sizes and colours), drawn from their own RNG (5105) so qr()/wr() and the layout stay put. cbox() now steps through all 8,
@@ -1334,7 +1334,11 @@ function WSHOP(P) {
       slotBar(.03, len, bx, H * .75, 0).rotation.set(a, Math.PI / 2, 0);   // flat strip in the end's plane, just outside the uprights
       for (const e of [-1, 1]) cyl(g, .007, .004, SLOTNUT, bx + sx * .003, H * .75 + e * H * .25 * .92, e * (D / 2 - .01) * .92, 'x', 6); }
     return g; }
-  const cbox = (p, x, y, z, w, h, d, ry = 0) => { const b = box(p, w, h, d, CARDS[(cardN++ * 3) % CARDS.length], x, y, z, ry); const uv = b.geometry.attributes.uv; for (let i = 0; i < 24; i++) uv.setY(i, i >= 16 ? uv.getY(i) * .5 : .5 + uv.getY(i) * .5); return b; };   // 06:xx: ±z faces (16–23) get the labelled lower half, sides and top the plain upper half   // 1 Nov 05:xx: steps through all 8 kinds 3 at a time (was round-robin over 3), so the next 7 boxes along never repeat one; a position hash was tried first and clustered (four MIXED in one view)
+  const cbox = (p, x, y, z, w, h, d, ry = 0) => { const b = box(p, w, h, d, CARDS[(cardN++ * 3) % CARDS.length], x, y, z, ry); const uv = b.geometry.attributes.uv;
+    // 1 Nov 07:xx (06:xx self-critique: "labels stretch with the box width, CABLE TIES pulled wide"): the labelled half is a 0.5 m square of board, so the
+    // ±z faces show a w × h window of it (square texels), centred on the label (u .5, v .33 of the half) and shrunk to fit if the face is over 0.5 m.
+    const k = Math.min(1, .5 / Math.max(w, h)), uw = w / .5 * k, vh = h / .5 * k, u0 = Math.min(1 - uw, Math.max(0, .5 - uw / 2)), v0 = Math.min(1 - vh, Math.max(0, .33 - vh / 2));
+    for (let i = 0; i < 24; i++) { if (i >= 16) { uv.setX(i, u0 + uv.getX(i) * uw); uv.setY(i, (v0 + uv.getY(i) * vh) * .5); } else uv.setY(i, .5 + uv.getY(i) * .5); } return b; };   // 06:xx: ±z faces (16–23) get the labelled lower half, sides and top the plain upper half   // 1 Nov 05:xx: steps through all 8 kinds 3 at a time (was round-robin over 3), so the next 7 boxes along never repeat one; a position hash was tried first and clustered (four MIXED in one view)
   // 28 Oct 00:xx (07:xx review: "the white crate with the green lid has no contact shadow and its texture is a low-res smear of scratches"): a moulded
   // polypropylene storage box instead of two boxes. Tapered body with rounded corners, a stacking rim under the lid, a lid with a raised centre panel and
   // end grips, its own fine moulded-plastic map in metres (so the wear pass, which only dresses mapless meshes, leaves it alone). Its contact shadow comes from
