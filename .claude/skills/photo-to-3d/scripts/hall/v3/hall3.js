@@ -1268,7 +1268,10 @@ function WSHOP(P) {
     return g; }
   // slotted-angle upright map: one 40 × 300 mm tile (64 × 512 px), grey stove enamel, long slots and round holes punched through (alpha 0), rolled-edge
   // highlight, faint scuffs and rub marks. UVs are scaled so the tile repeats every 30 cm up the angle.
-  const SLOTM = (() => { let ss = 5023; const sr = () => (ss = (ss * 16807) % 2147483647) / 2147483647;
+  // 1 Nov 01:xx (31 Oct 02:xx find: "every upright is the same clean grey with no grime low down"): floor-standing uprights get their bottom 15 cm
+  // as its own piece with a grimed copy of the map (same seed, so the slots line up; the grime is drawn source-atop so the punched holes stay open):
+  // a dirty mop-and-boot band fading up from the floor, light scrapes where boots and trolleys catch the angle, mop splash specks. Own RNG 5179.
+  const slotMat = grime => { let ss = 5023; const sr = () => (ss = (ss * 16807) % 2147483647) / 2147483647;
     const c = document.createElement('canvas'); c.width = 64; c.height = 512; const x = c.getContext('2d');
     x.fillStyle = '#8b9095'; x.fillRect(0, 0, 64, 512);
     for (let i = 0; i < 60; i++) { x.fillStyle = `rgba(${sr() < .5 ? '60,62,64' : '190,194,196'},${.05 + sr() * .08})`; x.fillRect(sr() * 64, sr() * 512, 1 + sr() * 4, 1 + sr() * 14); }
@@ -1277,16 +1280,24 @@ function WSHOP(P) {
     for (let k = 0; k < 8; k++) { const y0 = 32 + k * 64;   // every 37.5 mm: a 22 × 8 mm slot near the free edge, an 8 mm hole nearer the corner, offset half a pitch
       x.fillStyle = 'rgba(30,32,34,.5)'; rr(26, y0 + 1.5, 16, 40); x.fill(); rr(46, y0 - 30.5, 15, 15); x.fill();   // dark lip round each punch
       x.globalCompositeOperation = 'destination-out'; rr(25, y0, 13, 37); x.fill(); rr(45, y0 - 32, 13, 13); x.fill(); x.globalCompositeOperation = 'source-over'; }
+    if (grime) { let gs = 5179; const gr = () => (gs = (gs * 16807) % 2147483647) / 2147483647; x.globalCompositeOperation = 'source-atop';   // canvas y 256–512 = the bottom 15 cm (v .5 → 0, floor at y 512)
+      const g = x.createLinearGradient(0, 256, 0, 512); g.addColorStop(0, 'rgba(168,150,122,0)'); g.addColorStop(.35, 'rgba(168,150,122,.2)'); g.addColorStop(.75, 'rgba(162,142,114,.5)'); g.addColorStop(1, 'rgba(150,130,102,.7)');   /* dried mop water and floor dust: dusty tan, lighter than the grey, so it reads in the shade */ x.fillStyle = g; x.fillRect(0, 256, 64, 256);
+      for (let i = 0; i < 9; i++) { const y = 400 + gr() * 100; x.fillStyle = `rgba(${gr() < .6 ? '215,218,216' : '92,84,74'},${.3 + gr() * .3})`; x.fillRect(gr() * 30, y, 14 + gr() * 34, 1.5 + gr() * 3); }   // boot and trolley scrapes
+      for (let i = 0; i < 70; i++) { const y = 512 - Math.pow(gr(), 1.8) * 200; x.fillStyle = `rgba(${gr() < .6 ? '70,60,48' : '186,174,150'},${.2 + gr() * .35})`; x.beginPath(); x.arc(gr() * 64, y, .8 + gr() * 2.2, 0, 7); x.fill(); }   // mop splash
+      x.fillStyle = 'rgba(112,96,76,.5)'; x.fillRect(0, 498, 64, 14); x.globalCompositeOperation = 'source-over'; }   // the damp line right at the floor
     const t = new CT(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
-    return STD({ map: t, alphaTest: .5, metalness: .45, roughness: .5 }); })();
+    return STD({ map: t, alphaTest: .5, metalness: .45, roughness: grime ? .62 : .5 }); };
+  const SLOTM = slotMat(false), SLOTMG = slotMat(true);
   const SLOTFOOT = STD({ color: 0x1b1c1e, roughness: .97 }), SLOTNUT = STD({ color: 0x9a9fa3, metalness: .7, roughness: .38 });
-  const slotUV = (m, H) => { const uv = m.geometry.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setY(i, uv.getY(i) * H / .3); uv.needsUpdate = true; return m; };
-  function shelving(p, x, z, L, D, H, ry, levels) { const g = grp(p, x, 0, z, ry);   // grey slotted-angle shelving, chipboard shelves
+  const slotUV = (m, H, v0 = 0) => { const uv = m.geometry.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setY(i, v0 + uv.getY(i) * H / .3); uv.needsUpdate = true; return m; };
+  function shelving(p, x, z, L, D, H, ry, levels, floor = true) { const g = grp(p, x, 0, z, ry);   // grey slotted-angle shelving, chipboard shelves
     // 31 Oct 02:xx (07:xx review: "the near-right shelf upright is a plain grey slab" in wsfrontin): each upright is a real slotted angle, two 40 mm
     // flanges 2 mm thick meeting at the outer corner, punched right through (long slots and round holes on a 37.5 mm pitch, see-through via alphaTest,
     // shadows too), a black plastic foot cap, and a hex bolt + washer where each shelf angle is bolted to the upright. No RNG drawn (own map seed).
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const cx = sx * L / 2, cz = sz * D / 2;
-      slotUV(box(g, .04, H, .002, SLOTM, cx - sx * .02, 0, cz - sz * .001), H); slotUV(box(g, .002, H, .04, SLOTM, cx - sx * .001, 0, cz - sz * .02), H);
+      const G = floor ? .15 : 0;   // floor-standing: bottom 15 cm in the grimed map, v .5 on up so the slots carry on unbroken
+      if (G) { slotUV(box(g, .04, G, .002, SLOTMG, cx - sx * .02, 0, cz - sz * .001), G); slotUV(box(g, .002, G, .04, SLOTMG, cx - sx * .001, 0, cz - sz * .02), G); }
+      slotUV(box(g, .04, H - G, .002, SLOTM, cx - sx * .02, G, cz - sz * .001), H - G, G / .3); slotUV(box(g, .002, H - G, .04, SLOTM, cx - sx * .001, G, cz - sz * .02), H - G, G / .3);
       box(g, .046, .012, .046, SLOTFOOT, cx - sx * .021, 0, cz - sz * .021);
       for (const y of levels) { const bz = cz + sz * .0085; cyl(g, .0085, .0012, SLOTNUT, cx - sx * .02, y - .003, bz, 'z', 14); cyl(g, .0062, .0045, SLOTNUT, cx - sx * .02, y - .003, bz + sz * .0028, 'z', 6); } }
     // 31 Oct 03:xx (02:xx run's find: "the shelf-edge angles and diagonal braces are still plain bars"): the front and back shelf bearers are slotted
@@ -1923,7 +1934,7 @@ function WSHOP(P) {
     return g; };
   // --- 1. front wall bench, under the window-less front, with shelves over its left end (scan: top ≈ 1.0–1.1 m, a shelf ≈ 2.0 m at x 0.75–2.0)
   { const g = grp(P), b = bench(g, 3.2, -2.78, 5.4, .62, 1.0, 0, { doors: false });
-    const s = shelving(g, 1.4, -2.68, 1.7, .4, 1.3, 0, [.55, 1.0]); s.position.y = 1.0; for (let i = 0; i < 5; i++) tin(s, -.7 + i * .17, .57, 0, .065, .14, [0xd9dde0, 0x2f5f8f, 0xb8231d, 0xe8e2d0, 0x3b6b3a][i]);
+    const s = shelving(g, 1.4, -2.68, 1.7, .4, 1.3, 0, [.55, 1.0], false); s.position.y = 1.0; for (let i = 0; i < 5; i++) tin(s, -.7 + i * .17, .57, 0, .065, .14, [0xd9dde0, 0x2f5f8f, 0xb8231d, 0xe8e2d0, 0x3b6b3a][i]);
     for (let i = 0; i < 3; i++) caseY(s, .15 + i * .28, 1.02, 0, .26, .12 + i * .01, .32); cbox(s, -.55, 1.02, 0, .4, .26, .3);
     const t = grp(g, 0, 1.0, 0); for (const d of [drill(t, 1.6, 0, -2.78, .4), drill(t, 1.95, 0, -2.7, -.3, 0x2a5aa8)]) T2(d, 'Cordless drill', 'A cordless drill left on the bench. The scan shows small yellow and blue shapes on the bench top; which tools they are is a guess.', '≈ 0.25 m long'); caseY(t, 2.6, 0, -2.85, .5, .14, .36); for (let i = 0; i < 4; i++) tin(t, 4.4 + i * .14, 0, -2.9, .055, .12, [0xe8e2d0, 0xe0661c, 0x2f5f8f, 0xe8e2d0][i]);
     box(t, .3, .1, .2, STD({ color: 0x3c6e9e, roughness: .4 }), 3.6, 0, -2.85); hammer(t, 3.2, 0, -2.66, 0).rotation.z = Math.PI / 2; for (let i = 0; i < 3; i++) cbox(t, 5.15, i * .2, -2.85, .38, .2, .34, wf(-.1, .1));
@@ -1957,7 +1968,7 @@ function WSHOP(P) {
       else if (k === 'tins') for (let i = 0; i < 3; i++) tin(t, -.12 + (i % 2) * .14, 0, z + i * .13, .05, .1 + wr() * .06, [0xe8e2d0, 0x3b6b3a, 0xb8231d][i]);
       else if (k === 'box') cbox(t, 0, 0, zb, .35, .25, .45, wf(-.2, .2)); else if (k === 'tub') tub(t, 0, 0, z, .32, .22, .45, [0x2a5aa8, 0xb8231d, 0x3b6b3a][Math.floor(wr() * 3)]);
       else benchReel(t, -.02, 0, z, Math.PI / 2); }   // 05:xx: a real site cable reel
-    const s = shelving(g, 5.74, -10.85, 3.6, .38, 1.75, Math.PI / 2, [.6, 1.15, 1.65]); s.position.y = .95;
+    const s = shelving(g, 5.74, -10.85, 3.6, .38, 1.75, Math.PI / 2, [.6, 1.15, 1.65], false); s.position.y = .95;
     for (let i = 0; i < 6; i++) { cbox(s, -1.55 + i * .55, .62, 0, .45, .3, .32, wf(-.1, .1)); if (i % 2) tub(s, -1.5 + i * .55, 1.17, 0, .42, .24, .3, 0x2a5aa8); else caseY(s, -1.5 + i * .55, 1.17, 0, .4, .14, .3); }
     for (let i = 0; i < 5; i++) cbox(s, -1.5 + i * .7, 1.67, 0, .55, .22 + wr() * .1, .32, wf(-.1, .1));
     T2(g, 'Long bench (aisle wall)', 'A long bench the whole length of the aisle wall with cupboards under it, covered in tool cases, drills, tins, boxes and a cable reel; slotted-angle shelves above the far half full of boxes, fixings tubs and more cases.', '≈ 9.6 × 0.6 m · top ≈ 0.95 m (scan)'); }
@@ -1986,7 +1997,7 @@ function WSHOP(P) {
     const lv = grp(g); sLevel(lv, gx(2.4), gy(1.27 - .006) + .006, -12.86, .6, 0xf2b705); sLevel(lv, gx(2.5), gy(2.0 - .006) + .006, -12.86, .6, 0x2a5aa8); pb.userData.bake([hm, sp, hs, fc, lv]);   // outlines + drop shadows on the board
     { const W = ' on the pegboard. The scan only shows clutter on the wall here, so which tools hang where is a guess (typical workshop kit).';   // 24 Oct: each set gets its own tag + label
       T2(hm, 'Hammers', 'Five claw hammers hung heads up on pairs of hooks: ash with a red grip, plain ash, ash with a black grip, yellow fibreglass and a one-piece steel one' + W, '≈ 0.33 m'); T2(sp, 'Spanners', 'A row of combination spanners, small to big' + W, '0.14–0.28 m'); T2(hs, 'Hand saws', 'Three hand saws hung by their handles' + W, '≈ 0.55 m'); T2(fc, 'F-clamps', 'Four F-clamps hung by their fixed jaws' + W, '0.35–0.45 m'); }   // spirit levels (05:xx: box section, end caps, vials)
-    const sh = shelving(g, 3.25, -12.78, 2.9, .3, .55, 0, [.35]); sh.position.y = 2.0; for (let i = 0; i < 6; i++) (i % 2 ? tub : (p, x, y, z, w, h, d) => cbox(p, x, y, z, w, h, d))(sh, -1.2 + i * .48, .37, 0, .4, .18, .26, 0x2a5aa8);
+    const sh = shelving(g, 3.25, -12.78, 2.9, .3, .55, 0, [.35], false); sh.position.y = 2.0; for (let i = 0; i < 6; i++) (i % 2 ? tub : (p, x, y, z, w, h, d) => cbox(p, x, y, z, w, h, d))(sh, -1.2 + i * .48, .37, 0, .4, .18, .26, 0x2a5aa8);
     drill(t, 2.4, 0, -12.5, .5); caseY(t, 3.0, 0, -12.6, .45, .14, .35); for (let i = 0; i < 3; i++) tub(t, 3.6 + i * .3, 0, -12.65, .26, .12, .2, [0xb8231d, 0x2a5aa8, 0x3b6b3a][i]);
     T2(rollCab(g, 1.45, -12.6), 'Roll cabinet', 'A grey steel tool chest on castors: a drawer base with a lift-lid chest on top. The scan shows a grey drawer stack about 1.4 m tall here.', '≈ 0.7 × 0.45 × 1.4 m (scan)');   // roll cabinet (05:xx: castors, drawers with pull bars and labels, lift-lid top chest, side handle)
     const fe = grp(g, .75, 0, -12.85); cyl(fe, .075, .5, RED, 0, 1.15, 0); cyl(fe, .03, .06, BLK, 0, 1.43, 0); box(fe, .03, .08, .06, BLK, .05, 1.45, 0); const hose = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(.04, 1.43, 0), new THREE.Vector3(.1, 1.3, .03), new THREE.Vector3(.08, 1.0, .05)]), 10, .01, 6), BLK); fe.add(hose);

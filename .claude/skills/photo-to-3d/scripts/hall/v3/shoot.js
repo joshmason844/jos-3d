@@ -80,7 +80,8 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   wsrail:   [[4.75, 1.55, -3.1], [5.95, 1.15, -6.4], true],     // along the aisle wall's socket conduit from the door end (28 Oct 06:xx)
   wsrailend:[[4.7, 1.5, -10.6], [5.95, 1.15, -12.6], true],    // the conduit's far end by the back corner (28 Oct 06:xx)
   wscase:   [[4.92, 1.2, -7.72], [5.6, .99, -8.12], true],    // low on the front of the tool case on the long bench by the post: latches, bumpers, grip (28 Oct 04:xx)
-  wsleft: [[4.4, 2.0, -8.0], [0.6, 1.1, -9.4], true],        // the tall shelving on the left wall, sheet stock, offcuts bin
+  wsleft: [[4.4, 2.0, -8.0], [0.6, 1.1, -9.4], true],
+  wsfoot: [[2.75, .5, -8.5], [1.9, .12, -9.4], true],     // low, close on the tall shelving's near feet: slotted angle meeting the floor (1 Nov)        // the tall shelving on the left wall, sheet stock, offcuts bin
   wsout: [[6.2, 1.8, -14.8], [5.2, 1.1, -12.9], true],       // the far wall's doorway from the hall
   wswin: [[1.7, 1.75, -5.6], [5.6, 1.05, -3.9], true],        // the front window from inside: daylight on the long bench and the floor (W5b, 23 Oct 00:xx)
   wsconc:   [[4.3, 1.25, -7.9], [3.4, 0, -9.6], true],       // low over the workshop floor between the benches: concrete grain, sawdust, contact shadows (28 Oct 01:xx)
