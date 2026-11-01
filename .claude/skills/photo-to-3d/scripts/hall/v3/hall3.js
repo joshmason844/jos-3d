@@ -1273,7 +1273,10 @@ function WSHOP(P) {
   // a dirty mop-and-boot band fading up from the floor, light scrapes where boots and trolleys catch the angle, mop splash specks. Own RNG 5179.
   const slotMat = grime => { let ss = 5023; const sr = () => (ss = (ss * 16807) % 2147483647) / 2147483647;
     const c = document.createElement('canvas'); c.width = 64; c.height = 512; const x = c.getContext('2d');
-    x.fillStyle = '#8b9095'; x.fillRect(0, 0, 64, 512);
+    // 1 Nov 03:xx (31 Oct 02:xx find: "uprights read blue-dark in shade next to the warm OSB"): the workshop scan's shelving greys sample neutral to a touch
+    // warm (front face median 159/157/146, never blue-leaning), so the enamel goes from cool #8b9095 to a lighter warm grey #aaa79f, and metalness .45 → .12
+    // (stove enamel is paint, not bare metal: at .45 it mirrored the dark room and went near-black in the bay's shade).
+    x.fillStyle = '#aaa79f'; x.fillRect(0, 0, 64, 512);
     for (let i = 0; i < 60; i++) { x.fillStyle = `rgba(${sr() < .5 ? '60,62,64' : '190,194,196'},${.05 + sr() * .08})`; x.fillRect(sr() * 64, sr() * 512, 1 + sr() * 4, 1 + sr() * 14); }
     x.fillStyle = 'rgba(205,210,214,.55)'; x.fillRect(0, 0, 3, 512); x.fillStyle = 'rgba(40,42,45,.35)'; x.fillRect(61, 0, 3, 512);   // rolled edge + the corner's shade
     const rr = (cx, cy, w, h) => { const r = w / 2; x.beginPath(); x.moveTo(cx - r, cy - h / 2 + r); x.arc(cx, cy - h / 2 + r, r, Math.PI, 0); x.lineTo(cx + r, cy + h / 2 - r); x.arc(cx, cy + h / 2 - r, r, 0, Math.PI); x.closePath(); };
@@ -1286,7 +1289,7 @@ function WSHOP(P) {
       for (let i = 0; i < 70; i++) { const y = 512 - Math.pow(gr(), 1.8) * 200; x.fillStyle = `rgba(${gr() < .6 ? '70,60,48' : '186,174,150'},${.2 + gr() * .35})`; x.beginPath(); x.arc(gr() * 64, y, .8 + gr() * 2.2, 0, 7); x.fill(); }   // mop splash
       x.fillStyle = 'rgba(112,96,76,.5)'; x.fillRect(0, 498, 64, 14); x.globalCompositeOperation = 'source-over'; }   // the damp line right at the floor
     const t = new CT(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
-    return STD({ map: t, alphaTest: .5, metalness: .45, roughness: grime ? .62 : .5 }); };
+    return STD({ map: t, alphaTest: .5, metalness: .12, roughness: grime ? .64 : .52 }); };
   const SLOTM = slotMat(false), SLOTMG = slotMat(true);
   const SLOTFOOT = STD({ color: 0x1b1c1e, roughness: .97 }), SLOTNUT = STD({ color: 0x9a9fa3, metalness: .7, roughness: .38 });
   const slotUV = (m, H, v0 = 0) => { const uv = m.geometry.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setY(i, v0 + uv.getY(i) * H / .3); uv.needsUpdate = true; return m; };
