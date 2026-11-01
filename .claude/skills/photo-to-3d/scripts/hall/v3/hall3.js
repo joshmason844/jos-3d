@@ -1456,8 +1456,8 @@ function WSHOP(P) {
   const ashWorn = (() => { let hs = 6061; const hr = () => (hs = (hs * 16807) % 2147483647) / 2147483647;
     const mkc = () => { const c = document.createElement('canvas'); c.width = 64; c.height = 512; return [c, c.getContext('2d')]; };
     const [c, x] = mkc(), [rc, rx] = mkc(), W = 64, H = 512;
-    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#e2c08e'); g.addColorStop(.5, '#d9b47f'); g.addColorStop(.6, '#c39a66'); g.addColorStop(.68, '#a77c4c');   // pale ash (the 06:xx first try at the old #b98a55 sat as dark as the pegboard)
-    g.addColorStop(.76, '#93683d'); g.addColorStop(1, '#8a5f37'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#e2c08e'); g.addColorStop(.55, '#d8b27d'); g.addColorStop(.6, '#b98d5b'); g.addColorStop(.66, '#9d7143');   // pale ash (the 06:xx first try at the old #b98a55 sat as dark as the pegboard)
+    g.addColorStop(.76, '#90653b'); g.addColorStop(1, '#8a5f37'); x.fillStyle = g; x.fillRect(0, 0, W, H);   // 31 Oct 23:xx: grip's top edge a little firmer (fade ≈ 4 → 2.5 cm; review: "smoother but says less")
     for (let i = 0; i < 26; i++) { const y = H * (.56 + hr() * .16), r = 10 + hr() * 22, a = .08 + hr() * .1, cx = hr() * W;   // uneven fade: a few soft darker patches where fingers sit
       for (const ox of [-W, 0, W]) { const rg = x.createRadialGradient(cx + ox, y, 0, cx + ox, y, r); rg.addColorStop(0, `rgba(110,72,40,${a})`); rg.addColorStop(1, 'rgba(110,72,40,0)'); x.fillStyle = rg; x.fillRect(cx + ox - r, y - r * 2.4, 2 * r, r * 4.8); } }
     for (let i = 0; i < 70; i++) { const gx = hr() * W, w = .5 + hr() * 1.3, a = .05 + hr() * .1, dark = hr() < .7; x.strokeStyle = dark ? `rgba(90,58,30,${a})` : `rgba(235,205,160,${a * .8})`; x.lineWidth = w;   // lengthwise grain, wavering a little
@@ -1529,7 +1529,7 @@ function WSHOP(P) {
   // orange-peel grain, a slightly darker moulded border round the outline, a ribbed thumb pad by the horn and a small raised maker's mark.
   // Handle metres → canvas: u = (x + .1) / .2, v = y / .16 (set on the geometry below). Own RNG, nothing else moves.
   const SAWSCR = STD({ color: 0x9c8a5a, metalness: .6, roughness: .5 });   // 31 Oct 04:xx: dull brass handle screws, 9 mm (were 12 mm mirror-bright BRIGHT: read as two white blobs on the phone)
-  let SAWHM = null; const sawHandle = () => { if (SAWHM) return SAWHM; let hs = 5531; const hr = () => (hs = (hs * 16807) % 2147483647) / 2147483647;
+  const SAWHM = []; const sawHandle = (k = 0) => { if (SAWHM[k]) return SAWHM[k]; let hs = 5531; const hr = () => (hs = (hs * 16807) % 2147483647) / 2147483647;
     const c = document.createElement('canvas'), W = 256, H = 205; c.width = W; c.height = H; const x = c.getContext('2d'), U = u => (u + .1) / .2 * W, V = y => (1 - y / .16) * H;
     const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#c4402a'); g.addColorStop(.55, '#ad3320'); g.addColorStop(1, '#962a1a'); x.fillStyle = g; x.fillRect(0, 0, W, H);
     for (let i = 0; i < 3000; i++) { x.fillStyle = `rgba(${hr() < .5 ? '255,200,180' : '70,10,5'},${.025 + hr() * .035})`; x.fillRect(hr() * W, hr() * H, 1 + hr(), 1 + hr()); }   // orange peel, low contrast
@@ -1541,8 +1541,21 @@ function WSHOP(P) {
     x.save(); x.translate(U(.068), V(.085)); x.rotate(-.35); for (let i = 0; i < 7; i++) { x.fillStyle = 'rgba(80,16,8,.35)'; x.fillRect(-9, -14 + i * 4.4, 18, 1.6); x.fillStyle = 'rgba(255,200,180,.2)'; x.fillRect(-9, -12.6 + i * 4.4, 18, 1); } x.restore();   // ribbed thumb pad by the horn
     x.font = 'bold 11px Arial'; x.textAlign = 'center'; x.fillStyle = 'rgba(255,190,170,.22)'; x.fillText('HARDPOINT', U(0) + .7, V(.113) + .7); x.fillStyle = 'rgba(80,14,6,.38)'; x.fillText('HARDPOINT', U(0), V(.113));   // raised mark above the hole
     for (let i = 0; i < 6; i++) { x.strokeStyle = `rgba(255,230,220,${.06 + hr() * .06})`; x.lineWidth = .8; x.beginPath(); const a = hr() * W, b = hr() * H; x.moveTo(a, b); x.lineTo(a + 6 + hr() * 14, b + (hr() - .5) * 4); x.stroke(); }   // a few fine scuffs
-    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return SAWHM = STD({ map: t, roughness: .42 }); };
-  const saw = (p, x, y, z) => { const g = grp(p, x, y, z), sh = new THREE.Shape(); sh.moveTo(-.06, .02);   // hand saw hung by its handle: blade tapers to the toe, teeth down the front edge
+    // 31 Oct 23:xx (meet halfway after the 31 Oct 07:xx review: the clean moulded handle read "toy-like"): each saw gets its own fine, low-contrast use wear
+    // on top of the same moulded base: hairline scratches (mostly pale, some dark, alpha ≤ .1, never white chips), a dulled rub where the palm sits on the
+    // back bar and round the hole, soft grey scuffs on the lower edge where it gets dropped on benches. Own RNG per saw, so nothing else in the hall moves
+    { let ws = 7103 + k * 977; const wr = () => (ws = (ws * 16807) % 2147483647) / 2147483647, amt = [1, 1.45, .7][k] || 1;
+      x.save(); out(); x.clip();
+      for (const [cx, cy, rr] of [[U(-.06), V(.07), 34], [U(0), V(.115), 30], [U(.0), V(.025), 26]]) { const rg = x.createRadialGradient(cx, cy, 0, cx, cy, rr); rg.addColorStop(0, `rgba(125,78,70,${.16 * amt})`); rg.addColorStop(1, 'rgba(125,78,70,0)'); x.fillStyle = rg; x.fillRect(cx - rr, cy - rr, 2 * rr, 2 * rr); }   // palm rub: duller, a touch greyer
+      for (let i = 0; i < Math.round(120 * amt); i++) { const a = wr() * W, b = wr() * H, L = 3 + wr() * 16, an = (wr() - .5) * 1.1 + (wr() < .3 ? Math.PI / 2 : 0), lt = wr() < .7;   // hairline scratches
+        x.strokeStyle = lt ? `rgba(255,205,190,${.07 + wr() * .09})` : `rgba(60,12,6,${.07 + wr() * .08})`; x.lineWidth = 1 + wr() * .8;
+        x.beginPath(); x.moveTo(a, b); x.quadraticCurveTo(a + Math.cos(an) * L * .5 + (wr() - .5) * 2, b + Math.sin(an) * L * .5 + (wr() - .5) * 2, a + Math.cos(an) * L, b + Math.sin(an) * L); x.stroke(); }
+      for (let i = 0; i < Math.round(5 * amt); i++) { const cx = U(-.07 + wr() * .14), cy = V(wr() * .02), rr = 5 + wr() * 9;   // bench scuffs along the bottom edge
+        const rg = x.createRadialGradient(cx, cy, 0, cx, cy, rr); rg.addColorStop(0, `rgba(120,100,95,${.18 + wr() * .1})`); rg.addColorStop(1, 'rgba(120,100,95,0)'); x.fillStyle = rg; x.fillRect(cx - rr, cy - rr, 2 * rr, 2 * rr);
+        for (let j = 0; j < 4; j++) { x.strokeStyle = `rgba(230,190,180,${.1 + wr() * .07})`; x.lineWidth = 1; x.beginPath(); const a = cx + (wr() - .5) * rr, b = cy + (wr() - .5) * rr * .6; x.moveTo(a, b); x.lineTo(a + 2 + wr() * 5, b + (wr() - .5) * 2); x.stroke(); } }
+      x.restore(); }
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return SAWHM[k] = STD({ map: t, roughness: .42 }); };
+  const saw = (p, x, y, z, k = 0) => { const g = grp(p, x, y, z), sh = new THREE.Shape(); sh.moveTo(-.06, .02);   // hand saw hung by its handle: blade tapers to the toe, teeth down the front edge
     const n = 110; for (let i = 0; i <= n; i++) { const t = i / n; sh.lineTo(.06 - .05 * t + (i % 2 ? .0032 : 0), .02 - .47 * t); }
     sh.lineTo(-.06, -.45); sh.lineTo(-.06, .02);
     const bg = new THREE.ExtrudeGeometry(sh, { depth: .0009, bevelEnabled: false }); bg.translate(0, 0, -.00045);
@@ -1553,7 +1566,7 @@ function WSHOP(P) {
     const hole = new THREE.Path(); hole.moveTo(-.04, .03); hole.lineTo(.035, .03); hole.quadraticCurveTo(.045, .1, .0, .095); hole.quadraticCurveTo(-.05, .1, -.04, .03); hs.holes.push(hole);
     const hg = new THREE.ExtrudeGeometry(hs, { depth: .022, bevelEnabled: true, bevelSize: .004, bevelThickness: .004, bevelSegments: 3, curveSegments: 14 }); hg.translate(0, 0, -.011);
     { const pa = hg.attributes.position, uv = hg.attributes.uv; for (let i = 0; i < pa.count; i++) uv.setXY(i, (pa.getX(i) + .1) / .2, pa.getY(i) / .16); uv.needsUpdate = true; }
-    tmesh(g, hg, sawHandle(), 0, -.01, .005);
+    tmesh(g, hg, sawHandle(k), 0, -.01, .005);
     const gp = new THREE.Shape(); gp.moveTo(-.079, .012); gp.lineTo(-.05, .03); gp.quadraticCurveTo(-.052, .07, -.05, .095); gp.quadraticCurveTo(-.062, .118, -.078, .112); gp.quadraticCurveTo(-.088, .08, -.081, .045); gp.lineTo(-.079, .012);   // soft-grip pad on the back bar, proud of both faces
     const gg = new THREE.ExtrudeGeometry(gp, { depth: .028, bevelEnabled: true, bevelSize: .002, bevelThickness: .002, bevelSegments: 2, curveSegments: 10 }); gg.translate(0, 0, -.014);
     tmesh(g, gg, GRIP, 0, -.01, .005);
@@ -1963,7 +1976,7 @@ function WSHOP(P) {
     const HX = 1.7625, HY = 1.1625, gx = v => HX + Math.round((v - HX) / .025) * .025, gy = v => HY + Math.round((v - HY) / .025) * .025;
     const hm = grp(g); for (let i = 0; i < 5; i++) { const hx0 = gx(2.02 + i * .165), dy = gy(1.755) - 1.755; hammer(hm, hx0, 1.48 + dy, -12.86, 0, [3, 1, 0, 2, 4][i]); for (const hx of [-.025, .025]) peg(hm, hx0 + hx, 1.755 + dy, -12.875, .05); }   // 05:xx: hung straight, heads up, on pairs of hooks (they overlapped in crossed pairs)
     const sp = grp(g), sr = gy(1.725); for (let i = 0; i < 8; i++) { const L = .14 + i * .02; spanner(sp, gx(2.88) + i * .05, sr - (.006 + L * .045) * .5 + .0029 - L * .9, -12.86, L); }   /* all eight on one row of holes, two holes apart; spanner() puts its hook at y + L·.9 + s/2 − .0029 */   // 05:xx 24 Oct: rings all on one hook rail, small to big
-    const hs = grp(g); for (let i = 0; i < 3; i++) saw(hs, gx(3.5 + i * .2), gy(1.9 + SAWHOOK) - SAWHOOK, -12.865);   // hand saws
+    const hs = grp(g); for (let i = 0; i < 3; i++) saw(hs, gx(3.5 + i * .2), gy(1.9 + SAWHOOK) - SAWHOOK, -12.865, i);   // hand saws
     const fc = grp(g); for (let i = 0; i < 4; i++) { const y = 1.76 - (i % 2) * .05;   /* 25 Oct: stagger 2 → 5 cm so the fatter top jaws clear each other */ fclamp(fc, gx(4.22 + i * .13 + .01) - .01, gy(y + .012) - .012, -12.855, .45 - (i % 2) * .1, .1 - (i % 2) * .015); }   /* its hook is at (x + .01, y + .012) */   // F-clamps (05:xx: bar, cast jaws, spindle, handle)
     const lv = grp(g); sLevel(lv, gx(2.4), gy(1.27 - .006) + .006, -12.86, .6, 0xf2b705); sLevel(lv, gx(2.5), gy(2.0 - .006) + .006, -12.86, .6, 0x2a5aa8); pb.userData.bake([hm, sp, hs, fc, lv]);   // outlines + drop shadows on the board
     { const W = ' on the pegboard. The scan only shows clutter on the wall here, so which tools hang where is a guess (typical workshop kit).';   // 24 Oct: each set gets its own tag + label
