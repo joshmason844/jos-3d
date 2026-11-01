@@ -1491,18 +1491,22 @@ function WSHOP(P) {
     const wd = tmesh(H, V.ash ? vUV(new THREE.CylinderGeometry(.009, .009, .004, 12), .95, 1) : new THREE.CylinderGeometry(.009, .009, .004, 12), V.steel ? HEADM : V.h, 0, .0225, 0); wd.scale.set(1.35, 1, 1);   // handle end through the eye
     if (!V.steel) box(H, .016, .002, .0025, POLISH, 0, .0245, 0);   // steel wedge (none on a one-piece steel hammer)
     return g; };
-  const spanner = (p, x, y, z, L) => { const g = grp(p, x, y, z);   // 24 Oct 05:xx: a real combination spanner (was a bar with a torus and two jaw stubs): 12-point ring at the top, open jaw at 15° at the bottom, tapered I-section shaft; hung by its ring on a hook
+  // 1 Nov 00:xx (31 Oct 07:xx review: "the spanners hang in a stiff, evenly spaced row, all the same tone"): a collected set, not a catalogue row.
+  // k 0 bright chrome (as before), 1 black oxide (dark, satin), 2 an older satin chrome gone a little dull and warm. No RNG drawn.
+  const SPANM = [[BRIGHT, STD({ color: 0x8c9196, metalness: .85, roughness: .4 })], [STD({ color: 0x3a3d40, metalness: .6, roughness: .5 }), STD({ color: 0x2c2e31, metalness: .55, roughness: .58 })],
+    [STD({ color: 0xa8a69f, metalness: .75, roughness: .42 }), STD({ color: 0x8a8781, metalness: .7, roughness: .5 })]];
+  const spanner = (p, x, y, z, L, k = 0) => { const g = grp(p, x, y, z), SB = SPANM[k][0], SC = SPANM[k][1];   // 24 Oct 05:xx: a real combination spanner (was a bar with a torus and two jaw stubs): 12-point ring at the top, open jaw at 15° at the bottom, tapered I-section shaft; hung by its ring on a hook
     const s = .006 + L * .045, Ro = s * 1.08, Rr = s * .98, yr = L * .9, ex = (sh, d, bv) => { const e = new THREE.ExtrudeGeometry(sh, { depth: d, bevelEnabled: true, bevelSize: bv, bevelThickness: bv, bevelSegments: 2, curveSegments: 18 }); e.translate(0, 0, -d / 2); return e; };
     const ring = new THREE.Shape(); ring.absarc(0, 0, Rr, 0, Math.PI * 2, false);
     const hole = new THREE.Path(); for (let i = 0; i <= 24; i++) { const a = i / 24 * Math.PI * 2, r = s * (i % 2 ? .5 : .57); i ? hole.lineTo(Math.cos(a) * r, Math.sin(a) * r) : hole.moveTo(r, 0); } ring.holes.push(hole);
-    tmesh(g, ex(ring, .0055, .0012), BRIGHT, 0, yr, 0);
+    tmesh(g, ex(ring, .0055, .0012), SB, 0, yr, 0);
     const jaw = new THREE.Shape(), a0 = -Math.PI / 2 + Math.asin(s / 2 / Ro), yt = s * .1;   // jaw opening points down, cut s wide with a round throat
     jaw.moveTo(Math.cos(a0) * Ro, Math.sin(a0) * Ro); jaw.absarc(0, 0, Ro, a0, -Math.PI / 2 - Math.asin(s / 2 / Ro) + Math.PI * 2, false);
     jaw.lineTo(-s / 2, yt); jaw.absarc(0, yt, s / 2, Math.PI, 0, true); jaw.lineTo(s / 2, Math.sin(a0) * Ro);
-    const jm = tmesh(g, ex(jaw, .005, .0012), BRIGHT, 0, 0, 0); jm.rotation.z = .26;   // the 15° offset
+    const jm = tmesh(g, ex(jaw, .005, .0012), SB, 0, 0, 0); jm.rotation.z = .26;   // the 15° offset
     const sh = new THREE.Shape(), y0 = Ro * .55, y1 = yr - Rr * .6, w0 = s * .55, w1 = s * .48; sh.moveTo(-w0, y0); sh.lineTo(w0, y0); sh.lineTo(w1, y1); sh.lineTo(-w1, y1); sh.lineTo(-w0, y0);
-    tmesh(g, ex(sh, .0034, .001), BRIGHT, 0, 0, 0);
-    for (const sz of [-1, 1]) box(g, w0 * .9, (y1 - y0) * .8, .0008, STD({ color: 0x8c9196, metalness: .85, roughness: .4 }), 0, y0 + (y1 - y0) * .1, sz * .0026);   // the shaft's recessed centre (box() takes the BOTTOM y), a shade duller
+    tmesh(g, ex(sh, .0034, .001), SB, 0, 0, 0);
+    for (const sz of [-1, 1]) box(g, w0 * .9, (y1 - y0) * .8, .0008, SC, 0, y0 + (y1 - y0) * .1, sz * .0026);   // the shaft's recessed centre (box() takes the BOTTOM y), a shade duller
     { const hy = yr + s * .5 - .0029; peg(g, 0, hy, -.017, .027, .012); }   // the hook through the ring (touching the top of the hole), 10 mm proud with an upturned tip (26 Oct: the tip is part of the bent-wire hook now)
     return g; };
   // 24 Oct 23:xx: hand saws rebuilt (07:xx review: "blades flat slabs with a blown highlight and no teeth; handles a plain arch block").
@@ -1975,7 +1979,8 @@ function WSHOP(P) {
     // Each tool moves with its hook (≤ 12.5 mm); hook pairs are a whole number of holes apart
     const HX = 1.7625, HY = 1.1625, gx = v => HX + Math.round((v - HX) / .025) * .025, gy = v => HY + Math.round((v - HY) / .025) * .025;
     const hm = grp(g); for (let i = 0; i < 5; i++) { const hx0 = gx(2.02 + i * .165), dy = gy(1.755) - 1.755; hammer(hm, hx0, 1.48 + dy, -12.86, 0, [3, 1, 0, 2, 4][i]); for (const hx of [-.025, .025]) peg(hm, hx0 + hx, 1.755 + dy, -12.875, .05); }   // 05:xx: hung straight, heads up, on pairs of hooks (they overlapped in crossed pairs)
-    const sp = grp(g), sr = gy(1.725); for (let i = 0; i < 8; i++) { const L = .14 + i * .02; spanner(sp, gx(2.88) + i * .05, sr - (.006 + L * .045) * .5 + .0029 - L * .9, -12.86, L); }   /* all eight on one row of holes, two holes apart; spanner() puts its hook at y + L·.9 + s/2 − .0029 */   // 05:xx 24 Oct: rings all on one hook rail, small to big
+    const sp = grp(g), sr = gy(1.725); for (let i = 0; i < 8; i++) { const L = .14 + i * .02; const ry0 = sr - (.006 + L * .045) * .5 + .0029, piv = grp(sp, gx(2.88) + i * .05, ry0, -12.86); piv.rotation.z = [0, .02, -.035, 0, .045, -.015, 0, .028][i];   // 1 Nov: a few hang a touch off plumb, turned about the ring on its hook
+      spanner(piv, 0, -L * .9, 0, L, [0, 0, 1, 0, 0, 2, 0, 1][i]); }   /* all eight on one row of holes, two holes apart; spanner() puts its hook at y + L·.9 + s/2 − .0029 */   // 05:xx 24 Oct: rings all on one hook rail, small to big
     const hs = grp(g); for (let i = 0; i < 3; i++) saw(hs, gx(3.5 + i * .2), gy(1.9 + SAWHOOK) - SAWHOOK, -12.865, i);   // hand saws
     const fc = grp(g); for (let i = 0; i < 4; i++) { const y = 1.76 - (i % 2) * .05;   /* 25 Oct: stagger 2 → 5 cm so the fatter top jaws clear each other */ fclamp(fc, gx(4.22 + i * .13 + .01) - .01, gy(y + .012) - .012, -12.855, .45 - (i % 2) * .1, .1 - (i % 2) * .015); }   /* its hook is at (x + .01, y + .012) */   // F-clamps (05:xx: bar, cast jaws, spindle, handle)
     const lv = grp(g); sLevel(lv, gx(2.4), gy(1.27 - .006) + .006, -12.86, .6, 0xf2b705); sLevel(lv, gx(2.5), gy(2.0 - .006) + .006, -12.86, .6, 0x2a5aa8); pb.userData.bake([hm, sp, hs, fc, lv]);   // outlines + drop shadows on the board
