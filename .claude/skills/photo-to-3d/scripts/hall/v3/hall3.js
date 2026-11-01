@@ -1204,6 +1204,20 @@ function WSHOP(P) {
     if (k === 0) { x.fillStyle = '#f0ede6'; x.fillRect(14, 70, 40, 26); x.fillStyle = '#333'; for (let i = 0; i < 4; i++) x.fillRect(18, 75 + i * 5, 20 + qr() * 14, 2); }
     else if (k === 1) { x.fillStyle = '#1a1a1a'; x.font = 'bold 15px Arial'; x.fillText('FIXINGS', 72, 100); x.fillText('M8', 80, 116); }
     else { x.strokeStyle = 'rgba(40,40,40,.8)'; x.lineWidth = 2; x.beginPath(); x.moveTo(20, 40); x.lineTo(20, 22); x.moveTo(14, 28); x.lineTo(20, 22); x.lineTo(26, 28); x.moveTo(36, 40); x.lineTo(36, 22); x.moveTo(30, 28); x.lineTo(36, 22); x.lineTo(42, 28); x.stroke(); x.fillStyle = '#2a2a2a'; x.fillRect(74, 84, 40, 4); x.fillRect(74, 92, 30, 3); } }) }));
+  // 1 Nov 05:xx (03:xx review: "the same FIXINGS M8 box on several shelves"): five more kinds of box, each its own maker's print and its own contents
+  // label (different words, sizes and colours), drawn from their own RNG (5105) so qr()/wr() and the layout stay put. cbox() now steps through all 8,
+  // three at a time, not round-robin over 3, so neighbours never match.
+  { let sc = 5105; const cr = () => (sc = (sc * 16807) % 2147483647) / 2147483647, cf = (a, b) => a + (b - a) * cr();
+    const KINDS = [['#b48a58', 'SCREWS', '5 × 60', '#f2eee4', '#1d1d1d', 1], ['#a9845a', 'CABLE TIES', '300 mm BLACK', '#ffffff', '#b8231d', 0], ['#bf9764', 'WASHERS', 'M10', '#e9e3c8', '#1d1d1d', 1],
+      ['#9f7a50', 'COACH BOLTS', 'M8 × 100', '#f4f1ea', '#2a4f8f', 0], ['#c4a070', 'MIXED', 'odds + ends', null, '#222', 2]];
+    for (const [bg, t1, t2, lab, ink, st] of KINDS) CARDS.push(STD({ roughness: .9, map: can(128, 128, (x, w, h) => { x.fillStyle = bg; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 900; i++) { x.fillStyle = `rgba(${cr() > .5 ? '255,255,255' : '0,0,0'},${.08 * cr()})`; x.fillRect(cr() * w, cr() * h, 1 + cr() * 2, 1 + cr() * 2); }   // board specks
+      const tx = cf(30, 70); x.fillStyle = st === 1 ? 'rgba(150,140,128,.6)' : 'rgba(205,170,115,.85)'; x.fillRect(tx, 0, cf(14, 20), h);   // tape strip: brown or clear, never in the same place
+      if (st === 0) { x.fillStyle = 'rgba(40,36,30,.7)'; x.fillRect(8, 8, 46, 5); x.fillRect(8, 16, 30, 3); }   // maker's print, top left
+      if (lab) { const lx = cf(8, 22), ly = cf(62, 74), lw = 96 - lx + cf(0, 16); x.fillStyle = lab; x.fillRect(lx, ly, lw, 38); x.fillStyle = 'rgba(0,0,0,.12)'; x.fillRect(lx, ly + 36, lw, 2);
+        x.fillStyle = ink; x.font = `bold ${t1.length > 8 ? 13 : 16}px Arial`; x.fillText(t1, lx + 5, ly + 17); x.font = '11px Arial'; x.fillStyle = '#333'; x.fillText(t2, lx + 5, ly + 32); }
+      else { x.save(); x.translate(20, 92); x.rotate(-.08); x.strokeStyle = 'rgba(25,25,30,.85)'; x.lineWidth = 2.5; x.font = 'bold 20px "Comic Sans MS", cursive'; x.fillStyle = 'rgba(25,25,30,.85)'; x.fillText(t1, 0, 0); x.font = '13px "Comic Sans MS", cursive'; x.fillText(t2, 6, 18); x.restore(); }   // marker on the board
+      for (let i = 0; i < 4; i++) { x.fillStyle = `rgba(70,50,30,${cf(.06, .16)})`; x.beginPath(); x.ellipse(cr() * w, cr() * h, cf(4, 14), cf(3, 9), cr() * 3, 0, 7); x.fill(); } }) })); }   // knocks and grubby marks
   const CARD = CARDS[0]; let cardN = 0;
   burn(18048);   // 24 Oct 06:xx: the old flat PEG canvas drew 18 048 times from wr() (3000 specks × 6 + 12 outlines × 4); burn them so the layout stays put. The board is pegBoard() below
   burn(22500);
@@ -1315,7 +1329,7 @@ function WSHOP(P) {
       slotBar(.03, len, bx, H * .75, 0).rotation.set(a, Math.PI / 2, 0);   // flat strip in the end's plane, just outside the uprights
       for (const e of [-1, 1]) cyl(g, .007, .004, SLOTNUT, bx + sx * .003, H * .75 + e * H * .25 * .92, e * (D / 2 - .01) * .92, 'x', 6); }
     return g; }
-  const cbox = (p, x, y, z, w, h, d, ry = 0) => { const b = box(p, w, h, d, CARDS[cardN++ % 3], x, y, z, ry); return b; };
+  const cbox = (p, x, y, z, w, h, d, ry = 0) => { const b = box(p, w, h, d, CARDS[(cardN++ * 3) % CARDS.length], x, y, z, ry); return b; };   // 1 Nov 05:xx: steps through all 8 kinds 3 at a time (was round-robin over 3), so the next 7 boxes along never repeat one; a position hash was tried first and clustered (four MIXED in one view)
   // 28 Oct 00:xx (07:xx review: "the white crate with the green lid has no contact shadow and its texture is a low-res smear of scratches"): a moulded
   // polypropylene storage box instead of two boxes. Tapered body with rounded corners, a stacking rim under the lid, a lid with a raised centre panel and
   // end grips, its own fine moulded-plastic map in metres (so the wear pass, which only dresses mapless meshes, leaves it alone). Its contact shadow comes from
@@ -1343,6 +1357,9 @@ function WSHOP(P) {
       for (const s of [-1, 1]) { const g = mesh(p, new THREE.BoxGeometry(.012, .016, d * .42), L, x + s * (w / 2 + .012), y + hb + .006, z); g.position.y += .008; }   // end grips
     }; })();
   const tub = (p, x, y, z, w, h, d, lid) => TUB(p, x, y, z, w, h, d, lid);
+  // 1 Nov 05:xx (03:xx review: "identical red/blue/green tin trios"): tin groups for the shelves, [r, h, colour, x offset] each; no RNG drawn
+  const TINSETS = [[[.075, .19, 0xd9d4c4, .09], [.055, .12, 0x2f5f8f, .25], [.05, .1, 0x2f5f8f, .36]], [[.06, .15, 0xb8231d, .08], [.06, .15, 0xb8231d, .21], [.045, .09, 0xe9c33a, .33]],
+    [[.085, .22, 0x9aa3a8, .1], [.07, .13, 0x3b6b3a, .29]], [[.05, .11, 0xe0661c, .07], [.065, .17, 0xe8e2d0, .2], [.05, .08, 0x1c1c1c, .33]], [[.07, .2, 0x5d4a3a, .09], [.07, .2, 0x5d4a3a, .25]]]; let tinN = 0;
   const tin = (p, x, y, z, r, h, col) => { cyl(p, r, h, STD({ color: 0xb5b9bc, metalness: .7, roughness: .35 }), x, y + h / 2, z); cyl(p, r * 1.01, h * .55, STD({ color: col, roughness: .5 }), x, y + h * .45, z); cyl(p, r * .95, .006, STEEL, x, y + h + .003, z); };
   // 28 Oct 04:xx (03:xx review, wstop: "the black case on the yellow base is a noisy black block: no corner caps, latches or edge trim, handle looks stuck on").
   // A moulded stacking tool case instead of two boxes: rounded, slightly tapered yellow base with black corner bumpers, a dark parting rim, a black lid with
@@ -1982,7 +1999,7 @@ function WSHOP(P) {
       if (k < .35) { const w = wf(.3, .5); cbox(s, u + w / 2, y, wf(-.15, .15), w, wf(.2, .4), .5); u += w + .03; }
       else if (k < .55) { tub(s, u + .22, y, 0, .42, .25, .55, cols[Math.floor(wr() * 4)]); u += .46; }
       else if (k < .72) { caseY(s, u + .2, y, 0, .38, .14, .5); u += .42; }
-      else if (k < .86) { for (let i = 0; i < 3; i++) tin(s, u + .07 + i * .13, y, wf(-.2, .2), .055, .14, cols[i]); u += .42; }
+      else if (k < .86) { const q = TINSETS[tinN++ % TINSETS.length], zs = [wf(-.2, .2), wf(-.2, .2), wf(-.2, .2)]; for (let i = 0; i < q.length; i++) tin(s, u + q[i][3], y, zs[i], q[i][0], q[i][1], q[i][2]); u += .42; }   /* always 3 draws, so the layout after stays put */   // 1 Nov 05:xx: each trio its own sizes and colours (was red/blue/green clones)
       else { const c = grp(s, u + .2, y + .12, 0); for (let i = 0; i < 3; i++) { const tr = new THREE.Mesh(new THREE.TorusGeometry(.12 - i * .02, .012, 6, 20), ORA); tr.rotation.y = Math.PI / 2; c.add(tr); } u += .32; } } }
     const lo = shelving(g, 1.3, -9.8, .8, .9, 1.45, Math.PI / 2, [.12, .7, 1.3]); for (let lv = 0; lv < 3; lv++) cbox(lo, 0, .14 + lv * .58, 0, .6, .38, .55, wf(-.1, .1));
     T2(g, 'Tall shelving (left wall)', 'Floor-to-2.4 m slotted-angle shelving down the left wall, packed: cardboard boxes, plastic boxes with coloured lids, yellow tool cases, paint tins and coils of rope; a lower unit of boxes after it.', '≈ 4.1 × 0.85 m · ≈ 2.45 m tall (scan)'); }
