@@ -1003,6 +1003,50 @@ function layout() {
     for (const zz of [-.55, .55]) { const c = grp(g, -W / 2 - .012, H - .16, zz); box(c, .012, .07, .045, CLIP, 0, 0, 0); box(c, .02, .012, .03, CLIP, -.006, .06, 0); box(c, .008, .05, .022, CLIP, 0, .1, 0); }   // toggle clips: catch on the side, hook over the lid
     const grime = new THREE.Mesh(new THREE.PlaneGeometry(D - .1, .12), GRIME); grime.rotation.y = -Math.PI / 2; grime.position.set(-W / 2 - .004, .09, 0); grime.userData.keep = true; g.add(grime);   // forklift and boot scuffs low on the aisle side
     T(g, 'Ply crate (yard bay floor)', 'A plywood crate on a pine batten frame, screwed, lid on with two toggle clips: the same build as the crates in the Yard in 3D page. Size and spot from the LiDAR scan (a flat-topped tan block about 1.3 × 2.0 m, 0.9 m tall); what is inside is not known.', '≈ 1.25 × 2.0 × 0.92 m (scan)', 'not sure'); }
+  // ---- 2 Nov 01:xx (Josh's request "bring the yard in", step Y2): the Yard in 3D page's blue sack truck and loose cable (model.js), rebuilt in detail.
+  //      Sack truck parked against the first bay of the right-wall run by the door, where the LiDAR heightmap shows something ≈ 1.0–1.1 m tall and ≈ 0.3–0.5 m
+  //      wide standing at x 18.2, z −2.3…−2.6 (scan colour there is mid-grey, so what it is isn't confirmed). The cable lies across the open floor in front of the
+  //      door-wall bay, from under its bottom shelf. Own RNG (6131) and own materials: nothing else moves.
+  { let sd = 6131; const fr = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    const shadowTex = (sx, sy) => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), gr = x.createRadialGradient(64, 64, 4, 64, 64, 62);
+      gr.addColorStop(0, 'rgba(0,0,0,.55)'); gr.addColorStop(.45, 'rgba(0,0,0,.28)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); };
+    const blob = (p, w, d, x, z, o = 1) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ map: shadowTex(), transparent: true, opacity: o, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.set(x, .004, z); m.renderOrder = 1; m.userData.keep = true; p.add(m); return m; };
+    // powder-coated blue with chips and rubs (canvas): darker where hands and boots wear it, a few bare-steel chips
+    const pc = document.createElement('canvas'); pc.width = 64; pc.height = 256; { const x = pc.getContext('2d'); x.fillStyle = '#2b5f9c'; x.fillRect(0, 0, 64, 256);
+      for (let i = 0; i < 900; i++) { x.fillStyle = `rgba(${fr() < .5 ? '20,40,70' : '90,140,200'},${.05 + fr() * .08})`; x.fillRect(fr() * 64, fr() * 256, 1 + fr() * 2, 1 + fr() * 3); }
+      for (let i = 0; i < 22; i++) { const y = fr() < .6 ? 200 + fr() * 56 : fr() * 256; x.fillStyle = `rgba(${fr() < .5 ? '170,172,170' : '60,55,50'},${.5 + fr() * .4})`; x.fillRect(fr() * 64, y, 1 + fr() * 3, 1 + fr() * 2); }
+      const gg = x.createLinearGradient(0, 200, 0, 256); gg.addColorStop(0, 'rgba(60,50,40,0)'); gg.addColorStop(1, 'rgba(60,50,40,.35)'); x.fillStyle = gg; x.fillRect(0, 200, 64, 56); }
+    const BLUE = STD({ map: new THREE.CanvasTexture(pc), roughness: .62, metalness: .2 }); BLUE.map.colorSpace = THREE.SRGBColorSpace;
+    const TOE = STD({ color: 0x7c8084, metalness: .7, roughness: .5 }), RUB = STD({ color: 0x18191b, roughness: .85 }), GRIP = STD({ color: 0x141416, roughness: .7 }), RIM = STD({ color: 0xb8bcc0, metalness: .75, roughness: .35 }), RED = STD({ color: 0xb02a22, roughness: .5, metalness: .2 });
+    const g = grp(P, 18.02, 0, -2.45, .06);   // toe plate faces the aisle (−x), handles back toward the racking stock, a touch off square
+    const tube = (pts, r, m) => { const c = new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(...p))); const t = new THREE.Mesh(new THREE.TubeGeometry(c, 40, r, 8), m); t.castShadow = t.receiveShadow = true; g.add(t); return t; };
+    // two rails: up from the toe plate, a slight forward lean, then bent back into the handle loops (in local x, +x = toward the racking)
+    for (const z of [-.2, .2]) tube([[.02, .02, z], [.05, .35, z], [.06, .8, z], [.05, 1.05, z], [.1, 1.17, z * .92], [.2, 1.2, z * .85]], .0135, BLUE);
+    for (const z of [-.2, .2]) { const h = cyl(g, .019, .11, GRIP, .17, 1.195, z * .85, 'x', 10); h.rotation.z = Math.PI / 2 + .12; }   // rubber grips on the loop ends
+    for (const y of [.32, .58, .84, 1.02]) cyl(g, .009, .4, BLUE, .05 + (y > .9 ? .003 : 0), y, 0, 'z', 8);   // cross bars
+    box(g, .016, .14, .44, BLUE, .05, .05, 0);   // back plate behind the toe, welded to the rails
+    // toe plate (nose): a pressed steel plate sticking out toward the aisle, folded lip, two gussets, scuffed
+    box(g, .2, .006, .46, TOE, -.08, .0, 0); box(g, .006, .018, .46, TOE, -.177, .0, 0);
+    for (const z of [-.17, .17]) { const s = new THREE.Shape(); s.moveTo(0, 0); s.lineTo(-.12, 0); s.lineTo(0, .12); s.closePath(); const m = new THREE.Mesh(new THREE.ExtrudeGeometry(s, { depth: .006, bevelEnabled: false }), TOE); m.position.set(.04, .006, z - .003); m.castShadow = true; g.add(m); }
+    // axle, brackets and two pneumatic wheels behind the rails
+    cyl(g, .011, .6, RIM, .13, .13, 0, 'z', 10);
+    for (const z of [-.2, .2]) { const b = box(g, .14, .03, .012, BLUE, .07, .115, z); b.rotation.z = -.5; }
+    for (const z of [-.275, .275]) { const w = grp(g, .13, .13, z);
+      const tyre = new THREE.Mesh(new THREE.TorusGeometry(.096, .036, 12, 36), RUB); tyre.castShadow = true; w.add(tyre);
+      for (let i = 0; i < 28; i++) { const a = i / 28 * Math.PI * 2, t = new THREE.Mesh(new THREE.BoxGeometry(.006, .014, .03), RUB); t.position.set(Math.cos(a) * .128, Math.sin(a) * .128, (i % 2 ? .011 : -.011)); t.rotation.z = a; t.rotation.x = i % 2 ? .45 : -.45; w.add(t); }   // chevron tread blocks
+      const rim = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .05, 20), RED); rim.rotation.x = Math.PI / 2; w.add(rim);
+      const hub = new THREE.Mesh(new THREE.CylinderGeometry(.025, .025, .066, 12), RIM); hub.rotation.x = Math.PI / 2; w.add(hub);
+      const valve = new THREE.Mesh(new THREE.CylinderGeometry(.003, .003, .018, 5), RIM); valve.position.set(.05, .04, z > 0 ? .02 : -.02); valve.rotation.z = .9; w.add(valve); }
+    blob(P, .7, .78, 18.0, -2.45, .9);   // soft contact shadow under toe plate and wheels
+    T(g, 'Sack truck', 'Blue sack truck parked against the racking by the door: pressed steel toe plate, tube frame, two pneumatic wheels, rubber grips. The same truck as in the Yard in 3D page; spot from the LiDAR scan (something about 1 m tall stands here), not confirmed.', '≈ 1.2 m tall', 'not sure');
+    // the loose cable: black flex with a blue 16 A plug, out from under the door-wall bay's bottom shelf, lying in loose S-bends
+    const pts = [[16.72, -1.2], [16.78, -1.62], [16.55, -1.98], [16.62, -2.35], [16.98, -2.55], [17.32, -2.42], [17.48, -2.78], [17.3, -3.12], [17.0, -3.26]].map(([x, z]) => new THREE.Vector3(x + (fr() - .5) * .03, .0085, z));
+    const curve = new THREE.CatmullRomCurve3(pts), cab = new THREE.Mesh(new THREE.TubeGeometry(curve, 120, .0085, 8), STD({ color: 0x141414, roughness: .55 })); cab.castShadow = cab.receiveShadow = true; const cg = grp(P); cg.add(cab);
+    const end = curve.getPoint(1), dir = curve.getTangent(1), plug = grp(cg, end.x, .021, end.z); plug.rotation.y = Math.atan2(-dir.z, dir.x);
+    const BLU = STD({ color: 0x1f5fc4, roughness: .45 });
+    { cyl(plug, .014, .05, BLU, .025, 0, 0, 'x', 12); cyl(plug, .021, .055, BLU, .075, 0, 0, 'x', 14); for (const dx of [.058, .07, .082]) cyl(plug, .0215, .004, STD({ color: 0x184c9c, roughness: .5 }), dx, 0, 0, 'x', 14); cyl(plug, .018, .006, STD({ color: 0x0e0e10, roughness: .6 }), .104, 0, 0, 'x', 14); plug.position.y = .021; }
+    for (let i = 1; i < 8; i++) { const p = curve.getPoint(i / 8); blob(P, .09, .09, p.x, p.z, .55); }
+    T(cg, 'Loose cable', 'A black extension cable with a blue 16 A plug, out from under the door-wall racking and lying across the floor in loose bends, as in the Yard in 3D page: a trip hazard, worth coiling up. Not in the LiDAR scan (too thin to show).', '≈ 3 m showing', 'not sure'); }
   { const s0 = _seed, g = grp(P, 0, 0, 0), TR = STD({ map: grain('#c8a878', '120,85,45', 256, 32, 0), roughness: .7 }), HWm = STD({ color: 0x8e9196, metalness: .7, roughness: .35 }); _seed = s0;   // the door wall's side door (LiDAR, 15 Oct: x 13.2–15.1, daylight through it): OSB-lined opening, timber frame, a pair of OSB-faced doors, one open in, one out
     const { x0, x1, h } = SIDE, W = x1 - x0, LW = W / 2 - .03;
     OSB.wall(g, x0 + .012, 0, .14, Math.PI / 2, .2, h, false); OSB.wall(g, x1 - .012, 0, -.06, -Math.PI / 2, .2, h, false);   // OSB lining on the reveals

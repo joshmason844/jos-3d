@@ -29,6 +29,8 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   bayfar: [[14.4, 2.1, -11.3], [18.4, 1.55, -11.3], true],      // yard-bay bays 1–2 from the far end (z −14.2…−8.63), levels 1–3
   yardcrate:[[13.4, 1.75, -5.6], [16.6, .45, -8.6], true],    // the ply crate on the yard-bay floor (x 16.0–17.3, z −7.5…−9.5) from the aisle, racking behind (2 Nov, Y1)
   yardcrateclose:[[15.2, 1.15, -6.9], [16.3, .5, -8.3], true],  // close on its aisle-side corner: battens, screws, clips, lid
+  yardsack:[[15.5, 1.5, -4.9], [17.6, .45, -2.3], true],     // the sack truck parked against the yard-bay racking by the door, the loose cable across the floor (2 Nov, Y2)
+  yardsackclose:[[16.95, 1.05, -3.75], [17.95, .55, -2.45], true],  // close on the sack truck: toe plate, wheels, frame, grips
   baydoor: [[14.9, 2.3, -5.4], [18.4, 1.5, -1.8], true],     // yard-bay bay 5 by the door (z −3.13…−0.35)
   stockclose: [[16.9, 1.3, -9.0], [18.4, .75, -10.4], true],    // close on bay 2's lower shelf: what's stacked on it
   doorbay: [[16.4, 2.2, -5.6], [16.6, 1.5, -1.2], true],       // the door-wall orange bay (x 15.2–18.1), seen from the hall
