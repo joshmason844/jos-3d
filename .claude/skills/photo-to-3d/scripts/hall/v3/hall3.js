@@ -989,21 +989,64 @@ function layout() {
   // ---- 2 Nov 00:xx (Josh's request "bring the yard in", step Y1): the Yard in 3D page's battened ply crate (model.js plyCrate), at the size and spot the
   //      LiDAR heightmap shows on the yard-bay floor: a flat-topped block x 16.0–17.3, z −7.5…−9.5, 0.9–1.0 m tall, tan top and sides (scan median ≈ #806e5c / #856d52).
   //      Ply panels set inside a pine batten frame, screwed; lid with a batten ring; two toggle clips on the aisle side. Own RNG, existing materials: nothing else moves.
+  //      2 Nov 04:xx (blind review: "too clean and shiny for plywood, lid battens look loose, barely casts a shadow so it looks pasted in"): its own weathered faces (fine grain, plugs, grey sun, dirt rising from the floor, fork rubs, dust on the lid),
+  //      a matt finish, the lid battens bedded and screwed with their shadow baked into the lid, and a baked floor shadow round the foot. Same size and spot.
   { const W = 1.25, D = 2.0, H = .92, b = .045, g = grp(P, 16.65, 0, -8.5, .012); let sd = 8821; const fr = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
-    const SCR = STD({ color: 0x8a8d90, metalness: .7, roughness: .4 }), CLIP = STD({ color: 0x9da2a6, metalness: .75, roughness: .3 }), GRIME = STD({ color: 0x3b3128, roughness: .95, transparent: true, opacity: .35, depthWrite: false });
-    const PLY = MX.ply.clone(), PINE = MX.timber.clone(); PLY.color.set(0xd2ccc2); PINE.color.set(0xd0c4b0); PLY.roughness = .85; PINE.roughness = .82;   // weathered, a step duller and greyer: untinted read new-yellow; a warm tint (b4a083) went orange under ACES
-    box(g, W - .03, H - .06, D - .03, PLY, 0, .02, 0);   // ply skin, set in from the frame
-    for (const yy of [0, H - .03 - b]) { for (const sz of [-1, 1]) box(g, W, b, b, PINE, 0, yy, sz * (D - b) / 2); for (const sx of [-1, 1]) box(g, b, b, D - 2 * b, PINE, sx * (W - b) / 2, yy, 0); }   // bottom and top rings
-    for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, b, H - .03 - 2 * b, b, PINE, sx * (W - b) / 2, b, sz * (D - b) / 2);   // corner posts
-    for (const sx of [-1, 1]) for (const zz of [-D / 6, D / 6]) box(g, b + .004, H - .03 - 2 * b, .07, PINE, sx * (W - b) / 2, b, zz);   // two upright battens on each long side
-    const lid = box(g, W + .02, .03, D + .02, PLY, 0, H - .03, 0); lid.rotation.y = .004;   // lid sits a hair proud and a touch off square
-    for (const sz of [-1, 1]) box(g, W - .1, .025, .06, PINE, 0, H, sz * (D / 2 - .08)); box(g, .06, .025, D - .3, PINE, 0, H, 0);   // lid battens
+    const SCR = STD({ color: 0x6d675e, metalness: .45, roughness: .62 }), CLIP = STD({ color: 0x858178, metalness: .55, roughness: .55 });
+    const PX = 400, soft = (x, cx, cy, r, sq, col, a) => { x.save(); x.translate(cx, cy); x.scale(1, sq); const gr = x.createRadialGradient(0, 0, 0, 0, 0, r); gr.addColorStop(0, `rgba(${col},${a})`); gr.addColorStop(1, `rgba(${col},0)`); x.fillStyle = gr; x.fillRect(-r, -r, 2 * r, 2 * r); x.restore(); };
+    // one ply sheet as it has aged: grain runs along the width, `floor` true adds what rises from the floor (bottom edge of the canvas is the floor)
+    const plyFace = (mw, mh, floor) => { const w = Math.round(mw * PX), h = Math.round(mh * PX), c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
+      x.fillStyle = '#8c7b64'; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 26; i++) soft(x, fr() * w, fr() * h, 40 + fr() * 170, .4, fr() < .5 ? '70,58,44' : '196,184,164', .1 + fr() * .1);   // uneven sheet colour
+      for (let i = 0; i < mh * 260; i++) { const y = fr() * h, a = fr() * .1 + .03, dy = (fr() - .5) * 8; x.strokeStyle = `rgba(66,52,38,${a})`; x.lineWidth = .6 + fr() * .9; x.beginPath(); x.moveTo(0, y); x.bezierCurveTo(w * .3, y + dy, w * .6, y - dy, w, y + (fr() - .5) * 6); x.stroke(); }   // fine straight grain
+      for (let k = 0, n = 1 + Math.round(mw * 1.5); k < n; k++) { const cx = fr() * w, cy = fr() * h, l = 90 + fr() * 170; for (let i = 0; i < 7; i++) { x.strokeStyle = `rgba(60,46,32,${.05 + fr() * .05})`; x.lineWidth = .8; x.beginPath(); x.ellipse(cx, cy, l * (1 - i * .12), 5 + i * 5.5, (fr() - .5) * .03, 0, 7); x.stroke(); } }   // low, thin cathedral figure
+      for (let i = 0, n = Math.round(mw * mh * 2) + 1; i < n; i++) { const cx = fr() * w, cy = fr() * h, l = 15 + fr() * 8, t = 4 + fr() * 2; x.fillStyle = 'rgba(164,146,116,.3)'; x.beginPath(); x.ellipse(cx, cy, l, t, 0, 0, 7); x.fill(); x.strokeStyle = 'rgba(52,40,28,.22)'; x.lineWidth = 1; x.stroke(); }   // boat plugs where knots were cut out
+      x.fillStyle = 'rgba(112,108,100,.15)'; x.fillRect(0, 0, w, h);   // sun and damp grey it
+      for (let i = 0; i < mw * 60; i++) { const xx = fr() * w, l = 30 + fr() * 170, a = .03 + fr() * .05; const gr = x.createLinearGradient(0, 0, 0, l); gr.addColorStop(0, `rgba(54,46,38,${a})`); gr.addColorStop(1, 'rgba(54,46,38,0)'); x.fillStyle = gr; x.fillRect(xx, 0, 1 + fr() * 3, l); }   // run marks from the lid edge
+      if (floor) { const gr = x.createLinearGradient(0, h, 0, h * .5); gr.addColorStop(0, 'rgba(42,34,26,.55)'); gr.addColorStop(.3, 'rgba(50,41,32,.24)'); gr.addColorStop(1, 'rgba(58,48,38,0)'); x.fillStyle = gr; x.fillRect(0, 0, w, h);   // dirt rising from the floor
+        for (let i = 0; i < mw * 18; i++) soft(x, fr() * w, h - fr() * 70, 10 + fr() * 34, 1, '38,30,24', .08 + fr() * .12);   // not a straight tide line
+        for (let i = 0; i < mw * 900; i++) { const y = h - Math.pow(fr(), 2.2) * h * .62; x.fillStyle = fr() < .7 ? `rgba(34,27,21,${.1 + fr() * .3})` : `rgba(190,178,158,${.08 + fr() * .16})`; const r = .6 + fr() * 1.7; x.fillRect(fr() * w, y, r, r); }   // splash specks, thick low down
+        for (let i = 0; i < mw * 2.4; i++) { const cx = fr() * w, cy = h - (46 + fr() * 34), l = 60 + fr() * 170; x.strokeStyle = `rgba(24,21,18,${.2 + fr() * .25})`; x.lineCap = 'round'; x.lineWidth = 3 + fr() * 7; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + l, cy + (fr() - .5) * 8); x.stroke(); }   // black fork and pallet rubs at knee height
+        for (let i = 0; i < mw * 5; i++) { const cx = fr() * w, cy = h * (.3 + fr() * .62), l = 16 + fr() * 70, an = (fr() - .5) * 1.1; x.strokeStyle = `rgba(206,192,168,${.1 + fr() * .14})`; x.lineCap = 'round'; x.lineWidth = .8 + fr() * 1.3; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + Math.cos(an) * l, cy + Math.sin(an) * l); x.stroke(); }   // pale knocks, bare wood showing
+      } return c; };
+    const mat = (c, o = {}) => { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; const m = STD({ map: t, roughness: .96, metalness: 0, ...o }); m.envMapIntensity = .45; return m; };
+    const SIDE = mat(plyFace(D - .03, H - .06, true)), SIDE2 = mat(plyFace(D - .03, H - .06, true)), END = mat(plyFace(W - .03, H - .06, true)), END2 = mat(plyFace(W - .03, H - .06, true));
+    box(g, W - .03, H - .06, D - .03, [SIDE2, SIDE, END, END, END2, END], 0, .02, 0);   // ply skin, set in from the frame
+    // pine: grain along the length; uprights carry the same dirt from the floor up, rings stay dull with knocks
+    const pineTex = (w, h, along, low) => { const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); x.fillStyle = low ? '#75675a' : '#93836e'; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 46; i++) { const t = fr() * (along ? w : h); x.strokeStyle = `rgba(52,40,30,${.08 + fr() * .17})`; x.lineWidth = .7 + fr() * 1.3; x.beginPath(); if (along) { x.moveTo(t, 0); x.lineTo(t + (fr() - .5) * 7, h); } else { x.moveTo(0, t); x.lineTo(w, t + (fr() - .5) * 7); } x.stroke(); }
+      if (along) { const gr = x.createLinearGradient(0, h, 0, h * .5); gr.addColorStop(0, 'rgba(36,29,23,.72)'); gr.addColorStop(.3, 'rgba(44,36,28,.34)'); gr.addColorStop(1, 'rgba(50,42,32,0)'); x.fillStyle = gr; x.fillRect(0, 0, w, h); }
+      for (let i = 0; i < (along ? 7 : 12); i++) { x.fillStyle = `rgba(206,190,160,${.2 + fr() * .26})`; x.fillRect(fr() * w, fr() * h, 2 + fr() * (along ? 6 : 16), 1 + fr() * (along ? 12 : 4)); }   // knocked corners, paler bare wood
+      return c; };
+    const PINEU = mat(pineTex(48, 400, true)), PINER = mat(pineTex(800, 48, false)), PINEL = mat(pineTex(800, 48, false, true));
+    for (const [yy, M] of [[0, PINEL], [H - .03 - b, PINER]]) { for (const sz of [-1, 1]) box(g, W, b, b, M, 0, yy, sz * (D - b) / 2); for (const sx of [-1, 1]) box(g, b, b, D - 2 * b, M, sx * (W - b) / 2, yy, 0); }   // bottom and top rings
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, b, H - .03 - 2 * b, b, PINEU, sx * (W - b) / 2, b, sz * (D - b) / 2);   // corner posts
+    for (const sx of [-1, 1]) for (const zz of [-D / 6, D / 6]) box(g, b + .004, H - .03 - 2 * b, .07, PINEU, sx * (W - b) / 2, b, zz);   // two upright battens on each long side
+    // the lid and its battens are one part: same small twist, battens bedded 4 mm in with a screw at each end, and their shadow and the dust round them baked into the lid
+    const LW = W + .02, LD = D + .02, bat = [[0, D / 2 - .08, W - .1, .06], [0, -(D / 2 - .08), W - .1, .06], [0, 0, .06, D - .3]];
+    const lidC = (() => { const A = plyFace(LD, LW, false), c = document.createElement('canvas'); c.width = A.height; c.height = A.width; const x = c.getContext('2d'); x.translate(c.width, 0); x.rotate(Math.PI / 2); x.drawImage(A, 0, 0); x.setTransform(1, 0, 0, 1, 0, 0);   // grain down the long way
+      const w = c.width, h = c.height, m = v => v * PX;
+      x.fillStyle = 'rgba(156,146,130,.2)'; x.fillRect(0, 0, w, h);   // dust lies on a flat top
+      for (let i = 0; i < 34; i++) soft(x, fr() * w, fr() * h, 30 + fr() * 120, .5 + fr(), fr() < .6 ? '176,166,148' : '62,52,42', .06 + fr() * .09);   // wiped and settled patches
+      for (const zz of [-.55, .55]) for (let i = 0; i < 7; i++) soft(x, m(.06 + fr() * .22), m(LD / 2 + zz) + (fr() - .5) * 130, 9 + fr() * 16, 1.3, '48,38,30', .2 + fr() * .2);   // hand marks by the clips
+      for (const [bx, bz, bw, bd] of bat) { const x0 = m(LW / 2 + bx - bw / 2), y0 = m(LD / 2 + bz - bd / 2), bW = m(bw), bH = m(bd);
+        x.save(); x.shadowColor = 'rgba(18,13,9,.8)'; x.shadowBlur = 16; x.fillStyle = 'rgba(18,13,9,.75)'; x.fillRect(x0, y0, bW, bH); x.fillRect(x0, y0, bW, bH); x.restore();
+        x.fillStyle = 'rgba(14,10,7,.8)'; x.fillRect(x0 - 2, y0 - 2, bW + 4, bH + 4); }
+      return c; })();
+    const LIDT = mat(lidC), LEDG = mat((() => { const c = document.createElement('canvas'); c.width = 800; c.height = 16; const x = c.getContext('2d'); [[0, '#7c6c58'], [3, '#5e5040'], [6, '#84745e'], [9, '#5f5141'], [12, '#7a6a56']].forEach(([y, col]) => { x.fillStyle = col; x.fillRect(0, y, 800, 4); });   // the ply's layers show on the lid edge
+      for (let i = 0; i < 60; i++) { x.fillStyle = `rgba(30,24,18,${.04 + fr() * .1})`; x.fillRect(fr() * 800, 0, 20 + fr() * 90, 16); } return c; })());
+    const lg = grp(g, 0, H - .03, 0, .004); box(lg, LW, .03, LD, [LEDG, LEDG, LIDT, LIDT, LEDG, LEDG], 0, 0, 0);   // lid sits a hair proud and a touch off square
+    for (const [bx, bz, bw, bd] of bat) { box(lg, bw, .029, bd, bw > bd ? PINER : PINEU, bx, .026, bz); const n = bw > bd ? 2 : 3; for (let i = 0; i < n; i++) { const t = n === 1 ? 0 : i / (n - 1) - .5, sc = new THREE.Mesh(new THREE.CylinderGeometry(.006, .006, .003, 8), SCR); sc.position.set(bx + (bw > bd ? t * (bw - .1) : 0), .056, bz + (bw > bd ? 0 : t * (bd - .1))); lg.add(sc); } }   // lid battens
     // screw heads along the battens on the faces you see: the aisle side (−x) and both ends
     const scr = (x, y, z, ax) => { const s = new THREE.Mesh(new THREE.CylinderGeometry(.006, .006, .004, 8), SCR); if (ax === 'x') s.rotation.z = Math.PI / 2; else s.rotation.x = Math.PI / 2; s.position.set(x, y, z); g.add(s); };
     for (const yy of [b / 2, H - .03 - b / 2]) { for (let i = 0; i < 7; i++) scr(-W / 2 - .001, yy, -D / 2 + .1 + i * (D - .2) / 6 + (fr() - .5) * .02, 'x'); for (const sz of [-1, 1]) for (let i = 0; i < 4; i++) scr(-W / 2 + .1 + i * (W - .2) / 3 + (fr() - .5) * .02, yy, sz * (D / 2 + .001), 'z'); }
     for (const zz of [-D / 6, D / 6]) for (let i = 0; i < 4; i++) scr(-W / 2 - .003, b + .08 + i * (H - .3) / 3, zz + (fr() - .5) * .01, 'x');
     for (const zz of [-.55, .55]) { const c = grp(g, -W / 2 - .012, H - .16, zz); box(c, .012, .07, .045, CLIP, 0, 0, 0); box(c, .02, .012, .03, CLIP, -.006, .06, 0); box(c, .008, .05, .022, CLIP, 0, .1, 0); }   // toggle clips: catch on the side, hook over the lid
-    const grime = new THREE.Mesh(new THREE.PlaneGeometry(D - .1, .12), GRIME); grime.rotation.y = -Math.PI / 2; grime.position.set(-W / 2 - .004, .09, 0); grime.userData.keep = true; g.add(grime);   // forklift and boot scuffs low on the aisle side
+    // baked floor shadow: tight dark line where the crate meets the slab, a wide soft pool round it, dust swept up against the foot
+    { const pad = .55, PW = W + 2 * pad, PD = D + 2 * pad, PPM = 110, cw = Math.ceil(PW * PPM), ch = Math.ceil(PD * PPM), c = document.createElement('canvas'); c.width = cw; c.height = ch; const x = c.getContext('2d'), im = x.createImageData(cw, ch);
+      for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) { const px = (i + .5) / PPM - PW / 2, pz = (j + .5) / PPM - PD / 2, d = Math.hypot(Math.max(0, Math.abs(px) - W / 2), Math.max(0, Math.abs(pz) - D / 2)), e = Math.max(0, 1 - d / pad);
+        const a = d <= 0 ? .7 : Math.min(.7, (.34 * Math.exp(-d / .02) + .42 * Math.exp(-d / .17)) * Math.min(1, e * 2.2)), q = (j * cw + i) * 4; im.data[q] = 12; im.data[q + 1] = 9; im.data[q + 2] = 7; im.data[q + 3] = a * 255; }
+      x.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; const s = new THREE.Mesh(new THREE.PlaneGeometry(PW, PD), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 })); s.rotation.x = -Math.PI / 2; s.position.y = .004; s.renderOrder = 1; s.userData.keep = true; s.userData.noAO = true; g.add(s); }
     T(g, 'Ply crate (yard bay floor)', 'A plywood crate on a pine batten frame, screwed, lid on with two toggle clips: the same build as the crates in the Yard in 3D page. Size and spot from the LiDAR scan (a flat-topped tan block about 1.3 × 2.0 m, 0.9 m tall); what is inside is not known.', '≈ 1.25 × 2.0 × 0.92 m (scan)', 'not sure'); }
   // ---- 2 Nov 01:xx (Josh's request "bring the yard in", step Y2): the Yard in 3D page's blue sack truck and loose cable (model.js), rebuilt in detail.
   //      Sack truck parked against the first bay of the right-wall run by the door, where the LiDAR heightmap shows something ≈ 1.0–1.1 m tall and ≈ 0.3–0.5 m
@@ -1012,7 +1055,7 @@ function layout() {
   { let sd = 6131; const fr = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
     const shadowTex = (sx, sy) => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), gr = x.createRadialGradient(64, 64, 4, 64, 64, 62);
       gr.addColorStop(0, 'rgba(0,0,0,.55)'); gr.addColorStop(.45, 'rgba(0,0,0,.28)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); };
-    const blob = (p, w, d, x, z, o = 1) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ map: shadowTex(), transparent: true, opacity: o, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.set(x, .004, z); m.renderOrder = 1; m.userData.keep = true; p.add(m); return m; };
+    const blob = (p, w, d, x, z, o = 1) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ map: shadowTex(), transparent: true, opacity: o, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 })); m.rotation.x = -Math.PI / 2; m.position.set(x, .004, z); m.renderOrder = 1; m.userData.keep = true; p.add(m); return m; };
     // powder-coated blue with chips and rubs (canvas): darker where hands and boots wear it, a few bare-steel chips
     const pc = document.createElement('canvas'); pc.width = 64; pc.height = 256; { const x = pc.getContext('2d'); x.fillStyle = '#2b5f9c'; x.fillRect(0, 0, 64, 256);
       for (let i = 0; i < 900; i++) { x.fillStyle = `rgba(${fr() < .5 ? '20,40,70' : '90,140,200'},${.05 + fr() * .08})`; x.fillRect(fr() * 64, fr() * 256, 1 + fr() * 2, 1 + fr() * 3); }
@@ -1082,7 +1125,7 @@ function layout() {
       else { const v = new THREE.Mesh(new THREE.TorusGeometry(.02, .005, 6, 18), SPEAR); v.rotation.x = Math.PI / 2; v.position.y = .567; g.add(v); cyl(g, .012, .008, DARK, 0, .566, 0, 'y', 12); }
       // a printed collar ring on the barrel (brewer's band), faded
       const band = new THREE.Mesh(new THREE.CylinderGeometry(R + .0012, R + .0012, .05, 40, 1, true), STD({ color: k ? 0x2f5fa8 : 0x3b3f44, roughness: .55, metalness: .2, transparent: true, opacity: .75 })); band.position.y = .3; g.add(band);
-      const m = new THREE.Mesh(new THREE.PlaneGeometry(.62, .62), new THREE.MeshBasicMaterial({ map: ST, transparent: true, opacity: .85, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.y = .004; m.renderOrder = 1; m.userData.keep = true; g.add(m);   // soft contact shadow
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(.62, .62), new THREE.MeshBasicMaterial({ map: ST, transparent: true, opacity: .85, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 })); m.rotation.x = -Math.PI / 2; m.position.y = .004; m.renderOrder = 1; m.userData.keep = true; g.add(m);   // soft contact shadow
       return g; };
     const kg = grp(P); kg.add(keg(17.8, -12.86, fr() * 6, 0)); kg.add(keg(17.79, -13.28, fr() * 6, 1));
     T(kg, 'Steel kegs', 'Two stainless 50 L beer kegs standing on the floor in front of the far-end bay: bar kit, as in the Yard in 3D page (rolling beads, chimes with hand holes, spear fitting on top; one still has its red dust cap). Spot from the LiDAR scan: a grey block 0.6 m tall, about 0.6 × 0.8 m, which two kegs side by side fill. Not confirmed.', 'Ø 0.41 × 0.6 m each', 'not sure'); }
