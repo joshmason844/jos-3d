@@ -31,6 +31,9 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   yardcrateclose:[[15.2, 1.15, -6.9], [16.3, .5, -8.3], true],  // close on its aisle-side corner: battens, screws, clips, lid
   yardsack:[[15.5, 1.5, -4.9], [17.6, .45, -2.3], true],     // the sack truck parked against the yard-bay racking by the door, the loose cable across the floor (2 Nov, Y2)
   yardsackclose:[[16.95, 1.05, -3.75], [17.95, .55, -2.45], true],  // close on the sack truck: toe plate, wheels, frame, grips
+  yardjerry:[[16.7, 1.2, -11.5], [18.4, .4, -12.4], true],    // the far-end bay of the yard-bay run, bottom level: blue totes, jerry cans, folded sheeting (2 Nov, Y3a)
+  yardtotecard:[[16.7, 1.2, -11.5], [18.4, .4, -12.4], true, 'Storage boxes'],   // same, with the Storage boxes card open
+  yardjerrycard:[[16.7, 1.2, -11.5], [18.4, .4, -12.4], true, 'Jerry cans'],   // same, with the Jerry cans tap card open (4th item = card to open; BEFORE has none, so no card)
   baydoor: [[14.9, 2.3, -5.4], [18.4, 1.5, -1.8], true],     // yard-bay bay 5 by the door (z −3.13…−0.35)
   stockclose: [[16.9, 1.3, -9.0], [18.4, .75, -10.4], true],    // close on bay 2's lower shelf: what's stacked on it
   doorbay: [[16.4, 2.2, -5.6], [16.6, 1.5, -1.2], true],       // the door-wall orange bay (x 15.2–18.1), seen from the hall
@@ -114,7 +117,9 @@ const want = only ? only.split(',') : ['door', 'up', 'roofclose', 'far'];
     for (const v of want) {
       const V = VIEWS[v];
       if (typeof V === 'string') { await p.evaluate(k => window.__view(k), V); await p.waitForTimeout(1800); }
-      else await p.evaluate(a => window.__cam(...a), V);
+      else await p.evaluate(a => window.__cam(...a), V.slice(0, 3));
+      await p.evaluate(() => window.__pick && window.__pick('\u0000none'));   // card closed unless the view names one
+      if (Array.isArray(V) && V[3]) { await p.waitForTimeout(1200); await p.evaluate(n => { const l = [...document.querySelectorAll('#labels .lb')].find(d => d.textContent === n && d.style.display !== 'none' && d.offsetParent !== null); if (l) l.click(); }, V[3]); }   // 4th item: tap that label as seen on screen (BEFORE has none, so no card)
       await p.waitForTimeout(700);
       await p.screenshot({ path: `${pre}-${n}-${v}.png`, timeout: TMO });
     }
