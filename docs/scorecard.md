@@ -1263,6 +1263,6 @@ One row per build, so each run gets measurably better.
 - Lost time: stacked closed slabs cut each other in saw-teeth, specks and a radial star through four passes; one skin fixed it at once (Traps learned). Black pass: the static merge drops the colour attribute, needs `userData.keep`.
 - Feature test (`test_yardcards.js`, phone, publish copy): 10 of 10 cards incl. the new one; door-end labels no overlap; page errors [] → RESULT PASS.
 - Better: yardpad: bare floor now carries the heap the scan shows, reads as folded cloth at phone size, NOT SURE label up close. Still weak: small dark gashes in the grooves, blue-grey sheet too clean, layers a touch pillow-like.
-- Checker (Haiku): PASS: page errors [], not blank, labels clear, nothing else moved, publish copy 528 KB. Desk shots queued; see below if they finished before the push.
+- Checker (Haiku): PASS: page errors [], not blank, labels clear, nothing else moved, publish copy 528 KB. Desk AFTER shot taken and looked at by me (holds up, no errors); desk BEFORE not finished at wrap-up (bare floor there, as on phone); the checker saw phone shots only.
 - Published: yes (version 125; first send refused as unviewed, its diff showed only my lines; resent with a "v125" comment).
 - Score (self, knocked ≈ 0.3 for the known self-score lean): yardpad Shape 6.75 · Detail 6.5 · Surface 6.5 · Light 6.5 · Truth 6.25 · Works 7 ≈ 6.6 (BEFORE ≈ 6.1: bare floor). Page row 7.49 → 7.51, review due.
