@@ -984,6 +984,25 @@ function layout() {
       box(g, .05, .006, 1.12, STRAP, sx, N * LH + .01, 0);
       box(g, .07, .09, .03, STD({ color: 0x8d9296, metalness: .7, roughness: .35 }), sx, .55, .572); }
     T(g, 'Floor panels (stack by the side door)', 'Yurt floor sections stacked flat: dark hardwood-faced panels on light timber battens, about two dozen high, two ratchet straps round the pile. Height and footprint from the LiDAR scan (15 Oct).', '≈ 2.0 × 1.1 m · 1.15 m tall (scan)', 'fairly sure'); }
+  // ---- 2 Nov 00:xx (Josh's request "bring the yard in", step Y1): the Yard in 3D page's battened ply crate (model.js plyCrate), at the size and spot the
+  //      LiDAR heightmap shows on the yard-bay floor: a flat-topped block x 16.0–17.3, z −7.5…−9.5, 0.9–1.0 m tall, tan top and sides (scan median ≈ #806e5c / #856d52).
+  //      Ply panels set inside a pine batten frame, screwed; lid with a batten ring; two toggle clips on the aisle side. Own RNG, existing materials: nothing else moves.
+  { const W = 1.25, D = 2.0, H = .92, b = .045, g = grp(P, 16.65, 0, -8.5, .012); let sd = 8821; const fr = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    const SCR = STD({ color: 0x8a8d90, metalness: .7, roughness: .4 }), CLIP = STD({ color: 0x9da2a6, metalness: .75, roughness: .3 }), GRIME = STD({ color: 0x3b3128, roughness: .95, transparent: true, opacity: .35, depthWrite: false });
+    const PLY = MX.ply.clone(), PINE = MX.timber.clone(); PLY.color.set(0xd2ccc2); PINE.color.set(0xd0c4b0); PLY.roughness = .85; PINE.roughness = .82;   // weathered, a step duller and greyer: untinted read new-yellow; a warm tint (b4a083) went orange under ACES
+    box(g, W - .03, H - .06, D - .03, PLY, 0, .02, 0);   // ply skin, set in from the frame
+    for (const yy of [0, H - .03 - b]) { for (const sz of [-1, 1]) box(g, W, b, b, PINE, 0, yy, sz * (D - b) / 2); for (const sx of [-1, 1]) box(g, b, b, D - 2 * b, PINE, sx * (W - b) / 2, yy, 0); }   // bottom and top rings
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, b, H - .03 - 2 * b, b, PINE, sx * (W - b) / 2, b, sz * (D - b) / 2);   // corner posts
+    for (const sx of [-1, 1]) for (const zz of [-D / 6, D / 6]) box(g, b + .004, H - .03 - 2 * b, .07, PINE, sx * (W - b) / 2, b, zz);   // two upright battens on each long side
+    const lid = box(g, W + .02, .03, D + .02, PLY, 0, H - .03, 0); lid.rotation.y = .004;   // lid sits a hair proud and a touch off square
+    for (const sz of [-1, 1]) box(g, W - .1, .025, .06, PINE, 0, H, sz * (D / 2 - .08)); box(g, .06, .025, D - .3, PINE, 0, H, 0);   // lid battens
+    // screw heads along the battens on the faces you see: the aisle side (−x) and both ends
+    const scr = (x, y, z, ax) => { const s = new THREE.Mesh(new THREE.CylinderGeometry(.006, .006, .004, 8), SCR); if (ax === 'x') s.rotation.z = Math.PI / 2; else s.rotation.x = Math.PI / 2; s.position.set(x, y, z); g.add(s); };
+    for (const yy of [b / 2, H - .03 - b / 2]) { for (let i = 0; i < 7; i++) scr(-W / 2 - .001, yy, -D / 2 + .1 + i * (D - .2) / 6 + (fr() - .5) * .02, 'x'); for (const sz of [-1, 1]) for (let i = 0; i < 4; i++) scr(-W / 2 + .1 + i * (W - .2) / 3 + (fr() - .5) * .02, yy, sz * (D / 2 + .001), 'z'); }
+    for (const zz of [-D / 6, D / 6]) for (let i = 0; i < 4; i++) scr(-W / 2 - .003, b + .08 + i * (H - .3) / 3, zz + (fr() - .5) * .01, 'x');
+    for (const zz of [-.55, .55]) { const c = grp(g, -W / 2 - .012, H - .16, zz); box(c, .012, .07, .045, CLIP, 0, 0, 0); box(c, .02, .012, .03, CLIP, -.006, .06, 0); box(c, .008, .05, .022, CLIP, 0, .1, 0); }   // toggle clips: catch on the side, hook over the lid
+    const grime = new THREE.Mesh(new THREE.PlaneGeometry(D - .1, .12), GRIME); grime.rotation.y = -Math.PI / 2; grime.position.set(-W / 2 - .004, .09, 0); grime.userData.keep = true; g.add(grime);   // forklift and boot scuffs low on the aisle side
+    T(g, 'Ply crate (yard bay floor)', 'A plywood crate on a pine batten frame, screwed, lid on with two toggle clips: the same build as the crates in the Yard in 3D page. Size and spot from the LiDAR scan (a flat-topped tan block about 1.3 × 2.0 m, 0.9 m tall); what is inside is not known.', '≈ 1.25 × 2.0 × 0.92 m (scan)', 'not sure'); }
   { const s0 = _seed, g = grp(P, 0, 0, 0), TR = STD({ map: grain('#c8a878', '120,85,45', 256, 32, 0), roughness: .7 }), HWm = STD({ color: 0x8e9196, metalness: .7, roughness: .35 }); _seed = s0;   // the door wall's side door (LiDAR, 15 Oct: x 13.2–15.1, daylight through it): OSB-lined opening, timber frame, a pair of OSB-faced doors, one open in, one out
     const { x0, x1, h } = SIDE, W = x1 - x0, LW = W / 2 - .03;
     OSB.wall(g, x0 + .012, 0, .14, Math.PI / 2, .2, h, false); OSB.wall(g, x1 - .012, 0, -.06, -Math.PI / 2, .2, h, false);   // OSB lining on the reveals
