@@ -76,6 +76,8 @@ After each build, before replying:
 - Watch: a racking row runs along its local +x, so on the right wall (ry −90°) it heads toward the door: start it at the far end.
 
 ## Traps learned
+- Before placing yard kit in the WW, read the LiDAR floor heightmap AND a colour sample of each unbuilt block: a neutral-grey flat 0.6 m block is a keg pair, a warm cream one is bags; don't drop an item on a block whose colour can't be it (2 Nov 03:xx: no fridge-black or sink-bright block on the yard-bay floor, so only the kegs went in).
+- For blind reviews put X/Y copies in their own folder with nothing named base/before/after beside them: the 2 Nov reviewer matched byte sizes (2 Nov 03:xx).
 - To sharpen a canvas texture without moving anything, draw it at k× by `x.scale(k, k)` and dividing w: same strokes, same RNG draws; but any `drawImage(x.canvas, …)` self-copy runs under `setTransform(1,0,0,1,0,0)` and must scale its source/dest rects by k too. At phone size the gain is small: a 128 px label already sits near one texel per screen pixel (1 Nov 23:xx).
 - When varying props whose layout code draws from the shared RNG (a shelf loop calling wf() per item), keep the draw count fixed (draw 3 even for a 2-item group) or everything after shuffles; and pick a variant by a stepped index (cardN·3 mod 8), not a position hash, which clusters (1 Nov 05:xx: four MIXED boxes in one view on the hash try).
 - A darker "finish" variant on small hung steel (black oxide on a spanner) reads as flat plastic at phone size against brown pegboard; vary used tools by wear, lean and one dull chrome, not by a dark finish (1 Nov 04:xx revert of v110).

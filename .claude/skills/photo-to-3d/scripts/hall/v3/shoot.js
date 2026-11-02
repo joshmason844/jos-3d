@@ -31,6 +31,8 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   yardcrateclose:[[15.2, 1.15, -6.9], [16.3, .5, -8.3], true],  // close on its aisle-side corner: battens, screws, clips, lid
   yardsack:[[15.5, 1.5, -4.9], [17.6, .45, -2.3], true],     // the sack truck parked against the yard-bay racking by the door, the loose cable across the floor (2 Nov, Y2)
   yardsackclose:[[16.95, 1.05, -3.75], [17.95, .55, -2.45], true],  // close on the sack truck: toe plate, wheels, frame, grips
+  yardkeg:[[15.5, 1.4, -11.0], [17.8, .35, -13.0], true],     // the floor in front of the far-end bay: the LiDAR's 0.6 m grey block at x 17.5–18.1, z −12.7…−13.4 (2 Nov, Y3b kegs)
+  yardkegclose:[[16.85, .95, -12.15], [17.8, .35, -13.05], true],  // close on the kegs: chimes, hand holes, spears, steel
   yardjerry:[[16.7, 1.2, -11.5], [18.4, .4, -12.4], true],    // the far-end bay of the yard-bay run, bottom level: blue totes, jerry cans, folded sheeting (2 Nov, Y3a)
   yardtotecard:[[16.7, 1.2, -11.5], [18.4, .4, -12.4], true, 'Storage boxes'],   // same, with the Storage boxes card open
   yardjerrycard:[[16.7, 1.2, -11.5], [18.4, .4, -12.4], true, 'Jerry cans'],   // same, with the Jerry cans tap card open (4th item = card to open; BEFORE has none, so no card)

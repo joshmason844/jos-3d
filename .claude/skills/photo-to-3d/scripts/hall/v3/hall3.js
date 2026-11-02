@@ -1049,6 +1049,43 @@ function layout() {
     { cyl(plug, .014, .05, BLU, .025, 0, 0, 'x', 12); cyl(plug, .021, .055, BLU, .075, 0, 0, 'x', 14); for (const dx of [.058, .07, .082]) cyl(plug, .0215, .004, STD({ color: 0x184c9c, roughness: .5 }), dx, 0, 0, 'x', 14); cyl(plug, .018, .006, STD({ color: 0x0e0e10, roughness: .6 }), .104, 0, 0, 'x', 14); plug.position.y = .021; }
     for (let i = 1; i < 8; i++) { const p = curve.getPoint(i / 8); blob(P, .09, .09, p.x, p.z, .55); }
     T(cg, 'Loose cable', 'A black extension cable with a blue 16 A plug, out from under the door-wall racking and lying across the floor in loose bends, as in the Yard in 3D page: a trip hazard, worth coiling up. Not in the LiDAR scan (too thin to show).', '≈ 3 m showing', 'not sure'); }
+  // ---- 2 Nov 03:xx (Josh's request "bring the yard in", step Y3b, part 1): the Yard in 3D page's steel keg (model.js), rebuilt in detail, two of them,
+  //      where the LiDAR heightmap shows a 0.6 m block, neutral grey (scan median ≈ #7f837e), x 17.5–18.1, z −12.7…−13.4, on the floor in front of the
+  //      far-end bay of the right-wall run. Two 50 L Euro kegs (Ø 408 × 600 mm) side by side fill it. Own RNG (7717) and own materials: nothing else moves.
+  { let sd = 7717; const fr = () => (sd = (sd * 16807) % 2147483647) / 2147483647, R = .204;
+    // brushed stainless (canvas, u round the keg, v up): fine streaks round the barrel, a few scratches and rubs, grime and a tide line low down
+    const sc = document.createElement('canvas'); sc.width = 512; sc.height = 256; { const x = sc.getContext('2d'); x.fillStyle = '#b4b8bb'; x.fillRect(0, 0, 512, 256);
+      for (let i = 0; i < 1400; i++) { const y = fr() * 256; x.fillStyle = `rgba(${fr() < .5 ? '235,238,240' : '95,100,105'},${.04 + fr() * .07})`; x.fillRect(fr() * 512, y, 30 + fr() * 200, 1); }
+      for (let i = 0; i < 70; i++) { const x0 = fr() * 512, y0 = fr() * 256, a = (fr() - .5) * 1.2, l = 6 + fr() * 30; x.strokeStyle = `rgba(${fr() < .6 ? '230,232,234' : '70,72,75'},${.25 + fr() * .3})`; x.lineWidth = .7; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x0 + Math.cos(a) * l, y0 + Math.sin(a) * l); x.stroke(); }
+      for (let i = 0; i < 9; i++) { x.fillStyle = `rgba(80,74,66,${.06 + fr() * .08})`; x.beginPath(); x.ellipse(fr() * 512, 60 + fr() * 140, 10 + fr() * 30, 4 + fr() * 10, 0, 0, 7); x.fill(); }   // dull rubs and hand marks
+      const gg = x.createLinearGradient(0, 256, 0, 190); gg.addColorStop(0, 'rgba(70,60,48,.45)'); gg.addColorStop(1, 'rgba(70,60,48,0)'); x.fillStyle = gg; x.fillRect(0, 190, 512, 66);
+      x.fillStyle = 'rgba(90,80,64,.18)'; x.fillRect(0, 214, 512, 3); }
+    const SS = STD({ map: new THREE.CanvasTexture(sc), metalness: .85, roughness: .34 }); SS.map.colorSpace = THREE.SRGBColorSpace; SS.map.wrapS = THREE.RepeatWrapping;
+    // the chimes (top and bottom skirts): same steel, double-sided; the top one has two hand holes cut out with an alpha map
+    const hc = document.createElement('canvas'); hc.width = 256; hc.height = 32; { const x = hc.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, 256, 32); x.fillStyle = '#000';
+      for (const u of [.25, .75]) { const cx = u * 256, w = 34, h = 11, y = 9, r = 5.5; x.beginPath(); x.moveTo(cx - w / 2 + r, y); x.arcTo(cx + w / 2, y, cx + w / 2, y + h, r); x.arcTo(cx + w / 2, y + h, cx - w / 2, y + h, r); x.arcTo(cx - w / 2, y + h, cx - w / 2, y, r); x.arcTo(cx - w / 2, y, cx + w / 2, y, r); x.fill(); } }
+    const CH = STD({ map: SS.map, metalness: .85, roughness: .38, side: THREE.DoubleSide }), CHT = CH.clone(); CHT.alphaMap = new THREE.CanvasTexture(hc); CHT.alphaTest = .5;
+    const CAP = [STD({ color: 0xb3261e, roughness: .55 }), STD({ color: 0x2f5fa8, roughness: .55 })], SPEAR = STD({ color: 0xc9ccce, metalness: .9, roughness: .22 }), DARK = STD({ color: 0x2a2b2d, roughness: .6 });
+    const shadowTex = () => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), gr = x.createRadialGradient(64, 64, 4, 64, 64, 62);
+      gr.addColorStop(0, 'rgba(0,0,0,.6)'); gr.addColorStop(.55, 'rgba(0,0,0,.3)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); }, ST = shadowTex();
+    const body = new THREE.LatheGeometry([[.001, .072], [.06, .07], [.13, .075], [.178, .088], [.198, .108], [R - .002, .13], [R, .2], [R - .003, .3], [R, .4], [R - .002, .47], [.198, .492], [.178, .512], [.13, .525], [.06, .53], [.001, .531]].map(([r, y]) => new THREE.Vector2(r, y)), 40);
+    const keg = (x, z, ry, k) => { const g = grp(P, x, 0, z, ry);
+      const b = new THREE.Mesh(body, SS); b.castShadow = b.receiveShadow = true; g.add(b);   // barrel with domed ends, a slight waist between the beads
+      for (const y of [.2, .4]) { const t = new THREE.Mesh(new THREE.TorusGeometry(R + .002, .009, 8, 40), SS); t.rotation.x = Math.PI / 2; t.position.y = y; t.castShadow = true; g.add(t); }   // two rolling beads
+      const skirt = (y0, h, m) => { const s = new THREE.Mesh(new THREE.CylinderGeometry(R - .006, R - .006, h, 40, 1, true), m); s.position.y = y0 + h / 2; s.castShadow = s.receiveShadow = true; g.add(s);
+        for (const yy of [y0 + .006, y0 + h - .004]) { const l = new THREE.Mesh(new THREE.TorusGeometry(R - .006, .006, 6, 40), SS); l.rotation.x = Math.PI / 2; l.position.y = yy; g.add(l); } };   // rolled lips top and bottom of each chime
+      skirt(0, .1, CH); skirt(.5, .1, CHT);
+      const hole = new THREE.Mesh(new THREE.CylinderGeometry(R - .012, R - .012, .095, 40, 1, true), DARK); hole.material = hole.material.clone(); hole.material.side = THREE.BackSide; hole.position.y = .05; g.add(hole);   // dark inside the bottom chime
+      // spear (Sankey fitting) in the middle of the top dome, a plastic dust cap on one, the bare valve on the other
+      cyl(g, .045, .018, SPEAR, 0, .538, 0, 'y', 20); cyl(g, .032, .02, SPEAR, 0, .556, 0, 'y', 20);
+      if (k === 0) { cyl(g, .041, .03, CAP[0], 0, .568, 0, 'y', 20); cyl(g, .043, .006, CAP[0], 0, .555, 0, 'y', 20); }
+      else { const v = new THREE.Mesh(new THREE.TorusGeometry(.02, .005, 6, 18), SPEAR); v.rotation.x = Math.PI / 2; v.position.y = .567; g.add(v); cyl(g, .012, .008, DARK, 0, .566, 0, 'y', 12); }
+      // a printed collar ring on the barrel (brewer's band), faded
+      const band = new THREE.Mesh(new THREE.CylinderGeometry(R + .0012, R + .0012, .05, 40, 1, true), STD({ color: k ? 0x2f5fa8 : 0x3b3f44, roughness: .55, metalness: .2, transparent: true, opacity: .75 })); band.position.y = .3; g.add(band);
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(.62, .62), new THREE.MeshBasicMaterial({ map: ST, transparent: true, opacity: .85, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.y = .004; m.renderOrder = 1; m.userData.keep = true; g.add(m);   // soft contact shadow
+      return g; };
+    const kg = grp(P); kg.add(keg(17.8, -12.86, fr() * 6, 0)); kg.add(keg(17.79, -13.28, fr() * 6, 1));
+    T(kg, 'Steel kegs', 'Two stainless 50 L beer kegs standing on the floor in front of the far-end bay: bar kit, as in the Yard in 3D page (rolling beads, chimes with hand holes, spear fitting on top; one still has its red dust cap). Spot from the LiDAR scan: a grey block 0.6 m tall, about 0.6 × 0.8 m, which two kegs side by side fill. Not confirmed.', 'Ø 0.41 × 0.6 m each', 'not sure'); }
   { const s0 = _seed, g = grp(P, 0, 0, 0), TR = STD({ map: grain('#c8a878', '120,85,45', 256, 32, 0), roughness: .7 }), HWm = STD({ color: 0x8e9196, metalness: .7, roughness: .35 }); _seed = s0;   // the door wall's side door (LiDAR, 15 Oct: x 13.2–15.1, daylight through it): OSB-lined opening, timber frame, a pair of OSB-faced doors, one open in, one out
     const { x0, x1, h } = SIDE, W = x1 - x0, LW = W / 2 - .03;
     OSB.wall(g, x0 + .012, 0, .14, Math.PI / 2, .2, h, false); OSB.wall(g, x1 - .012, 0, -.06, -Math.PI / 2, .2, h, false);   // OSB lining on the reveals
