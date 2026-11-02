@@ -4,7 +4,7 @@
 const { chromium } = require('playwright'), path = require('path'), os = require('os');
 const C = os.homedir() + '/.cache/jos3d/';
 const page = process.argv[2] || 'hall3.html';
-const NAMES = ['Jerry cans', 'Jerry can', 'Storage boxes', 'Cardboard boxes', 'Sack truck', 'Loose cable', 'Ply crate (yard bay floor)', 'Steel kegs', 'Tent cartons and leaning panels'];
+const NAMES = ['Jerry cans', 'Jerry can', 'Storage boxes', 'Cardboard boxes', 'Sack truck', 'Loose cable', 'Ply crate (yard bay floor)', 'Steel kegs', 'Tent cartons and leaning panels', 'Folded canvas (yard bay floor)'];
 const CAM = [[15.6, 1.45, -0.4], [18.3, .45, -1.5]];
 (async () => {
   const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
