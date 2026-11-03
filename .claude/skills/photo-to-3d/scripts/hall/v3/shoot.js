@@ -40,6 +40,9 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   yardwrapclose:[[14.05, 1.15, -10.2], [12.55, .45, -11.8], true],  // close on its door-end corner: film, strap, pallet, floor shadow
   yardbag:[[17.25, 1.75, -6.15], [18.0, .3, -8.6], true],     // the LiDAR's dark 0.48 m lump between the ply crate and the racking, x 17.78–18.22, z −8.3…−8.87 (3 Nov 00:xx, Y3c part 2b)
   yardbagclose:[[17.72, 1.0, -7.45], [18.0, .22, -8.55], true],  // close on it from the door side: neck, creases, floor shadow
+  yardbench:[[10.1, 1.65, -.2], [12.0, .55, -2.3], true],     // the LiDAR's bench-sized block by the roller door, x 11.3–12.6, z −1.3…−3.15, top ≈ 1.05 m, under a tarp (3 Nov 01:xx, Y3d)
+  yardbenchclose:[[10.75, .95, -3.75], [11.55, .42, -2.55], true],  // close on its far corner from the aisle: castors, legs, hem, eyelets
+  yardbenchfar:[[13.3, 1.6, -5.0], [12.1, .6, -2.5], true],     // from the yard-bay side, far end: tarp over the corner, box section on top
   yardpad:[[12.7, 1.5, -9.2], [14.6, .2, -11.2], true],     // the LiDAR's low soft heap on the yard-bay floor, x 14–15.25, z −10.65…−11.7 (2 Nov, Y3c part 2)
   yardpadclose:[[15.75, .8, -9.95], [14.75, .2, -11.05], true],  // close on its folds from the door side: layers, blue-grey sheet, floor shadow
   yardstackclose:[[15.6, 1.2, -10.6], [15.1, .4, -12.4], true],  // close on the carton corner, strap, ratchet and the leaning panels
