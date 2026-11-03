@@ -61,3 +61,5 @@ Fit: scan floor y −1.445, ceiling 3.83 m over the back, walls square to the sc
 | Floor items              | (4.25, −11.2), (3.25, −8.45), (2.4, −9.5), (1.97, −9.95) | 0.65, 0.7, ≈0.35, ≈0.3 | compressor, offcuts bin, two buckets |
 | Low cupboard             | x 0.5–1.3, z −11.65…−12.25            | 1.0–1.1                    | cupboard                                   |
 | Red on the far wall      | x ≈ 0.8, 1.3 m                         |                            | fire extinguisher                          |
+
+Yard-bay floor, dark lump (3 Nov): x 17.78–18.22, z −8.3…−8.87, top 0.45–0.5 m, flat with round shoulders, door side p10 #170e0c, built as a tied dark sack (NOT SURE). Evidence `ww-yard-sack-top.png` (heights only).
