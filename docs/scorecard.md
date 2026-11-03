@@ -1321,3 +1321,15 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS, phone only: only the tarp is new in the door view, label clear, page errors [], test PASS, publish copy under limit. It queried the dark grey stack in the far view: that's the box section on the shelf, part of this build. Desk shots still rendering at wrap-up, so desk stays unchecked.
 - Score (self, knocked ≈ 0.3 for the known self-score lean): yardbench Shape 7.25 · Detail 7 · Surface 7 · Light 7 · Truth 6.5 · Works 7 ≈ 7.0 (BEFORE ≈ 6.1: bare floor). Page row 7.57 -> 7.6, review due.
 - Published: NO. Refused twice (not viewed). The tool wants this session to Read all 3380 lines of the live page; a Sonnet agent read it all and found nothing odd, but that doesn't count, and I hadn't the context left to do it myself. I didn't try to get round it. Live stays at v128; next run publishes first (top of the backlog). Josh told.
+
+## 2026-11-03 02:xx · WW: v129 published, the workbench under a tarp is live (Josh's request Y3d part 1, the publish left over from 01:xx) · run 4 of the night
+- Meeting: no team change. Not a review run (4th of the night; the next run is the 5th and owes a review of everything since v126). Only job: top of the backlog, publish. No new build, because the read takes most of a run.
+- Team: Opus 5.5 (boss + builder) read the live page, made the publish copy, ran the test, looked at the shot, published. No checker hired: nothing new was built, the block is the one Haiku passed at 01:xx. No researcher, no reviewer. Stays self-scored, review due.
+- Read: all 3380 lines of the live page in about 18 Reads (allow_large refused the big chunks). Nothing odd in it: same code as the source, plus the keycaps and comment tags. Then a diff against a fresh build: 60 new lines for the bench block, the rest comments.
+- Publish copy: live page, wrapper off, block in before the folded heap, 0.65 MB.
+- Feature test (`test_yardcards.js`, phone, on the publish copy itself): every card line PASS; door-end labels no overlap; page errors [] -> RESULT PASS. This closes last run's gap (its test ran before the last colour change). Phone shot of `yardbench` fine: olive tarp, not cream, hem and eyelets clear. Desk still unchecked.
+- Shortcut: `bin/ww_publish_copy.py` does the live + block job; checked identical to the hand-made copy.
+- Still weak: same as 01:xx (tarp top too clean, weave moire on phone, templates flat).
+- Problem found: a build plus the read won't fit one run. Decision for Josh is at the top of the backlog.
+- Published: YES, version 129.
+- Score: no change, page row 7.6, now live.

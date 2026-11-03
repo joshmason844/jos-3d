@@ -76,6 +76,7 @@ After each build, before replying:
 - Watch: a racking row runs along its local +x, so on the right wall (ry −90°) it heads toward the door: start it at the far end.
 
 ## Traps learned
+- WW publish (3 Nov 02:xx): reading first works: `read` the artifact, Read every line of the saved file (allow_large refuses; 180–340 lines a Read, about 18 Reads), `bin/ww_publish_copy.py`, publish. Do it first thing in the run or it won't fit, and only when something is waiting to go live.
 - WW publish (3 Nov 01:xx): the send-twice route is gone. The tool refuses until the session itself has Read every line of the live page (≈ 175k tokens), a subagent's read doesn't count, and a late read won't fit. Read the live page at the very start of the run, or don't start a build.
 - Cloth (3 Nov 01:xx, WW tarp): stop hand-lofting sheets. `bin/cloth_drape.js` drops a real sheet on boxes offline in 13 s (50 KB of baked mm, ×2 Catmull-Rom on load) and beat every hand-made cloth in the page first go; render the bench 2–3 cm inside the collider or its corners poke through, take crease shading from sheet-minus-blurred-sheet, and read the colours in full WW light: a tone right in a plain preview came out cream under the door light.
 - Ask of every scan block 'what's the same size in the yard?': the ply crate's block looked like the bench, the bench's real block sat unbuilt by the door because nobody had mapped x 11–13 there (3 Nov 01:xx).
