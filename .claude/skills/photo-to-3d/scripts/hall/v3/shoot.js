@@ -36,6 +36,8 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   yardkeg:[[15.5, 1.4, -11.0], [17.8, .35, -13.0], true],     // the floor in front of the far-end bay: the LiDAR's 0.6 m grey block at x 17.5–18.1, z −12.7…−13.4 (2 Nov, Y3b kegs)
   yardkegclose:[[16.85, .95, -12.15], [17.8, .35, -13.05], true],  // close on the kegs: chimes, hand holes, spears, steel
   yardstack:[[12.6, 1.65, -9.4], [15.0, .3, -12.5], true],     // the back of the yard bay: the LiDAR's flat block and the sheet leaning on it, x 13.75–16.5, z −11.9…−13.1 (2 Nov, Y3c)
+  yardwrap:[[9.6, 1.55, -9.0], [12.1, .45, -11.9], true],   // the LiDAR's 2.2 × 1.2 × 1.0 m wrapped stack in the aisle, x 11.0–13.2, z −11.3…−12.5 (2 Nov 23:xx)
+  yardwrapclose:[[14.05, 1.15, -10.2], [12.55, .45, -11.8], true],  // close on its door-end corner: film, strap, pallet, floor shadow
   yardpad:[[12.7, 1.5, -9.2], [14.6, .2, -11.2], true],     // the LiDAR's low soft heap on the yard-bay floor, x 14–15.25, z −10.65…−11.7 (2 Nov, Y3c part 2)
   yardpadclose:[[15.75, .8, -9.95], [14.75, .2, -11.05], true],  // close on its folds from the door side: layers, blue-grey sheet, floor shadow
   yardstackclose:[[15.6, 1.2, -10.6], [15.1, .4, -12.4], true],  // close on the carton corner, strap, ratchet and the leaning panels

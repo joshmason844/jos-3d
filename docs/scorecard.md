@@ -1279,3 +1279,16 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS: page errors [], not blank, labels clear, test PASS, publish copy 540 KB.
 - Published: yes (version 126; first send refused as unviewed, its diff showed only my lines; resent with a "v126" comment).
 - Score (reviewer): yardframes Shape 7 · Detail 7 · Surface 7 · Light 6 · Truth 6 · Works 7 = 6.7. Page row 7.51 → 7.53.
+
+
+## 2026-11-02 23:xx · WW: stretch-wrapped stack on a pallet in the aisle, where the LiDAR shows it (Josh's request "bring the yard in", step Y3c part 2d) · run 1 of the night
+- Meeting: huddle: no team change. Forklift in Blender still blocked (pip finds no bpy, download.blender.org 403). Whole-bay heightmap turned up a 2 × 1 × 1 m block nobody had listed, so that went ahead of the tables and stools, which have no scan spot yet. Not a review run.
+- Team: Opus 5.5 (boss + builder) read the scan (heightmaps 0.25, 0.2 and 0.1 m, colours, three private side views), built it in four passes, shot BEFORE/AFTER phone, made the publish copy (live page + my block). Haiku checker: FAIL then PASS (below). No researcher, no reviewer. Self-scored, review due.
+- Measured (main scan, WW frame): x 11.1–13.1, z −11.4…−12.4, flat top 0.9 m at the door side rising to 1.0 m at the back, pillowed sides, tab to 1.15 m at x ≈ 12.6, z ≈ −11.35; top #aca693, sides #bbb5a5, far end #938da3, low band #7d9894, teal low and on the floor. Evidence: `docs/ww-yard-wrap-top.png` (heights only).
+- Changed (hall3.js, before the folded heap): timber pallet, one lofted skin of seven folded layers, ply sheet on top, a second lofted skin of stretch film, film roll at the deck, twisted tail, teal tarp tucked in and out on the floor, baked floor shadow. Tap card 'Wrapped stack (aisle)', NOT SURE: what's inside is a guess. Own RNG (6143). New views `yardwrap`, `yardwrapclose`. Page 0.55 MB.
+- Lost time: first pass whited out (the page's film over a pale stack); floor tarp read as a leaf until the creases ran outward; two shoots at once timed out; `pkill -f` killed my own shell twice.
+- Feature test (`test_yardcards.js`, phone, publish copy): 12 of 12 lines; door-end labels no overlap; page errors [] -> RESULT PASS.
+- Better: yardwrap: bare aisle floor now carries the block the scan shows, reads as a wrapped stack at phone size with a contact shadow. Still weak: layers a bit like pillows, cloth soft close up, tarp edge too clean.
+- Checker (Haiku): first FAIL on the console's `net::ERR_FAILED`; logged `requestfailed`: only fonts.googleapis.com, which shoot.js blocks on purpose, same line in BEFORE. Checker rechecked that itself: PASS: page errors [], not blank, labels clear, test PASS, publish copy 553 KB. Shots checked were before the wrapper's stray closing tags came off the publish copy (no re-render after that). Desk shots not done: the desk load was still going at wrap-up, so the checker saw phone only and desk stays unchecked for this build.
+- Published: yes (version 127; first send refused as unviewed, its diff showed only my lines; I'd also checked live vs my base: comments and the keycaps block only).
+- Score (self, knocked ≈ 0.3 for the known self-score lean): yardwrap Shape 7 · Detail 6.5 · Surface 6.5 · Light 6.75 · Truth 6.25 · Works 7 ≈ 6.6 (BEFORE ≈ 6.1: bare floor). Page row 7.53 -> 7.55, review due.
