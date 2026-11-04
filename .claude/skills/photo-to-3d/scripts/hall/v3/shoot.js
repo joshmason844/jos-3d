@@ -51,6 +51,10 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   creamgap:[[8.4, 1.75, -20.45], [3.9, 1.95, -20.5], true],    // the gap between the 14 ft piles from the aisle: the LiDAR's cream block, x 3.0–4.3, z −19.6…−21, top 3.8 m (4 Nov, step 2c-iv part 2b)
   creamclose:[[6.1, 1.3, -20.75], [4.1, 1.8, -20.45], true],    // inside the gap: sheet folds, hem, the dark stack under it
   creamup:[[7.2, 4.6, -16.6], [3.8, 2.7, -20.5], true],    // from above the piles: the hump over the pile tops
+  loadtop:[[8.9, 3.75, -20.9], [4.6, 3.3, -22.3], true],    // from the aisle, high: the LiDAR's load on the three-high 14 ft pile, x 3.6–5.4, z −21.7…−22.85, top 3.9 m (4 Nov 06:xx, step 2c-iv part 2b)
+  loadclose:[[6.3, 3.7, -21.5], [4.5, 3.42, -22.3], true],    // close from the pile's own low end: bag, bundles, timber, straps
+  loadfar:[[5.3, 3.65, -25.1], [4.3, 3.35, -22.4], true],    // from the far side over the single pile: the timber pack and the red bag's flank
+  stilldoor:[[7.7, 1.25, -23.7], [5.7, .62, -23.8], true],    // the single 14 ft stillage's aisle end: door sets, spigots, the low load's film (for the 4 Nov 02:xx build's review)
   yardlean:[[16.2, 1.5, -4.9], [18.25, .8, -3.3], true],    // the rack front at the door-end bay: scaffold board and yard broom leaning on the beam (4 Nov, Y4 part 2)
   yardleanclose:[[17.25, .55, -4.05], [18.05, .32, -3.4], true],    // close on the broom head and the board's foot
   yardbags:[[16.4, 3.8, -3.9], [18.9, 3.4, -2.3], true],    // up on the door-end bay's top level: white carry bags and the black crate
