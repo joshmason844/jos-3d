@@ -46,6 +46,9 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   yardpad:[[12.7, 1.5, -9.2], [14.6, .2, -11.2], true],     // the LiDAR's low soft heap on the yard-bay floor, x 14–15.25, z −10.65…−11.7 (2 Nov, Y3c part 2)
   yardpadclose:[[15.75, .8, -9.95], [14.75, .2, -11.05], true],  // close on its folds from the door side: layers, blue-grey sheet, floor shadow
   yardstackclose:[[15.6, 1.2, -10.6], [15.1, .4, -12.4], true],  // close on the carton corner, strap, ratchet and the leaning panels
+  yardshelf:[[16.9, .78, -2.0], [18.9, .32, -1.6], true],    // the door-end bay's bottom shelf: reels, tote, jerry cans (3 Nov)
+  yardfluids:[[17.5, 1.3, -1.45], [18.9, 1.0, -1.29], true],    // close on the box on the tote in the door-end bay: lantern and bottles (3 Nov, Y4)
+  yardfluidscard:[[17.5, 1.3, -1.45], [18.9, 1.0, -1.29], true, 'Fluids and a lantern'],   // same, card open
   yardjerry:[[16.7, 1.2, -11.5], [18.4, .4, -12.4], true],    // the far-end bay of the yard-bay run, bottom level: blue totes, jerry cans, folded sheeting (2 Nov, Y3a)
   yardtotecard:[[16.7, 1.2, -11.5], [18.4, .4, -12.4], true, 'Storage boxes'],   // same, with the Storage boxes card open
   yardjerrycard:[[16.7, 1.2, -11.5], [18.4, .4, -12.4], true, 'Jerry cans'],   // same, with the Jerry cans tap card open (4th item = card to open; BEFORE has none, so no card)

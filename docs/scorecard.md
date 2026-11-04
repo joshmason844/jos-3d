@@ -1333,3 +1333,18 @@ One row per build, so each run gets measurably better.
 - Problem found: a build plus the read won't fit one run. Decision for Josh is at the top of the backlog.
 - Published: YES, version 129.
 - Score: no change, page row 7.6, now live.
+
+## 2026-11-03 23:xx · WW: lantern and bottles on the box in the door-end bay (Josh's request "bring the yard in", step Y4 part 1) + overdue blind review · run 1 of the night (review run)
+- Meeting: no team change. Forklift-in-Blender still blocked (no bpy, no blender). Rest of the Y3 list needs Josh. Y4 next. Review hired on run 1 because last night's 5th run left no record, so bench and fluids had none on file.
+- Team: Opus 5.5 (boss + builder) built, shot, published. Haiku checker FAIL then PASS. Fresh Opus reviewer scored blind. Sonnet not hired. REVIEWER-scored.
+- Found: live was v131, not v129. 03:xx–08:25 on 3 Nov published twice but the repo stops at 02:11. Live had lost the wrapped stack and dark sack and gained a first `fluids()` on the bottom shelf, half behind the upright. See the backlog's records gap. Found this at publish-copy time, after building my own `fluids()`.
+- Changed (hall3.js): replaced that set with a new `fluids()`: galvanised storm lantern (tank, burner, glass globe, side tubes, wire guard, bail), moulded oil bottle with a through handle, silicone aerosol, green bottle, trigger spray, printed labels, baked contact shadows, on the box on the door-end tote at about 1 m. Card 'Fluids and a lantern', NOT SURE, says the scan can't see them, so the stock card line skips its 'read off the scan' tail. Wrapped stack and sack blocks out of the source to match live (still in git at 22741f0). New views `yardfluids`, `yardshelf`, `yardfluidscard`. Page 0.63 MB.
+- First spot (tote lid in the far-end bay) was hidden by the 2 Nov boards and bags; moved. Item preview caught the label layout in 20 s.
+- Shortcuts: `ITEM_CALL` on `bin/item_preview.js` previews a function that nothing calls yet. Publish: Artifact read with no `path` counts as viewed, so no more 18 Reads.
+- Feature test (`test_yardcards.js`, phone, on publish.html): 13 cards, door-end labels no overlap, page errors [] -> RESULT PASS.
+- Checker (Haiku): FAIL first (PUB shots not yet rendered, card shot on a stale camera, both my doing), PASS once shots were in and camera fixed.
+- Review (blind, fresh Opus, phone): all four pairs for the new build. Lantern 5.5 → 6.5, shelf 5.7 → 6.7 ('kit at eye level in clear view; before hides it low down'), bench 5.7 → 6.8, benchclose 4.8 → 7.0. Caveat: live's keycaps show in the before shots of lantern and shelf; it spotted the difference, so not fully blind on those two.
+- Still weak: bottles bunch at the box edge, box and tote read flat, a ghost rectangle on the tarp, weave too regular close up.
+- Published: YES, version 132, straight after the read.
+- Score (reviewer, yardfluids): Shape 7 · Detail 7 · Surface 6 · Light 6 · Truth 6 · Works 7 = 6.5 (BEFORE 5.5). Page row 7.6 -> 7.62.
+
