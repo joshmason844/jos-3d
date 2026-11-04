@@ -5,7 +5,7 @@ Every page in the challenge, its latest score from a fresh-eyes review, and the 
 | Page               | Start (14 Oct) | Latest | Target | At standard? |
 |--------------------|----------------|--------|--------|--------------|
 | People in 3D       | 6.3            | 6.3    | 8      | no           |
-| WW (workshop warehouse) | 6.3            | 7.68 (4 Nov 06:xx, reviewer-scored on this build, LIVE as v136: red bag on a timber pack on the three-high pile, LiDAR step 2c-iv part 2b(ii)) | 8      | no           |
+| WW (workshop warehouse) | 6.3            | 7.68 (4 Nov 07:xx, reviewer-scored, LIVE as v137: carry bags off the upright, 5.7 → 5.8; red bag load v136; cream aisle view still 6.2, fix failed review) | 8      | no           |
 | Sections 1–5       | 7.0            | 7.0    | 8      | no           |
 
 Pages: 0 of 3 at standard.
