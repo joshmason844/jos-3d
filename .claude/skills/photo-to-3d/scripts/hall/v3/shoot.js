@@ -48,6 +48,9 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   yardstackclose:[[15.6, 1.2, -10.6], [15.1, .4, -12.4], true],  // close on the carton corner, strap, ratchet and the leaning panels
   yardshelf:[[16.9, .78, -2.0], [18.9, .32, -1.6], true],    // the door-end bay's bottom shelf: reels, tote, jerry cans (3 Nov)
   yardfluids:[[17.5, 1.3, -1.45], [18.9, 1.0, -1.29], true],    // close on the box on the tote in the door-end bay: lantern and bottles (3 Nov, Y4)
+  creamgap:[[8.4, 1.75, -20.45], [3.9, 1.95, -20.5], true],    // the gap between the 14 ft piles from the aisle: the LiDAR's cream block, x 3.0–4.3, z −19.6…−21, top 3.8 m (4 Nov, step 2c-iv part 2b)
+  creamclose:[[6.1, 1.3, -20.75], [4.1, 1.8, -20.45], true],    // inside the gap: sheet folds, hem, the dark stack under it
+  creamup:[[7.2, 4.6, -16.6], [3.8, 2.7, -20.5], true],    // from above the piles: the hump over the pile tops
   yardlean:[[16.2, 1.5, -4.9], [18.25, .8, -3.3], true],    // the rack front at the door-end bay: scaffold board and yard broom leaning on the beam (4 Nov, Y4 part 2)
   yardleanclose:[[17.25, .55, -4.05], [18.05, .32, -3.4], true],    // close on the broom head and the board's foot
   yardbags:[[16.4, 3.8, -3.9], [18.9, 3.4, -2.3], true],    // up on the door-end bay's top level: white carry bags and the black crate
