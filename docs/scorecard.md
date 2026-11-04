@@ -1392,4 +1392,4 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): FAIL on round 1 (evidence not finished, my timing). FAIL on round 2 for far-view framing: same view, 0.6% of the top 250 rows differ, the sheet is hidden behind the load. Queried, it re-looked, withdrew: PASS, phone only. Desk unchecked for this build. It wouldn't write errors.md.
 - Still weak: buckles flat squares, webbing round, bags pasted on the film, grey sheet a blob, and the piles under them read as glass.
 - Score (reviewer, mean of three views): 6.4 (BEFORE 5.8). Page row 7.66 -> 7.68.
-- Published: live plus this block only, so the 07:xx run's cream and carry edits don't go out with it. See the next records commit for the version.
+- Published: YES, version 136, 07:3x, live plus this block only, so the 07:xx run's cream and carry edits (`ada6437`) didn't go out with it and aren't live yet. Before/after picture sent to Josh.
