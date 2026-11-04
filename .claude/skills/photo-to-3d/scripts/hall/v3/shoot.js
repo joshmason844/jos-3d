@@ -48,6 +48,9 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   yardstackclose:[[15.6, 1.2, -10.6], [15.1, .4, -12.4], true],  // close on the carton corner, strap, ratchet and the leaning panels
   yardshelf:[[16.9, .78, -2.0], [18.9, .32, -1.6], true],    // the door-end bay's bottom shelf: reels, tote, jerry cans (3 Nov)
   yardfluids:[[17.5, 1.3, -1.45], [18.9, 1.0, -1.29], true],    // close on the box on the tote in the door-end bay: lantern and bottles (3 Nov, Y4)
+  yardlean:[[16.2, 1.5, -4.9], [18.25, .8, -3.3], true],    // the rack front at the door-end bay: scaffold board and yard broom leaning on the beam (4 Nov, Y4 part 2)
+  yardleanclose:[[17.25, .55, -4.05], [18.05, .32, -3.4], true],    // close on the broom head and the board's foot
+  yardbags:[[16.4, 3.8, -3.9], [18.9, 3.4, -2.3], true],    // up on the door-end bay's top level: white carry bags and the black crate
   yardfluidscard:[[17.5, 1.3, -1.45], [18.9, 1.0, -1.29], true, 'Fluids and a lantern'],   // same, card open
   yardjerry:[[16.7, 1.2, -11.5], [18.4, .4, -12.4], true],    // the far-end bay of the yard-bay run, bottom level: blue totes, jerry cans, folded sheeting (2 Nov, Y3a)
   yardtotecard:[[16.7, 1.2, -11.5], [18.4, .4, -12.4], true, 'Storage boxes'],   // same, with the Storage boxes card open
