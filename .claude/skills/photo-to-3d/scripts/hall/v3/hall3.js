@@ -41,6 +41,15 @@ function filmBox(w, h, d, key) { const geo = new THREE.BoxGeometry(w, h, d), uv 
   for (let f = 0; f < 6; f++) { if (f === 2 || f === 3) continue; const su = .7 + r() * .3, sv = Math.min(1, .55 + h * .12), ou = r() * (1 - su), ov = r() * (1 - sv);
     for (let k = f * 4; k < f * 4 + 4; k++) uv.setXY(k, ou + uv.getX(k) * su, ov + uv.getY(k) * sv); }
   return new THREE.Mesh(geo, [MX.film, MX.film, MX.filmTop, MX.filmTop, MX.film, MX.film]); }
+// A low load wrapped round the sides only (4 Nov): the film stops in a torn, bunched rim folded in over the top edge, so what's on the load shows (was a milky lid: a white slab, nothing of the trellis or door)
+const FILM_NONE = new THREE.MeshBasicMaterial({ visible: false });
+function filmOpen(w, h, d, key) { const m = filmBox(w, h, d, key), L = MX.filmLow; m.material = [L, L, FILM_NONE, FILM_NONE, L, L]; let q = 1 + Math.abs(Math.floor(key * 6101)) % 2147483646; const r = () => (q = (q * 16807) % 2147483647) / 2147483647;
+  const P = 2 * (w + d), n = 150, ph = [r() * 6, r() * 6, r() * 6], sh = new THREE.Shape([[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => new THREE.Vector2(a * w / 2, b * d / 2))), pts = [];
+  for (let i = 0; i < n; i++) { const t = i / n * P, ins = .1 + .045 * Math.sin(t * 2.3 + ph[0]) + .025 * Math.sin(t * 7.1 + ph[1]) + .012 * Math.sin(t * 19 + ph[2]) + r() * .012; let a, b;
+    if (t < w) { a = -w / 2 + t; b = -d / 2 + ins; } else if (t < w + d) { a = w / 2 - ins; b = -d / 2 + t - w; } else if (t < 2 * w + d) { a = w / 2 - (t - w - d); b = d / 2 - ins; } else { a = -w / 2 + ins; b = d / 2 - (t - 2 * w - d); }
+    pts.push(new THREE.Vector2(Math.max(-w / 2 + ins, Math.min(w / 2 - ins, a)), Math.max(-d / 2 + ins, Math.min(d / 2 - ins, b)))); }
+  sh.holes.push(new THREE.Path(pts)); const g = new THREE.ShapeGeometry(sh, 1).rotateX(-Math.PI / 2), uv = g.attributes.uv, p = g.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, p.getX(i) * .5 + .5, p.getZ(i) * .5 + .5);
+  const rim = new THREE.Mesh(g, MX.filmRim); rim.position.y = h / 2 + .002; rim.userData.keep = true; m.add(rim); return m; }
 const MX = {
   steel: STD({ color: 0x1f3a2b, roughness: .5, metalness: .35 }),
   timber: STD({ map: grain('#c99c5f', '120,80,40', 256, 32, 1), roughness: .75 }),
@@ -59,12 +68,31 @@ const MX = {
   jute: STD({ map: tex(256, 256, (x, w, h) => { x.fillStyle = '#b8945e'; x.fillRect(0, 0, w, h); for (let i = 0; i < h; i += 6) { x.fillStyle = `rgba(90,60,30,${.2 + rnd() * .2})`; x.fillRect(0, i, w, 2); } for (let i = 0; i < w; i += 6) { x.fillStyle = `rgba(255,235,190,${.08 + rnd() * .1})`; x.fillRect(i, 0, 2, h); } for (let i = 0; i < h; i += 40) { x.fillStyle = 'rgba(60,40,20,.35)'; x.fillRect(0, i, w, 5); } }, [2, 2]), roughness: 1 }),
   film: filmMat(),   // milky stretch-wrap: wound bands, overlaps, creases, bunched top and bottom (17 Oct 04:xx; was a 13 % clear double-sided box that read as see-through ghost shelving)
 };
-MX.filmThin = MX.film.clone(); MX.filmThin.opacity = .15; MX.filmTop = filmMat(true);   // one or two clear wraps (black crate tower by the door): the milky pallet-wrap washed black covers out to white
+MX.filmLow = MX.film.clone(); MX.filmLow.opacity = .46; MX.filmRim = MX.film.clone(); MX.filmRim.side = THREE.DoubleSide; MX.filmRim.opacity = .72; MX.filmThin = MX.film.clone(); MX.filmThin.opacity = .15; MX.filmTop = filmMat(true);   // one or two clear wraps (black crate tower by the door): the milky pallet-wrap washed black covers out to white
 
 const doorTex = tex(512, 900, (x, w, h) => { x.fillStyle = '#c4873f'; x.fillRect(0, 0, w, h); for (let i = 0; i < w; i += 64) { const g = x.createLinearGradient(i, 0, i + 64, 0); g.addColorStop(0, 'rgba(90,50,20,.45)'); g.addColorStop(.06, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(255,230,190,.06)'); x.fillStyle = g; x.fillRect(i, 0, 64, h); }
   for (let i = 0; i < 160; i++) { x.strokeStyle = `rgba(110,65,25,${.06 + rnd() * .12})`; x.beginPath(); const xx = rnd() * w; x.moveTo(xx, 0); x.bezierCurveTo(xx + (rnd() - .5) * 10, h * .3, xx + (rnd() - .5) * 10, h * .7, xx + (rnd() - .5) * 8, h); x.stroke(); }
   x.strokeStyle = '#7a4a1e'; x.lineWidth = 26; x.strokeRect(13, 13, w - 26, h - 26); x.fillStyle = '#141414'; for (const yy of [130, h - 130]) { x.fillRect(30, yy - 8, 300, 16); x.beginPath(); x.moveTo(330, yy - 8); x.lineTo(380, yy); x.lineTo(330, yy + 8); x.fill(); } x.fillRect(w - 70, h / 2 - 40, 14, 80); });
 const DOORMAT = STD({ map: doorTex, roughness: .7 });
+// A yurt door set as it lies on a stillage (4 Nov, Josh's request "the trellis in"; was a flat box with a picture on it): frame, a pair of leaves of pine boards with a dark gap
+// between them, three ledges, black strap hinges with spear ends and screws, a ring on each leaf. 1.98 × 1.1 × .045 m as before. One shared geometry, own RNG, seed kept, so the layout stays put.
+let _doorSet; function doorSet() { if (!_doorSet) { let q = 2718; const r = () => (q = (q * 16807) % 2147483647) / 2147483647, s0 = _seed;
+    const map = grain('#c49a62', '100,66,34', 512, 64, 3); _seed = s0; map.wrapS = map.wrapT = THREE.RepeatWrapping; const wood = [], iron = [];
+    const put = (list, g, x, y, z, tone = 1) => { g.translate(x, y, z); const uv = g.attributes.uv, ou = r(), ov = r(); for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * .7 + ou, uv.getY(i) * .25 + ov);
+      const n = g.attributes.position.count; g.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(n * 3).fill(tone), 3)); list.push(g); };
+    const B = (w, h, d, ry) => { const g = new THREE.BoxGeometry(w, h, d); if (ry) g.rotateY(Math.PI / 2); return g; };
+    for (const sz of [-1, 1]) { put(wood, B(1.98, .045, .07), 0, 0, sz * .515, .72 + r() * .06);                     // frame: stiles and the head and sill, darker
+      put(wood, B(.96, .045, .07, true), sz * .955, 0, 0, .72 + r() * .06);
+      put(wood, B(1.84, .012, .474), 0, -.0165, sz * .24, .2);                                                       // what shows dark through the gaps
+      for (let i = 0; i < 5; i++) put(wood, B(1.836, .026, .0904), 0, -.0095, sz * (.051 + i * .0944), .82 + r() * .26);   // boards with a 4 mm gap
+      for (const lx of [-.72, 0, .72]) { put(wood, B(.462, .014, .085, true), lx, .0105, sz * .24, .8 + r() * .14);  // ledges
+        for (let i = 0; i < 5; i++) for (const dx of [-.024, .024]) put(iron, new THREE.CylinderGeometry(.0042, .0048, .002, 8), lx + dx, .0185, sz * (.051 + i * .0944)); }
+      for (const hx of [-.72, .72]) { put(iron, B(.028, .004, .28), hx, .0195, sz * .36);                            // strap hinges, across the ledge from the frame
+        put(iron, new THREE.BoxGeometry(.034, .004, .034).rotateY(Math.PI / 4), hx, .0195, sz * .218); put(iron, new THREE.CylinderGeometry(.011, .011, .07, 10).rotateZ(Math.PI / 2), hx, .017, sz * .484);
+        for (const hz of [.45, .36, .27]) put(iron, new THREE.CylinderGeometry(.0062, .0072, .003, 8), hx, .0225, sz * hz); }
+      put(iron, B(.1, .003, .032), 0, .0189, sz * .055); put(iron, new THREE.TorusGeometry(.028, .0042, 6, 16).rotateX(Math.PI / 2), 0, .0215, sz * .062); }   // a ring on each leaf, on a plate
+    const merge = THREE_ADDONS.mergeGeometries; _doorSet = { geo: merge([merge(wood), merge(iron)], true), mats: [STD({ map, vertexColors: true, roughness: .74 }), STD({ color: 0x17181a, roughness: .55, metalness: .45 })] }; }
+  return new THREE.Mesh(_doorSet.geo, _doorSet.mats); }
 
 
 // ---------------- the floor (15–16 Oct) ----------------
@@ -344,16 +372,17 @@ function trellisLoad(s, sets, perSet, doorsEach, seed) { let y = .14; for (let s
       sec.position.set(-sec.userData.cx, -sec.userData.height / 2 + sec.userData.end0, 0); const row = Math.floor(k / 2), col = k % 2, alone = k === perSet - 1 && perSet % 2;
       lay.position.set((rnd() - .5) * .06, y + row * .052, alone ? (rnd() - .5) * .2 : (col - .5) * (sec.userData.width + .04)); s.add(lay); }
     y += Math.ceil(perSet / 2) * .052;
-    for (let d = 0; d < doorsEach; d++) { const dm = new THREE.Mesh(new THREE.BoxGeometry(1.98, .045, 1.1), [M.pallet, M.pallet, DOORMAT, M.pallet, M.pallet, M.pallet]); dm.position.set((rnd() - .5) * .05, y + .022, (rnd() - .5) * .06); dm.castShadow = dm.receiveShadow = true; s.add(dm); y += .05; } }
+    for (let d = 0; d < doorsEach; d++) { const dm = doorSet(); dm.position.set((rnd() - .5) * .05, y + .022, (rnd() - .5) * .06); dm.castShadow = dm.receiveShadow = true; s.add(dm); y += .05; } }
   return y; }
 function stillageFrame(s, mat, L = 2.3, D = 1.35, post = .95) {
   for (const sz of [-1, 1]) box(s, L, .07, .07, mat, 0, .05, sz * (D / 2 - .04));
-  for (const sx of [-1, 1]) { box(s, .07, .07, D, mat, sx * (L / 2 - .04), .05, 0); for (const sz of [-1, 1]) { box(s, .07, post, .07, mat, sx * (L / 2 - .04), 0, sz * (D / 2 - .04)); box(s, .14, .015, .14, mat, sx * (L / 2 - .04), 0, sz * (D / 2 - .04)); const c = new THREE.Mesh(new THREE.ConeGeometry(.05, .08, 8), mat); c.position.set(sx * (L / 2 - .04), post - .02, sz * (D / 2 - .04)); s.add(c); } }
+  for (const sx of [-1, 1]) { box(s, .07, .07, D, mat, sx * (L / 2 - .04), .05, 0); for (const sz of [-1, 1]) { box(s, .07, post, .07, mat, sx * (L / 2 - .04), 0, sz * (D / 2 - .04)); box(s, .14, .015, .14, mat, sx * (L / 2 - .04), 0, sz * (D / 2 - .04)); box(s, .092, .11, .092, mat, sx * (L / 2 - .04), .015, sz * (D / 2 - .04));   // 4 Nov: foot socket and a square stacking spigot with a lead-in, not a pointed cone
+      box(s, .05, .05, .05, mat, sx * (L / 2 - .04), post, sz * (D / 2 - .04)); const c = new THREE.Mesh(new THREE.CylinderGeometry(.018, .0354, .035, 4).rotateY(Math.PI / 4).toNonIndexed(), mat); c.geometry.computeVertexNormals(); c.position.set(sx * (L / 2 - .04), post + .0675, sz * (D / 2 - .04)); c.castShadow = true; s.add(c); } }
   for (const xx of [-.4, .4]) box(s, .1, .1, D, mat, xx, 0, 0); }
 function trellisStillages(p, x, z, ry, levels) { const g = grp(p, x, 0, z, ry); let y = 0;
   levels.forEach((lv, i) => { const s = grp(g, 0, y, 0); stillageFrame(s, M.purple); const top = trellisLoad(s, lv.sets, lv.per, lv.doors, 100 + i * 31 + Math.floor(x * 7 + z));
     if (lv.film !== false) { s.updateWorldMatrix(true, true); const bb = new THREE.Box3().setFromObject(s).applyMatrix4(s.matrixWorld.clone().invert());   // wrap round what's really on it: the folded trellis runs past the frame's ends
-      const W = Math.max(2.36, bb.max.x - bb.min.x + .04), D = Math.max(1.41, bb.max.z - bb.min.z + .04), f = filmBox(W, top + .04, D, x * 13.1 + z * 3.7 + i * 1.9);
+      const W = Math.max(2.36, bb.max.x - bb.min.x + .04), D = Math.max(1.41, bb.max.z - bb.min.z + .04), f = (top < .6 ? filmOpen : filmBox)(W, top + .04, D, x * 13.1 + z * 3.7 + i * 1.9);
       f.position.set((bb.max.x + bb.min.x) / 2, (top + .04) / 2, (bb.max.z + bb.min.z) / 2); f.userData.keep = true; s.add(f); }
     y += 1.0; }); return g; }
 // bags
@@ -1466,7 +1495,7 @@ function layout() {
     T(g, 'Tent bag racks', 'Green post pallets four to six high, two deep against the right wall. Dark green bags are Emperor tents (emps); grey and beige bags are bell tents; pink bags: not known yet. Tags show condition: lime-green = good, red = bad.', 'post pallets 1.25 × 1.05 m · 0.8 m a level'); }
   { const g = grp(P); [[14.6, -25.0, .05, [{ sets: 1, per: 4, doors: 2 }]], [14.4, -27.2, -.04, [{ sets: 1, per: 4, doors: 2 }]], [14.7, -29.4, .02, [{ sets: 1, per: 4, doors: 2 }, { sets: 1, per: 4, doors: 1 }, { sets: 1, per: 4, doors: 1 }]], [11.9, -26.0, .08, [{ sets: 1, per: 4, doors: 2 }]]]
       .forEach(([x, z, ry, lv]) => trellisStillages(g, x, z, Math.PI / 2 + ry, lv));
-    T(g, '16 ft trellis + door stillages', 'Purple stillages, one 16 ft yurt each: 4 trellis sections folded and laid two side by side, with the door set (pine boards, black strap hinges) laid flat on top, cling-filmed. One stack is three high.', 'stillages 2.32 × 1.35 m'); }
+    T(g, '16 ft trellis + door stillages', 'Purple stillages, one 16 ft yurt each: 4 trellis sections folded and laid two side by side, with the door set (pine boards, black strap hinges) laid flat on top, film round the sides. One stack is three high. How the door is built and how the film sits are drawn, not measured.', 'stillages 2.32 × 1.35 m'); }
   // ===== left wall, middle: trellis wall stack, blue pole stillages, 14 ft canvas + 14 ft trellis/door stillages =====
   zone('14 ft kit · left wall');
   { const g = trellisStillages(P, .8, -15.2, LEFT, [{ sets: 1, per: 4, doors: 0 }, { sets: 1, per: 4, doors: 0 }, { sets: 1, per: 4, doors: 0 }]); T(g, 'Trellis stillages (wall stack)', 'Purple stillages of folded trellis, three high against the left wall.', '≈ 3 m tall'); }
