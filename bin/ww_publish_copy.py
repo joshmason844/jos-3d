@@ -16,6 +16,8 @@ for t, i1, i2, j1, j2 in difflib.SequenceMatcher(None, a, b, autojunk=False).get
             if code(la) != code(lb): res.append(lb); print('changed line at', j1 + 1, lb.strip()[:90])
             else: res.append(la)
         continue
+    if (j2 - j1) - (i2 - i1) < 5 and t != 'delete' and [c for c in map(code, a[i1:i2]) if c] != [c for c in map(code, b[j1:j2]) if c]:   # 4 Nov 07:xx: a small change of unequal length (2 lines become 3, a 4-line insert) was dropped without a word
+        res += b[j1:j2]; print('changed block at', j1 + 1, 'lines', i2 - i1, '->', j2 - j1, b[j1].strip()[:90]); continue
     res += a[i1:i2]
     if (j2 - j1) - (i2 - i1) >= 5:   # a block the live page hasn't got: keep the build's new lines, before the live ones they displaced
         keep = (j2 - j1) - (i2 - i1); res[len(res) - (i2 - i1):len(res) - (i2 - i1)] = b[j1:j1 + keep]; added += keep; print('added', keep, 'lines at', j1 + 1, b[j1][:90])
