@@ -1432,5 +1432,5 @@ One row per build, so each run gets measurably better.
 - Better: the blank wall above the cream sheet now has the scan's mass, and the cloth is the best-hung in the page. Still weak: back corner flops in mid-air in the side view; it hides the blue pole ends and red crates above 2.4 m, which is what the scan shows but costs detail. This could go either way in a blind review.
 - Checker (Haiku): FAIL first: a dark rectangle in the side view, and final console not finished. Rectangle wasn't there in a zoomed crop, console finished clean. Queried, it re-looked, withdrew: PASS, phone only. Desk unchecked.
 - Score (self, knocked for the known lean): walkbay Shape 6.75 · Detail 6.25 · Surface 6.5 · Light 6.5 · Truth 6.75 · Works 7 ≈ 6.6 (BEFORE Shape 6.5 · Detail 6.25 · Surface 6.25 · Light 6.5 · Truth 5.5 · Works 7 ≈ 6.25, also my own). Page row 7.69 -> 7.70, review due.
-- Published: see the records commit after this one; source pushed first.
+- Published: YES, version 139, 04:2x, after this run's source was pushed; live v138 plus this block only, keycaps kept. No picture to Josh: not reviewer-passed yet.
 
