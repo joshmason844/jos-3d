@@ -21,4 +21,6 @@ for t, i1, i2, j1, j2 in difflib.SequenceMatcher(None, a, b, autojunk=False).get
     res += a[i1:i2]
     if (j2 - j1) - (i2 - i1) >= 5:   # a block the live page hasn't got: keep the build's new lines, before the live ones they displaced
         keep = (j2 - j1) - (i2 - i1); res[len(res) - (i2 - i1):len(res) - (i2 - i1)] = b[j1:j1 + keep]; added += keep; print('added', keep, 'lines at', j1 + 1, b[j1][:90])
+have = set(map(code, res)); lost = [l for l in map(code, b) if l and l not in have]   # 5 Nov 00:xx: a 5-line insert ate a line of the block after it and the copy wouldn't parse (page hung, only the card test showed it)
+if lost: print('WARNING: BUILD CODE LINES MISSING, DO NOT PUBLISH THIS COPY:', len(lost)); [print('  ', l[:100]) for l in lost[:5]]
 open(out, 'w', encoding='utf8').write('\n'.join(res)); print(added, 'lines added;', round(len('\n'.join(res).encode()) / 1e6, 2), 'MB')
