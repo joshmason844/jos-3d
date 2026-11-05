@@ -16,19 +16,19 @@ const dimSpec = (m, k) => { const prev = m.onBeforeCompile, pk = m.customProgram
   m.onBeforeCompile = (sh, r) => { if (prev) prev.call(m, sh, r); sh.fragmentShader = sh.fragmentShader.replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\nreflectedLight.directSpecular *= ' + k.toFixed(3) + ';'); };
   m.customProgramCacheKey = () => (pk ? pk.call(m) : '') + '|ds' + k; return m; };
 // Stretch-wrap film: one shared 512² map + alpha map, own RNG (the layout seed must not move). Front faces only, so a pile is wrapped once, not twice.
-function filmMat(top) { let q = top ? 57 : 91; const r = () => (q = (q * 16807) % 2147483647) / 2147483647;
+function filmMat(top, soft) { let q = soft ? 131 : top ? 57 : 91; const r = () => (q = (q * 16807) % 2147483647) / 2147483647;
   const draw = alphaOnly => (x, w, h) => {
-    x.fillStyle = alphaOnly ? 'rgb(112,112,112)' : '#dfe4e6'; x.fillRect(0, 0, w, h);                       // ≈ 44 % milky: several turns of film over each other
+    x.fillStyle = alphaOnly ? (soft ? 'rgb(88,88,88)' : 'rgb(112,112,112)') : '#dfe4e6'; x.fillRect(0, 0, w, h);                       // ≈ 44 % milky: several turns of film over each other
     if (!top) { let y = -20; while (y < h) { const bh = 38 + r() * 120, tilt = (r() - .5) * 60;             // wound bands, uneven, each overlapping the last
       x.fillStyle = alphaOnly ? `rgba(255,255,255,${.12 + r() * .18})` : `rgba(255,255,255,${.2 + r() * .25})`;
       x.beginPath(); x.moveTo(0, y); x.lineTo(w, y + tilt); x.lineTo(w, y + tilt + 10 + r() * 22); x.lineTo(0, y + 8 + r() * 22); x.fill();   // overlap strip
       x.strokeStyle = alphaOnly ? `rgba(255,255,255,${.25 + r() * .3})` : 'rgba(255,255,255,.7)'; x.lineWidth = .8 + r(); x.beginPath(); x.moveTo(0, y); x.bezierCurveTo(w * .33, y + tilt * .2 + (r() - .5) * 14, w * .66, y + tilt * .8 + (r() - .5) * 14, w, y + tilt); x.stroke();   // band edge, a little wavy
       y += bh; } }
     for (let i = 0; i < (top ? 40 : 70); i++) { const y0 = r() * h, x0 = r() * w, L = 40 + r() * 160, a = top ? r() * 6.3 : (r() - .5) * .3;   // stretch creases (any way on the top)
-      x.strokeStyle = alphaOnly ? `rgba(255,255,255,${.2 + r() * .35})` : `rgba(255,255,255,${.35 + r() * .4})`; x.lineWidth = .6 + r() * 1.6;
+      x.strokeStyle = alphaOnly ? `rgba(255,255,255,${(.2 + r() * .35) * (soft ? .4 : 1)})` : `rgba(255,255,255,${(.35 + r() * .4) * (soft ? .4 : 1)})`; x.lineWidth = soft ? 2 + r() * 4 : .6 + r() * 1.6;
       x.beginPath(); x.moveTo(x0, y0); let px = x0, py = y0; for (let k = 1; k <= 6; k++) { px += Math.cos(a) * L / 6 + (r() - .5) * 5; py += Math.sin(a) * L / 6 + (r() - .5) * 6; x.lineTo(px, py); } x.stroke(); }
     for (let i = 0; i < 22; i++) { const x0 = r() * w, y0 = r() * h;                                         // pulled spots / small puckers
-      const g = x.createRadialGradient(x0, y0, 0, x0, y0, 6 + r() * 14); g.addColorStop(0, alphaOnly ? 'rgba(255,255,255,.45)' : 'rgba(255,255,255,.6)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(x0 - 20, y0 - 20, 40, 40); }
+      const g = x.createRadialGradient(x0, y0, 0, x0, y0, 6 + r() * 14); g.addColorStop(0, alphaOnly ? `rgba(255,255,255,${soft ? .12 : .45})` : `rgba(255,255,255,${soft ? .16 : .6})`); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(x0 - 20, y0 - 20, 40, 40); }
     if (top) { const g = x.createRadialGradient(w / 2, h / 2, w * .25, w / 2, h / 2, w * .72); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, alphaOnly ? 'rgba(255,255,255,.8)' : 'rgba(250,252,252,.9)'); x.fillStyle = g; x.fillRect(0, 0, w, h); }   // the top: plain, many layers bunched round the edge
     else for (const [y0, dir] of [[0, 1], [h, -1]]) { const g = x.createLinearGradient(0, y0, 0, y0 + dir * h * .09);   // bunched, many layers thick at top and bottom
       g.addColorStop(0, alphaOnly ? 'rgba(255,255,255,.75)' : 'rgba(250,252,252,.9)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, Math.min(y0, y0 + dir * h * .09), w, h * .09); }
@@ -50,6 +50,27 @@ function filmOpen(w, h, d, key) { const m = filmBox(w, h, d, key), L = MX.filmLo
     pts.push(new THREE.Vector2(Math.max(-w / 2 + ins, Math.min(w / 2 - ins, a)), Math.max(-d / 2 + ins, Math.min(d / 2 - ins, b)))); }
   sh.holes.push(new THREE.Path(pts)); const g = new THREE.ShapeGeometry(sh, 1).rotateX(-Math.PI / 2), uv = g.attributes.uv, p = g.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, p.getX(i) * .5 + .5, p.getZ(i) * .5 + .5);
   const rim = new THREE.Mesh(g, MX.filmRim); rim.position.y = h / 2 + .002; rim.userData.keep = true; m.add(rim); return m; }
+// A tall stillage load in stretch film (5 Nov, Josh's request "the trellis in"; blind reviews kept calling these glass cases: dead-flat panes, razor corners, a white lid and a black underside on every level).
+// Film is a skin: one wound tube round the load with rounded corners, drawn in between the posts and into the steps of the door sets, pleated at the corners, bunched in over the top edge and tucked under the frame. No lid, no base. Own RNG
+function filmSkin(w, h, d, key, pitch = .154) { let q = 1 + Math.abs(Math.floor(key * 3571)) % 2147483646; const r = () => (q = (q * 16807) % 2147483647) / 2147483647;
+  const R = .05, a = Math.PI * R / 2, W = w - 2 * R, D = d - 2 * R, Per = 2 * (W + D) + 4 * a, ph = Array.from({ length: 8 }, () => r() * 6.28), ou = r(), N = 220;
+  const at = t => { const sides = [[W, -W / 2, -d / 2, 1, 0, 0, -1], [D, w / 2, -D / 2, 0, 1, 1, 0], [W, W / 2, d / 2, -1, 0, 0, 1], [D, -w / 2, D / 2, 0, -1, -1, 0]], cs = [[W / 2, -D / 2, -Math.PI / 2], [W / 2, D / 2, 0], [-W / 2, D / 2, Math.PI / 2], [-W / 2, -D / 2, Math.PI]];
+    let u = t; for (let i = 0; i < 4; i++) { const [L, x0, z0, dx, dz, nx, nz] = sides[i]; if (u <= L) return { x: x0 + dx * u, z: z0 + dz * u, nx, nz, s: u / L, cd: Math.min(u, L - u) }; u -= L;
+      if (u <= a) { const A = cs[i][2] + u / R, cx = Math.cos(A), sz = Math.sin(A); return { x: cs[i][0] + R * cx, z: cs[i][1] + R * sz, nx: cx, nz: sz, s: 0, cd: 0 }; } u -= a; } return at(0); };
+  const ins = (t, s, cd, y) => { const Y = (y + h / 2) / h, env = .4 + .6 * Math.sin(Math.PI * Y), bow = Math.pow(Math.sin(Math.PI * s), .7) * env, gath = Math.exp(-cd / .09);
+    return Math.max(0, Math.min(.034, .022 * bow + .0014 * bow * (1 + Math.cos((y + h / 2 - .14) / pitch * 6.283 + 1.6 * Math.sin(t * .9 + ph[7])))
+      + .0055 * (1 + Math.sin(t * 1.3 + y * 2.4 + ph[0]) * Math.sin(t * 4.1 - y * 1.7 + ph[1])) + .0024 * (1 + Math.sin(t * 11 + y * 5 + ph[2]))
+      + .007 * gath * (1 + Math.sin(y * 38 + t * 5 + ph[3])))); };
+  const rowsY = []; const M = Math.ceil(h / .025); rowsY.push([-1, .03], [-1, .012]); for (let j = 0; j <= M; j++) rowsY.push([j / M, 0]); for (let k = 1; k <= 5; k++) rowsY.push([2, k / 5]);   // tucked under, the wall, bunched over the top
+  const pos = [], uv = [], J = rowsY.length; for (let j = 0; j < J; j++) for (let i = 0; i <= N; i++) { const t = (i % N) / N * Per, p = at(t), [m, e] = rowsY[j]; let x, y, z, v;
+      if (m === -1) { y = -h / 2; const b = e + ins(t, p.s, p.cd, y); x = p.x - p.nx * b; z = p.z - p.nz * b; v = .1; }
+      else if (m === 2) { y = h / 2 + .007 * Math.sin(e * Math.PI); const b = ins(t, p.s, p.cd, h / 2) + e * (.085 + .04 * Math.sin(t * 2.3 + ph[4]) + .022 * Math.sin(t * 7.1 + ph[5]) + .011 * Math.sin(t * 19 + ph[6])); x = Math.max(-w / 2 + b, Math.min(w / 2 - b, p.x - p.nx * b)); z = Math.max(-d / 2 + b, Math.min(d / 2 - b, p.z - p.nz * b)); v = .92 + .05 * e; }
+      else { y = -h / 2 + m * h; const b = ins(t, p.s, p.cd, y); x = p.x - p.nx * b; z = p.z - p.nz * b; v = .1 + m * .82; }
+      pos.push(x, y, z); uv.push(i / N * Per / 2.6 + ou, v); }
+  const idx = []; for (let j = 0; j < J - 1; j++) for (let i = 0; i < N; i++) { const a0 = j * (N + 1) + i, b0 = a0 + 1, c0 = a0 + N + 1, d0 = c0 + 1; idx.push(a0, c0, b0, b0, c0, d0); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
+  const n = g.attributes.normal; for (let j = 0; j < J; j++) { const p0 = j * (N + 1), p1 = p0 + N, v = new THREE.Vector3(n.getX(p0) + n.getX(p1), n.getY(p0) + n.getY(p1), n.getZ(p0) + n.getZ(p1)).normalize(); n.setXYZ(p0, v.x, v.y, v.z); n.setXYZ(p1, v.x, v.y, v.z); }   // no seam in the shine
+  return new THREE.Mesh(g, MX.filmSkin); }
 const MX = {
   steel: STD({ color: 0x1f3a2b, roughness: .5, metalness: .35 }),
   timber: STD({ map: grain('#c99c5f', '120,80,40', 256, 32, 1), roughness: .75 }),
@@ -68,7 +89,7 @@ const MX = {
   jute: STD({ map: tex(256, 256, (x, w, h) => { x.fillStyle = '#b8945e'; x.fillRect(0, 0, w, h); for (let i = 0; i < h; i += 6) { x.fillStyle = `rgba(90,60,30,${.2 + rnd() * .2})`; x.fillRect(0, i, w, 2); } for (let i = 0; i < w; i += 6) { x.fillStyle = `rgba(255,235,190,${.08 + rnd() * .1})`; x.fillRect(i, 0, 2, h); } for (let i = 0; i < h; i += 40) { x.fillStyle = 'rgba(60,40,20,.35)'; x.fillRect(0, i, w, 5); } }, [2, 2]), roughness: 1 }),
   film: filmMat(),   // milky stretch-wrap: wound bands, overlaps, creases, bunched top and bottom (17 Oct 04:xx; was a 13 % clear double-sided box that read as see-through ghost shelving)
 };
-MX.filmLow = MX.film.clone(); MX.filmLow.opacity = .46; MX.filmRim = MX.film.clone(); MX.filmRim.side = THREE.DoubleSide; MX.filmRim.opacity = .72; MX.filmThin = MX.film.clone(); MX.filmThin.opacity = .15; MX.filmTop = filmMat(true);   // one or two clear wraps (black crate tower by the door): the milky pallet-wrap washed black covers out to white
+MX.filmLow = MX.film.clone(); MX.filmLow.opacity = .46; MX.filmRim = MX.film.clone(); MX.filmRim.side = THREE.DoubleSide; MX.filmRim.opacity = .72; MX.filmThin = MX.film.clone(); MX.filmThin.opacity = .15; MX.filmTop = filmMat(true); MX.filmSkin = filmMat(false, true); MX.filmSkin.color.set(0xc9ced1); MX.filmSkin.roughness = .46; MX.filmSkin.bumpMap = MX.filmSkin.alphaMap; MX.filmSkin.bumpScale = .45; for (const t of [MX.filmSkin.map, MX.filmSkin.alphaMap]) t.wrapS = THREE.RepeatWrapping;   // one or two clear wraps (black crate tower by the door): the milky pallet-wrap washed black covers out to white
 
 const doorTex = tex(512, 900, (x, w, h) => { x.fillStyle = '#c4873f'; x.fillRect(0, 0, w, h); for (let i = 0; i < w; i += 64) { const g = x.createLinearGradient(i, 0, i + 64, 0); g.addColorStop(0, 'rgba(90,50,20,.45)'); g.addColorStop(.06, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(255,230,190,.06)'); x.fillStyle = g; x.fillRect(i, 0, 64, h); }
   for (let i = 0; i < 160; i++) { x.strokeStyle = `rgba(110,65,25,${.06 + rnd() * .12})`; x.beginPath(); const xx = rnd() * w; x.moveTo(xx, 0); x.bezierCurveTo(xx + (rnd() - .5) * 10, h * .3, xx + (rnd() - .5) * 10, h * .7, xx + (rnd() - .5) * 8, h); x.stroke(); }
@@ -382,7 +403,7 @@ function stillageFrame(s, mat, L = 2.3, D = 1.35, post = .95) {
 function trellisStillages(p, x, z, ry, levels) { const g = grp(p, x, 0, z, ry); let y = 0;
   levels.forEach((lv, i) => { const s = grp(g, 0, y, 0); stillageFrame(s, M.purple); const top = trellisLoad(s, lv.sets, lv.per, lv.doors, 100 + i * 31 + Math.floor(x * 7 + z));
     if (lv.film !== false) { s.updateWorldMatrix(true, true); const bb = new THREE.Box3().setFromObject(s).applyMatrix4(s.matrixWorld.clone().invert());   // wrap round what's really on it: the folded trellis runs past the frame's ends
-      const W = Math.max(2.36, bb.max.x - bb.min.x + .04), D = Math.max(1.41, bb.max.z - bb.min.z + .04), f = (top < .6 ? filmOpen : filmBox)(W, top + .04, D, x * 13.1 + z * 3.7 + i * 1.9);
+      const low = top < .6, W = Math.max(2.36, bb.max.x - bb.min.x + (low ? .04 : .09)), D = Math.max(low ? 1.41 : 1.46, bb.max.z - bb.min.z + (low ? .04 : .09)), f = (low ? filmOpen : filmSkin)(W, top + .04, D, x * 13.1 + z * 3.7 + i * 1.9);
       f.position.set((bb.max.x + bb.min.x) / 2, (top + .04) / 2, (bb.max.z + bb.min.z) / 2); f.userData.keep = true; s.add(f); }
     y += 1.0; }); return g; }
 // bags
