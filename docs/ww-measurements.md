@@ -65,3 +65,5 @@ Fit: scan floor y −1.445, ceiling 3.83 m over the back, walls square to the sc
 Yard-bay floor, dark lump (3 Nov): x 17.78–18.22, z −8.3…−8.87, top 0.45–0.5 m, flat with round shoulders, door side p10 #170e0c, built as a tied dark sack (NOT SURE). Evidence `ww-yard-sack-top.png` (heights only).
 
 Cream block, re-read (5 Nov, 0.2 m cells): the tall part is a flat ridge along the aisle, x 3.8–4.3, z −19.6…−21.0, 3.5–3.8 m, dropping straight off at x 4.3; the lower step, 2.0–2.6 m, is behind it at x 3.0–3.6, z −19.6…−20.4. So from the aisle it's a block, not a head and shoulders. The page's near 14 ft pile runs to z −19.95, 0.4 m into the scan's block, so the page's block is z −21.18…−20.04. Evidence `ww-band-cream2-top.png` (heights only, orange = page top, green = page step).
+
+Face 2.6 m off the wall, re-read (5 Nov): a thin skin, not a stack: x ≈ 2.6, z −19.6…−21.8, clean bottom edge ≈ 2.45 m, top ≈ 4.9 m, median #5a5341, going back over the top at z −21…−21.7. Row z −19.6 at x 0.8–2.3 reads ≈ 4.0 m: the blue pole stack's top. No red texels at x 0.2–3 below it: the red crates are hidden in the scan. Evidence `docs/ww-band-walk-top.png` (heights only).

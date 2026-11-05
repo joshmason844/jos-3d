@@ -1423,7 +1423,7 @@ function layout() {
     const can = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; }, srgb = c => { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; };
     const soft = (x, cx, cy, r, sq, col, a) => { x.save(); x.translate(cx, cy); x.scale(1, sq); const gr = x.createRadialGradient(0, 0, 0, 0, 0, r); gr.addColorStop(0, `rgba(${col},${a})`); gr.addColorStop(1, `rgba(${col},0)`); x.fillStyle = gr; x.fillRect(-r, -r, 2 * r, 2 * r); x.restore(); };
     // what holds it up: a dark timber-and-tarp stack on top of the stillages, mostly out of sight under the sheet
-    box(g, .86, 1.1, 1.96, STD({ color: 0x38342b, roughness: .92 }), 2.05, 3.62, -20.72);
+    box(g, .5, .9, 1.3, STD({ color: 0x38342b, roughness: .92 }), 2.2, 3.82, -20.8);   // 5 Nov: kept short of the door end: wider it stood out as a plain dark slab in the side view
     // the sheet: old olive-brown canvas tarp, 3.1 × 2.8 m. u along x (the hang runs to u = 1), v along z. Sewn panels down the drop, bound hem with eyelets, paler sun-bleached and dusty folds, dark damp bottom edge
     const W = 1024, H = 925, K = W / 3.1, [c, x] = can(W, H); x.fillStyle = '#655c49'; x.fillRect(0, 0, W, H);
     for (let i = 0; i < 120; i++) soft(x, fr() * W, fr() * H, 30 + fr() * 130, .5 + fr() * .9, fr() < .55 ? '60,52,38' : '140,126,98', .13);

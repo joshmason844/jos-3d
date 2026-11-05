@@ -1420,3 +1420,17 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS, phone only. Its one flag, a failed resource at load, is the test's own font block (same line on BEFORE). Desk unchecked.
 - Score (self, knocked for the known lean): creamgap Shape 7 · Detail 6 · Surface 6.5 · Light 6.5 · Truth 7 · Works 7 ≈ 6.6 (BEFORE 6.2 by review); creamclose Shape 6.5 · Detail 6 · Surface 6 · Light 6 · Truth 6.75 · Works 7 ≈ 6.4 (BEFORE 6.2). No line drops by my count, but Detail on the close view is the one to watch: two self-looks on this item have been reversed already. Page row 7.68 -> 7.69, review due.
 - Published: YES, version 138, 00:1x, after this run's source was pushed. No picture to Josh: not reviewer-passed yet.
+
+## 2026-11-05 03:xx · WW: big olive sheet over the stock, the scan's face 2.6 m off the wall (Josh's request "line up the LiDAR", step 2c-iv part 2b) · run 2 of the night
+- Meeting: no team change. Not a review run (2nd of the night on file). Forklift-in-Blender still blocked (pip finds no bpy, no blender). Live checked first: v138, same as source bar keycaps. Rest of the yard list needs Josh, so the last open LiDAR step.
+- Team: Opus 5.5 (boss + builder) read the scan, built, shot, published. Haiku checker. No researcher, no reviewer. Self-scored, review due.
+- Measured (main scan): one thin skin at x ≈ 2.6, z −19.6…−21.8, hem ≈ 2.45 m, top ≈ 4.9 m, median #5a5341, nothing seen behind it. Page's blue stack x 0.1–2.53, top 4.5 m; crates x 0.1–1.61. Evidence `docs/ww-band-walk-top.png` (heights only).
+- Changed (hall3.js, build.py, drape_olive.*, shoot.js, test_yardcards.js, item_preview.js): 3.1 × 2.8 m olive canvas solved over the stock with spare width in a `slot`, so it hangs in real pleats; seams, bound hem, eyelets, a patch, damp bottom edge; hem pulled uneven. Card 'Big sheet over the stock (olive)', NOT SURE. Views `walkbay`, `walkbayside`. Page 0.76 MB.
+- Thrown out: first a whole rack bay with boards and bags off the heightmap. AFTER shot showed a flat slab in front of the blue stack, so I went back to the scan, and it was a misread: the 'boards' are the blue stillages' poles. Then a flat sheet that read as a board; 35 % spare width fixed that.
+- Lost time: the rack bay, about 25 min. Should have listed the page's boxes and sliced the scan side-on first.
+- Feature test (`test_yardcards.js`, phone, publish copy one line before final): 19 PASS, 0 FAIL, labels no overlap, page errors [] -> RESULT PASS. The one line since is the hidden support box's size.
+- Better: the blank wall above the cream sheet now has the scan's mass, and the cloth is the best-hung in the page. Still weak: back corner flops in mid-air in the side view; it hides the blue pole ends and red crates above 2.4 m, which is what the scan shows but costs detail. This could go either way in a blind review.
+- Checker (Haiku): FAIL first: a dark rectangle in the side view, and final console not finished. Rectangle wasn't there in a zoomed crop, console finished clean. Queried, it re-looked, withdrew: PASS, phone only. Desk unchecked.
+- Score (self, knocked for the known lean): walkbay Shape 6.75 · Detail 6.25 · Surface 6.5 · Light 6.5 · Truth 6.75 · Works 7 ≈ 6.6 (BEFORE Shape 6.5 · Detail 6.25 · Surface 6.25 · Light 6.5 · Truth 5.5 · Works 7 ≈ 6.25, also my own). Page row 7.69 -> 7.70, review due.
+- Published: see the records commit after this one; source pushed first.
+

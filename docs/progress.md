@@ -5,7 +5,7 @@ Every page in the challenge, its latest score from a fresh-eyes review, and the 
 | Page               | Start (14 Oct) | Latest | Target | At standard? |
 |--------------------|----------------|--------|--------|--------------|
 | People in 3D       | 6.3            | 6.3    | 8      | no           |
-| WW (workshop warehouse) | 6.3            | 7.69 (5 Nov 00:xx, self-scored, review due, LIVE as v138: cream sheet rebuilt as the scan's block, gap view 6.2 → 6.6; last reviewer score 7.68) | 8      | no           |
+| WW (workshop warehouse) | 6.3            | 7.70 (5 Nov 03:xx, self-scored, review due, LIVE as v139: olive sheet over the stock, walkbay view 6.25 → 6.6; last reviewer score 7.68) | 8      | no           |
 | Sections 1–5       | 7.0            | 7.0    | 8      | no           |
 
 Pages: 0 of 3 at standard.
