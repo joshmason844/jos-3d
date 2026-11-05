@@ -1419,4 +1419,4 @@ One row per build, so each run gets measurably better.
 - Better: creamgap: square block filling the gap, no ghost, matches the scan. Still weak: creamclose is one plain drop, it lost the corner fold and eyelets; patches and dirt keep it about level, not better. Small nick at left edge of the gap view; streaks a bit scratchy. Hides the red crates behind, which the scan also does.
 - Checker (Haiku): PASS, phone only. Its one flag, a failed resource at load, is the test's own font block (same line on BEFORE). Desk unchecked.
 - Score (self, knocked for the known lean): creamgap Shape 7 · Detail 6 · Surface 6.5 · Light 6.5 · Truth 7 · Works 7 ≈ 6.6 (BEFORE 6.2 by review); creamclose Shape 6.5 · Detail 6 · Surface 6 · Light 6 · Truth 6.75 · Works 7 ≈ 6.4 (BEFORE 6.2). No line drops by my count, but Detail on the close view is the one to watch: two self-looks on this item have been reversed already. Page row 7.68 -> 7.69, review due.
-
+- Published: YES, version 138, 00:1x, after this run's source was pushed. No picture to Josh: not reviewer-passed yet.
