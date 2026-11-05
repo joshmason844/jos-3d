@@ -14,6 +14,7 @@ for f in ['trellis', 'forklift']:
     kit += '\n' + re.sub(r'^export ', '', src, flags=re.M)
 t = open('template.html').read().replace('__KIT__', kit).replace('__HALL3__', open('hall3.js').read())
 t = t.replace('new THREE.CanvasTexture(', 'new CT(').replace('return new CT(c, ...a)', 'return new THREE.CanvasTexture(c, ...a)')   # every canvas texture goes through CT (phone budget, see template)
+t = t.replace('__DRAPE_OLIVE__', open('drape_olive.b64').read().strip())   # 5 Nov: the big sheet over the left band's stock, same solver
 t = t.replace('__DRAPE_CREAM__', open('drape_cream.b64').read().strip())   # 4 Nov: the sheet over the cream block, same solver
 t = t.replace('__DRAPE_BENCH__', open('drape_bench.b64').read().strip())   # 3 Nov: the tarp baked offline by bin/cloth_drape.js
 open('hall3.html', 'w').write(t); print('hall3', round(len(t) / 1e6, 2), 'MB')

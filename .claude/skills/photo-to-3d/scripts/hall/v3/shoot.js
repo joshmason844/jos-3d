@@ -48,6 +48,8 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   yardstackclose:[[15.6, 1.2, -10.6], [15.1, .4, -12.4], true],  // close on the carton corner, strap, ratchet and the leaning panels
   yardshelf:[[16.9, .78, -2.0], [18.9, .32, -1.6], true],    // the door-end bay's bottom shelf: reels, tote, jerry cans (3 Nov)
   yardfluids:[[17.5, 1.3, -1.45], [18.9, 1.0, -1.29], true],    // close on the box on the tote in the door-end bay: lantern and bottles (3 Nov, Y4)
+  walkbay:[[8.6, 4.75, -20.7], [2.6, 3.9, -20.7], true],    // over the cream sheet from the aisle: the LiDAR's face at x ≈ 2.6, z −19.6…−21.8, stock to 5 m (5 Nov, step 2c-iv part 2b)
+  walkbayside:[[6.3, 4.4, -16.9], [2.7, 3.5, -20.6], true],    // from over the four-high pile's door end: the same bay's end frame and boards
   creamgap:[[8.4, 1.75, -20.45], [3.9, 1.95, -20.5], true],    // the gap between the 14 ft piles from the aisle: the LiDAR's cream block, x 3.0–4.3, z −19.6…−21, top 3.8 m (4 Nov, step 2c-iv part 2b)
   creamclose:[[6.1, 1.3, -20.75], [4.1, 1.8, -20.45], true],    // inside the gap: sheet folds, hem, the dark stack under it
   creamup:[[7.2, 4.6, -16.6], [3.8, 2.7, -20.5], true],    // from above the piles: the hump over the pile tops
