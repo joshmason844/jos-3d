@@ -13,7 +13,7 @@ ${b}
 const scene=new THREE.Scene(); scene.background=new THREE.Color(0x4a4a48); scene.environment=new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(),.04).texture; scene.environmentIntensity=.35;
 scene.add(new THREE.HemisphereLight(0xe8eef5,0x5d5a52,1.15)); const sun=new THREE.DirectionalLight(0xfff1de,1.6); sun.position.set(12,20,10); sun.castShadow=true; sun.shadow.mapSize.setScalar(2048); Object.assign(sun.shadow.camera,{left:-8,right:8,top:8,bottom:-8}); scene.add(sun);
 const fl=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.MeshStandardMaterial({color:0x8c8c88,roughness:.9})); fl.rotation.x=-Math.PI/2; fl.receiveShadow=true; scene.add(fl);
-const P=new THREE.Group(); scene.add(P); const L5={sets:5,per:3,doors:1}; trellisStillages(P,0,0,0,[L5,L5,L5]);
+const P=new THREE.Group(); scene.add(P); const L5={sets:5,per:3,doors:1,tight:true}; trellisStillages(P,0,0,0,[L5,L5,L5]);
 const cam=new THREE.PerspectiveCamera(46,1,.05,80); window.shot=c=>{cam.position.set(c[0],c[1],c[2]);cam.lookAt(c[3],c[4],c[5]);r.render(scene,cam);return document.getElementById('c').toDataURL('image/png');}; window.__ready=1;</script>`;
 (async()=>{const f=path.join(os.tmpdir(),'film_prev.html'); fs.writeFileSync(f,html); const br=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']}), p=await br.newPage({viewport:{width:800,height:800}}); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); p.on('console',m=>{if(m.type()==='error')errs.push(m.text())});
 await p.route(/cdn\.jsdelivr\.net/,r=>{const m=r.request().url().match(/three@[^/]+\/(.*)$/);return m?r.fulfill({path:C+'three-r180/'+m[1],contentType:'text/javascript'}):r.abort();});

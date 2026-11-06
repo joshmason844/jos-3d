@@ -61,11 +61,12 @@ function filmSkin(w, h, d, key, pitch = .154) { let q = 1 + Math.abs(Math.floor(
     return Math.max(0, Math.min(.034, .022 * bow + .0014 * bow * (1 + Math.cos((y + h / 2 - .14) / pitch * 6.283 + 1.6 * Math.sin(t * .9 + ph[7])))
       + .0055 * (1 + Math.sin(t * 1.3 + y * 2.4 + ph[0]) * Math.sin(t * 4.1 - y * 1.7 + ph[1])) + .0024 * (1 + Math.sin(t * 11 + y * 5 + ph[2]))
       + .007 * gath * (1 + Math.sin(y * 38 + t * 5 + ph[3])))); };
+  const tear = t => .016 * (1 + Math.sin(t * 2.1 + ph[4])) + .014 * (1 + Math.sin(t * 5.3 + ph[5])) + .009 * (1 + Math.sin(t * 13.7 + ph[6]));   // 6 Nov: the wrap stops at an uneven height, not a ruled line
   const rowsY = []; const M = Math.ceil(h / .025); rowsY.push([-1, .03], [-1, .012]); for (let j = 0; j <= M; j++) rowsY.push([j / M, 0]); for (let k = 1; k <= 5; k++) rowsY.push([2, k / 5]);   // tucked under, the wall, bunched over the top
   const pos = [], uv = [], J = rowsY.length; for (let j = 0; j < J; j++) for (let i = 0; i <= N; i++) { const t = (i % N) / N * Per, p = at(t), [m, e] = rowsY[j]; let x, y, z, v;
       if (m === -1) { y = -h / 2; const b = e + ins(t, p.s, p.cd, y); x = p.x - p.nx * b; z = p.z - p.nz * b; v = .1; }
-      else if (m === 2) { y = h / 2 + .007 * Math.sin(e * Math.PI); const b = ins(t, p.s, p.cd, h / 2) + e * (.085 + .04 * Math.sin(t * 2.3 + ph[4]) + .022 * Math.sin(t * 7.1 + ph[5]) + .011 * Math.sin(t * 19 + ph[6])); x = Math.max(-w / 2 + b, Math.min(w / 2 - b, p.x - p.nx * b)); z = Math.max(-d / 2 + b, Math.min(d / 2 - b, p.z - p.nz * b)); v = .92 + .05 * e; }
-      else { y = -h / 2 + m * h; const b = ins(t, p.s, p.cd, y); x = p.x - p.nx * b; z = p.z - p.nz * b; v = .1 + m * .82; }
+      else if (m === 2) { y = h / 2 - tear(t) + .007 * Math.sin(e * Math.PI); const b = ins(t, p.s, p.cd, h / 2) + e * (.085 + .04 * Math.sin(t * 2.3 + ph[4]) + .022 * Math.sin(t * 7.1 + ph[5]) + .011 * Math.sin(t * 19 + ph[6])); x = Math.max(-w / 2 + b, Math.min(w / 2 - b, p.x - p.nx * b)); z = Math.max(-d / 2 + b, Math.min(d / 2 - b, p.z - p.nz * b)); v = .62 + .05 * e; }
+      else { y = -h / 2 + m * h - tear(t) * m ** 8; const b = ins(t, p.s, p.cd, y); x = p.x - p.nx * b; z = p.z - p.nz * b; v = .1 + Math.min(m, .68) * .82; }
       pos.push(x, y, z); uv.push(i / N * Per / 2.6 + ou, v); }
   const idx = []; for (let j = 0; j < J - 1; j++) for (let i = 0; i < N; i++) { const a0 = j * (N + 1) + i, b0 = a0 + 1, c0 = a0 + N + 1, d0 = c0 + 1; idx.push(a0, c0, b0, b0, c0, d0); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
@@ -387,7 +388,16 @@ function canvasStack(p, ft, x, z, ry, cols, bg, label) { const g = grp(p, x, 0, 
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(pg, .07, .05, .07, M.red, sx * .55, 0, sz * .45);
   const c = coverMesh(1.2, .78, 1.0, canvasMats(ft, ranges ? ranges[i] : null, bg, label)); c.position.y = .05 + .39; pg.add(c); } }); return g; }
 // trellis loads: folded sections laid two side by side, with optional doors on top
-function trellisLoad(s, sets, perSet, doorsEach, seed) { let y = .14; for (let set = 0; set < sets; set++) {
+function trellisLoad(s, sets, perSet, doorsEach, seed, tight) { let y = .14;
+  if (tight) {   // 6 Nov: a 14 ft stillage as it's really strapped up: every folded section in one tight block two across (the knots nest, so rows sit 46 mm apart, a 4 mm side gap), the doors flat in a pile on top. Sets with air between them read as open shelves
+    const N = sets * perSet; for (let k = 0; k < N; k++) { const sec = trellisSection({ seed: seed + Math.floor(k / perSet) * 7 + k % perSet, weathered: .3 }); sec.setOpen(sec.minOpen);
+      const lay = new THREE.Group(); lay.rotation.x = -Math.PI / 2; const spin = new THREE.Group(); spin.rotation.z = -Math.PI / 2; lay.add(spin); spin.add(sec);
+      sec.position.set(-sec.userData.cx, -sec.userData.height / 2 + sec.userData.end0, 0); const row = Math.floor(k / 2), col = k % 2, alone = k === N - 1 && N % 2;
+      lay.position.set((rnd() - .5) * .05, y + row * .046, alone ? (rnd() - .5) * .1 : (col - .5) * (sec.userData.width + .004) + (rnd() - .5) * .008); lay.rotation.y = (rnd() - .5) * .006; s.add(lay); }
+    y += Math.ceil(N / 2) * .046 + .006;
+    for (let d = 0; d < sets * doorsEach; d++) { const dm = doorSet(); dm.position.set((rnd() - .5) * .03, y + .022, (rnd() - .5) * .03); dm.castShadow = dm.receiveShadow = true; s.add(dm); y += .05; }
+    return y; }
+  for (let set = 0; set < sets; set++) {
     for (let k = 0; k < perSet; k++) { const sec = trellisSection({ seed: seed + set * 7 + k, weathered: .3 }); sec.setOpen(sec.minOpen);
       const lay = new THREE.Group(); lay.rotation.x = -Math.PI / 2; const spin = new THREE.Group(); spin.rotation.z = -Math.PI / 2; lay.add(spin); spin.add(sec);
       sec.position.set(-sec.userData.cx, -sec.userData.height / 2 + sec.userData.end0, 0); const row = Math.floor(k / 2), col = k % 2, alone = k === perSet - 1 && perSet % 2;
@@ -401,7 +411,7 @@ function stillageFrame(s, mat, L = 2.3, D = 1.35, post = .95) {
       box(s, .05, .05, .05, mat, sx * (L / 2 - .04), post, sz * (D / 2 - .04)); const c = new THREE.Mesh(new THREE.CylinderGeometry(.018, .0354, .035, 4).rotateY(Math.PI / 4).toNonIndexed(), mat); c.geometry.computeVertexNormals(); c.position.set(sx * (L / 2 - .04), post + .0675, sz * (D / 2 - .04)); c.castShadow = true; s.add(c); } }
   for (const xx of [-.4, .4]) box(s, .1, .1, D, mat, xx, 0, 0); }
 function trellisStillages(p, x, z, ry, levels) { const g = grp(p, x, 0, z, ry); let y = 0;
-  levels.forEach((lv, i) => { const s = grp(g, 0, y, 0); stillageFrame(s, M.purple); const top = trellisLoad(s, lv.sets, lv.per, lv.doors, 100 + i * 31 + Math.floor(x * 7 + z));
+  levels.forEach((lv, i) => { const s = grp(g, 0, y, 0); stillageFrame(s, M.purple); const top = trellisLoad(s, lv.sets, lv.per, lv.doors, 100 + i * 31 + Math.floor(x * 7 + z), lv.tight);
     if (lv.film !== false) { s.updateWorldMatrix(true, true); const bb = new THREE.Box3().setFromObject(s).applyMatrix4(s.matrixWorld.clone().invert());   // wrap round what's really on it: the folded trellis runs past the frame's ends
       const low = top < .6, W = Math.max(2.36, bb.max.x - bb.min.x + (low ? .04 : .09)), D = Math.max(low ? 1.41 : 1.46, bb.max.z - bb.min.z + (low ? .04 : .09)), f = (low ? filmOpen : filmSkin)(W, top + .04, D, x * 13.1 + z * 3.7 + i * 1.9);
       f.position.set((bb.max.x + bb.min.x) / 2, (top + .04) / 2, (bb.max.z + bb.min.z) / 2); f.userData.keep = true; s.add(f); }
@@ -1677,7 +1687,7 @@ function layout() {
   { // LiDAR (15 Oct): three wrapped stacks run ACROSS the hall at x 3.7–6.6 (not one along the wall): z −18.3…−20.0 ≈ 3.7 m tall, z −21.6…−22.9 ≈ 2.6–3.8 m, z −22.9…−24.6 ≈ 1.25 m. Josh: 5 doors per stillage, 3 trellis each.
     // 17 Oct 05:xx: redone (02:xx version reverted for see-through film; the wrap is milky stretch-film now). Seed saved and restored round them, so every later random stack stays put.
     const s0 = _seed; trellisStillages(SPARE, 3.4, -21.9, LEFT + .03, [{ sets: 5, per: 3, doors: 1 }, { sets: 5, per: 3, doors: 1 }, { sets: 5, per: 3, doors: 1 }]); const s1 = _seed; _seed = s0;   // old single stack: draws taken, not shown
-    const L5 = { sets: 5, per: 3, doors: 1 }, info = ['14 ft trellis + door stillages', 'Purple 14 ft stillages, stretch-wrapped, stacked in three piles that run across the hall from the left-wall stillages towards the aisle. A 14 ft yurt is 3 trellis sections per door, and each stillage holds 5 doors with their trellis: 15 sections, the folded trellis laid two side by side with each door flat on its set. Where and how high from the LiDAR scan (15 Oct): one pile four high (≈ 3.7 m in the scan), one three high, one single.'];
+    const L5 = { sets: 5, per: 3, doors: 1, tight: true }, info = ['14 ft trellis + door stillages', 'Purple 14 ft stillages, stretch-wrapped, stacked in three piles that run across the hall from the left-wall stillages towards the aisle. A 14 ft yurt is 3 trellis sections per door, and each stillage holds 5 doors with their trellis: 15 sections, the folded trellis in one tight block two across with the doors flat in a pile on top. Where and how high from the LiDAR scan (15 Oct): one pile four high (≈ 3.7 m in the scan), one three high, one single.'];
     const st = [trellisStillages(P, 5.0, -19.15, .02, [L5, L5, L5, L5]), trellisStillages(P, 5.05, -22.25, -.015, [L5, L5, L5]), trellisStillages(P, 5.15, -23.78, .01, [L5])];
     st.forEach((g, k) => T(g, info[0] + ['', ' (three high)', ' (single)'][k], info[1], 'stillages 2.32 × 1.35 m · 5 yurts each · ' + ['≈ 4.0', '≈ 3.0', '≈ 1.0'][k] + ' m tall', 'not sure')); _seed = s1; }
   { const s0 = _seed; poleStillage(SPARE, 1.47, -23.9, LEFT, [.5, .5, .5, .5, .5, .5], ['r16', 'r16', 'r16', 'r12', 'r12', 'r12'], M.red, 1.15, 2.4); const s1 = _seed; _seed = s0;   // old six-high stack: draws taken, not shown
