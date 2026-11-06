@@ -1445,3 +1445,16 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS, phone only. Page errors [], 0.73 MB. It flagged the base64 line for a glance: that's the solved cloth, not a key. It wouldn't write errors.md. Desk unchecked.
 - Score (self, knocked for the known lean): leftclose Shape 6.5 · Detail 6.5 · Surface 6.5 · Light 6 · Truth 6.75 · Works 7 ≈ 6.5 (BEFORE 5.5, my own); stilldoor Shape 6.75 · Detail 6.75 · Surface 6.5 · Light 6.25 · Truth 7 · Works 7 ≈ 6.75 (BEFORE 5.5 by review). Page row 7.70 -> 7.72, review due.
 - Published: YES, version 140, after this run's source was pushed; live v139 plus this block only, keycaps kept. No picture to Josh: not reviewer-passed yet.
+
+## 2026-11-06 03:xx · WW: 14 ft stillages packed into a tight block of laths with the doors on top, no more open shelves (Josh's request "the trellis in") · run 1 of the night on file
+- Meeting: no team change (huddle line in team.md). Not a review run (1st of the night on file), so v138-v141 are still unreviewed. Forklift-in-Blender still blocked (pip finds no bpy). Workshop inside and yard list wait on Josh, so the trellis item. Live checked first: v140, same as source bar keycaps.
+- Team: Opus 5.5 (boss + builder) built, shot, published. Haiku checker. No researcher, no reviewer. Self-scored, review due.
+- Changed (hall3.js, film_preview.js): `trellisLoad(..., tight)` for the 14 ft stillages: 15 sections in one block two across, rows 46 mm so the knots nest, 4 mm side gap, five doors flat in a pile on top, 0.8 m tall against 0.95 m before. Wrap stops at an uneven height (`tear`), rim on thinner film: the first go was a bright white ribbon floating at the back of stilldoor, caught in the 2× crop. Card wording updated. Wall-stack loads unchanged. Page 0.77 MB.
+- Truth: the door pile is a guess. The old sets were one too; the page's card stays NOT SURE.
+- Shortcut: 2× crop before the checker found the ribbon for the cost of one view. Queue: BEFORE and AFTER chained up front on done-files, source pushed before the slow shots finished.
+- Lost time: `ww_publish_copy.py` warned about a split line (first line of the function shared with its `for`); repaired by hand before AFTER ran, 2 min. A rim shot run alongside the desk queue timed out; two cores won't take it.
+- Feature test (`test_yardcards.js`, phone, publish copy): 19 PASS, 0 FAIL, no label overlap, page errors [] -> RESULT PASS.
+- Better: leftclose, leftside and stilldoor read as solid stacked loads with clear levels, door pile sharp through the gap. Still weak: milky film washes the block's colour; lath ends a bit neat; wrap stands off the door pile.
+- Checker (Haiku): PASS, phone and desk. Page errors [], 0.77 MB.
+- Score (self, knocked for the known lean): leftclose Shape 7 · Detail 6.75 · Surface 6.5 · Light 6.25 · Truth 6.75 · Works 7 ≈ 6.75 (BEFORE 6.5, my own); stilldoor Shape 7 · Detail 7 · Surface 6.5 · Light 6.5 · Truth 6.75 · Works 7 ≈ 6.8 (BEFORE 6.75, my own). Page row 7.72 -> 7.74, review due.
+- Published: YES, version 141, after this run's source was pushed; live v140 plus this block only, keycaps kept. No picture to Josh: not reviewer-passed yet.
