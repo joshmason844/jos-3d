@@ -138,7 +138,7 @@ const want = only ? only.split(',') : ['door', 'up', 'roofclose', 'far'];
     p.on('pageerror', e => errs.push(n + ': ' + e.message));
     p.on('console', m => { log.push(n + ' ' + m.type() + ': ' + m.text()); if (m.type() === 'error' && !/ERR_FAILED/.test(m.text())) errs.push(n + ': ' + m.text()); });
     await p.route(/cdn\.jsdelivr\.net/, r => { const m = r.request().url().match(/three@[^/]+\/(.*)$/); return m ? r.fulfill({ path: C + 'three-r180/' + m[1], contentType: 'text/javascript' }) : r.abort(); });
-    await p.route(/fonts\./, r => r.abort());
+    await p.route(/fonts\./, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));   // 6 Nov: was abort(), which logs ERR_FAILED on every run and cost a checker FAIL
     const t0 = Date.now();
     const died = new Promise((_, no) => p.on('pageerror', e => no(new Error(n + ' page error before ready: ' + e.message))));   // fail fast instead of a 300 s timeout
     await p.goto('file://' + path.resolve(page), { waitUntil: 'commit' }); await Promise.race([p.waitForFunction(() => window.__ready, null, { timeout: 300000 }), died]);
