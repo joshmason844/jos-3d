@@ -1493,3 +1493,13 @@ One row per build, so each run gets measurably better.
 - Score (self, knocked for the known lean): leftclose Shape 7 · Detail 7.25 · Surface 7 · Light 6.5 · Truth 6.5 · Works 7 ≈ 6.9 (BEFORE 6.85, my own); stilldoor level ≈ 6.9. Page row 7.78 -> 7.8, review due.
 
 - Published: YES, version 145 (the service's count; v144 never showed on file), after this run's source was pushed; live v143 plus this one changed line, keycaps kept. No picture to Josh: not reviewer-passed yet.
+
+## 2026-11-07 02:xx · WW: the low trellis loads (wall stack, 16 ft stillages) wrapped in the wound film skin, not flat glass panes (Josh's request "the trellis in") · run 3 of the night
+- Meeting: no team change. Not a review run (3rd of the night); v138-v146 wait for the 5th run or the 07:xx. Forklift-in-Blender still blocked (no bpy on pip, apt mirrors don't resolve, download.blender.org 403). Rather than polish the 14 ft film again, looked at the trellis loads nobody had shot lately: the wall stack and the 16 ft stillages still used `filmOpen`, the glass cases the 14 ft loads lost on 5 Nov.
+- Team: Opus 5.5 (boss + builder) built, shot, published. Haiku checker. No researcher, no reviewer. Self-scored, review due.
+- Changed (hall3.js): low loads use `filmSkin(..., { low: true })`; base band height min(.15, .3h), top band min(.24, .4h) → min(.1, .17h), waves halved. shoot.js: `door16`, `door16close` views. Page 0.77 MB.
+- Better: rounded wound corners, film drawn in between the posts, wavy torn top; the laths and pine doors read through it instead of behind a lavender pane. Still weak: milky skirt at the wall stack's foot; lavender tint where the base rail shows through; a faint white thread at the top level's rim in wallstackclose.
+- Feature test: n/a (visual change only). Page errors [] on phone and desk.
+- Checker (Haiku): PASS, no problems (6 pairs, phone and desk). It wouldn't write errors.md; I did.
+- Score (self, knocked for the known lean): wallstack Shape 6.75 · Detail 6.75 · Surface 6.5 · Light 6.25 · Truth 6.5 · Works 7 ≈ 6.6 (BEFORE ≈ 6.45, my own); door16 ≈ 6.8 (BEFORE ≈ 6.6). Page row 7.8 -> 7.82, review due.
+
