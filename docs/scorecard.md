@@ -1484,7 +1484,7 @@ One row per build, so each run gets measurably better.
 - Published: YES, version 143, after this run's source was pushed; live v142 plus this block only, keycaps kept. No picture to Josh: not reviewer-passed yet.
 
 ## 2026-11-07 01:xx · WW: 14 ft loads' film no longer a solid milky column on the posts; base band's top edge wavy (Josh's request "the trellis in") · run 2 of the night
-- Meeting: no team change. Not a review run (2nd of the night), so v138-v144 wait for the 5th run or the 07:xx. Forklift-in-Blender still blocked (pip finds no bpy, no blender binary). Workshop inside and yard list wait on Josh. Took the 23:xx run's own worst find on the trellis loads: post corners a milky column full height.
+- Meeting: no team change. Not a review run (2nd of the night), so v138-v145 wait for the 5th run or the 07:xx. Forklift-in-Blender still blocked (pip finds no bpy, no blender binary). Workshop inside and yard list wait on Josh. Took the 23:xx run's own worst find on the trellis loads: post corners a milky column full height.
 - Team: Opus 5.5 (boss + builder) built, shot, published. Haiku checker. No researcher, no reviewer. Self-scored, review due.
 - Changed (hall3.js `filmSkin` alpha): corner milk now ×(.32 + .68·max(base band, top band, overlap)), with a helix of turn overlaps every ≈ .42 m; a faint overlap stripe (.3) across the faces too; base band's top at a wavy .1-.22 m, alpha .82, worn at the very foot; tucked-under rows .82. Page 0.77 MB.
 - Better: in leftclose the purple posts read through the film between the bands, so the block reads as wrapped, not cased in a milky pillar. Still weak: the overlap helix is faint at phone size; the base band barely shows a change; the pale tuck on the far-left load's foot.
@@ -1492,3 +1492,4 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS, no problems. It noted the pixel diff is spread across the frame (film transparency shifts the whole view slightly); checked by eye, no new glitches.
 - Score (self, knocked for the known lean): leftclose Shape 7 · Detail 7.25 · Surface 7 · Light 6.5 · Truth 6.5 · Works 7 ≈ 6.9 (BEFORE 6.85, my own); stilldoor level ≈ 6.9. Page row 7.78 -> 7.8, review due.
 
+- Published: YES, version 145 (the service's count; v144 never showed on file), after this run's source was pushed; live v143 plus this one changed line, keycaps kept. No picture to Josh: not reviewer-passed yet.
