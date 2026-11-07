@@ -1503,3 +1503,4 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS, no problems (6 pairs, phone and desk). It wouldn't write errors.md; I did.
 - Score (self, knocked for the known lean): wallstack Shape 6.75 · Detail 6.75 · Surface 6.5 · Light 6.25 · Truth 6.5 · Works 7 ≈ 6.6 (BEFORE ≈ 6.45, my own); door16 ≈ 6.8 (BEFORE ≈ 6.6). Page row 7.8 -> 7.82, review due.
 
+- Published: YES, version 146, after this run's source was pushed; live v145 plus these three changed lines, keycaps kept. No picture to Josh: not reviewer-passed yet.
