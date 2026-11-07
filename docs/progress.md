@@ -5,7 +5,7 @@ Every page in the challenge, its latest score from a fresh-eyes review, and the 
 | Page               | Start (14 Oct) | Latest | Target | At standard? |
 |--------------------|----------------|--------|--------|--------------|
 | People in 3D       | 6.3            | 6.3    | 8      | no           |
-| WW (workshop warehouse) | 6.3            | 7.78 (6 Nov 23:xx, self-scored, review due, LIVE as v143: 14 ft loads' film thin over the faces, straps staggered and rolled over the shoulder; last reviewer score 7.68) | 8      | no           |
+| WW (workshop warehouse) | 6.3            | 7.8 (7 Nov 01:xx, self-scored, review due, LIVE as v144: film on the 14 ft loads' posts thinned between the bands; last reviewer score 7.68) | 8      | no           |
 | Sections 1–5       | 7.0            | 7.0    | 8      | no           |
 
 Pages: 0 of 3 at standard.
