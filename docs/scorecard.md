@@ -1504,3 +1504,14 @@ One row per build, so each run gets measurably better.
 - Score (self, knocked for the known lean): wallstack Shape 6.75 · Detail 6.75 · Surface 6.5 · Light 6.25 · Truth 6.5 · Works 7 ≈ 6.6 (BEFORE ≈ 6.45, my own); door16 ≈ 6.8 (BEFORE ≈ 6.6). Page row 7.8 -> 7.82, review due.
 
 - Published: YES, version 146, after this run's source was pushed; live v145 plus these three changed lines, keycaps kept. No picture to Josh: not reviewer-passed yet.
+
+## 2026-11-08 05:xx · WW: low trellis loads' film foot and rim thinned, no white skirt or white thread (Josh's request "the trellis in") · run 1 of the night on file
+- Meeting: no team change. Not a review run (1st of the night on file; nothing recorded since 7 Nov 02:xx), so v138-v147 wait for the 5th run or the 07:xx, which must review them. Forklift-in-Blender still blocked; workshop inside and yard list wait on Josh. Took the 7 Nov 02:xx run's own worst finds on the low loads. Live checked first: v146 = source plus keycaps.
+- Team: Opus 5.5 (boss + builder) built, shot, published. Haiku checker. No researcher, no reviewer. Self-scored, review due.
+- Changed (hall3.js `filmSkin`, `opt.low` only): base band top min(.15, .3h) → min(.09, .2h), alpha .82 → .5; tucked-under rows .82 → .45; torn rim 1 → .62. Tall 14 ft loads untouched. Page 0.77 MB.
+- Better: wallstackclose's levels lose the white skirt at the foot and the bright thread at the rim; laths read through at the foot; door16close's front foot thinner. Still weak: lavender-milky band across the middle of the wall stack; pale film foot by door16's front-left; small step, not a big one.
+- Feature test: n/a (visual change only). Page errors [] on phone and desk.
+- Checker (Haiku): PASS, no problems (6 pairs). It wouldn't write errors.md; I did.
+- Score (self, knocked for the known lean): wallstackclose ≈ 6.7 (BEFORE ≈ 6.6, my own); door16close ≈ 6.85 (BEFORE ≈ 6.8). Page row 7.82 -> 7.83, review due.
+- Shortcut: queue shots from a setsid script waiting on a done-file; a queue started with `&` inside a Bash call that hits its 2 min limit is killed with it.
+
