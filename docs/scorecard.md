@@ -1515,3 +1515,4 @@ One row per build, so each run gets measurably better.
 - Score (self, knocked for the known lean): wallstackclose ≈ 6.7 (BEFORE ≈ 6.6, my own); door16close ≈ 6.85 (BEFORE ≈ 6.8). Page row 7.82 -> 7.83, review due.
 - Shortcut: queue shots from a setsid script waiting on a done-file; a queue started with `&` inside a Bash call that hits its 2 min limit is killed with it.
 
+- Published: YES, version 147, after this run's source was pushed; live v146 plus this one changed line and its comment, keycaps kept. No picture to Josh: not reviewer-passed yet.
