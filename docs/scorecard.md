@@ -1516,3 +1516,13 @@ One row per build, so each run gets measurably better.
 - Shortcut: queue shots from a setsid script waiting on a done-file; a queue started with `&` inside a Bash call that hits its 2 min limit is killed with it.
 
 - Published: YES, version 147, after this run's source was pushed; live v146 plus this one changed line and its comment, keycaps kept. No picture to Josh: not reviewer-passed yet.
+
+## 2026-11-08 07:xx · WW: blind review of v138-v147; cream sheet's pencil-line streaks softened (Josh's request "the trellis in", review side) · run 2 of the night on file (review run + summary)
+- Meeting: no team change. Review run (07:xx): the 10 builds since 4 Nov 07:xx (v138-v147) all self-scored until now, so the whole stretch went to one blind review. Forklift-in-Blender still blocked; workshop inside and yard list wait on Josh. Fresh container: ./setup.sh first.
+- Team: Opus 5.5 (boss + builder) shot, built, published. Fresh Opus reviewer twice (blind: v137 vs v147, 7 views; then tonight's sheet try, 2 views). Haiku checker. No researcher. REVIEWER-scored.
+- Review (phone, blind, v137 → v147): creamgap 6.46 → 5.96 (worse: 'stiff slab'), creamclose 5.75 → 6.79, walkbay 5.96 → 6.25, leftclose 5.58 → 6.63, stilldoor 5.33 → 6.54, wallstackclose 6.13 → 6.54, door16close 6.33 → 6.5. Better in 6 of 7, mean 5.93 → 6.46. Self-scores had the direction right this stretch; creamgap is the one miss (the 5 Nov cream rebuild), not reverted since the close view gained more.
+- Tried, not shipped: four tall fold ridges under the cream sheet's aisle drop in the solver (`drape_cream.json`). Blind: creamclose 5.88 → 6.38 but creamgap 5.96 → 5.83 ('swells like a barrel'), a line drop, so the drape went back to the 5 Nov solve.
+- Shipped (hall3.js, cream sheet texture): the 70 hairline 'dirt runs' on the aisle drop were dark hairlines at up to .15 alpha; now .02-.06 alpha, 4-11 px wide. The reviewer named them 'pencil lines' and scored the try's close view up mostly for them going. Draw count kept, nothing else moves.
+- Still weak: hem stops in mid-air from the aisle, posts in front with no contact; sheet sides hard and straight; patches flat like stickers.
+- Checker (Haiku): PASS, no problems (page errors [], 0.77 MB, no key-like strings).
+- Score (reviewer, creamclose with the try that included this change): Shape 6.25 · Detail 6.5 · Surface 6.5 · Light 6.25 · Truth 5.75 · Works 7 = 6.38 (BEFORE 5.88); texture-only build checked by me on the publish copy, creamgap level by eye. Page row 7.83 (self) -> 7.8, reviewer-checked.
