@@ -1526,3 +1526,4 @@ One row per build, so each run gets measurably better.
 - Still weak: hem stops in mid-air from the aisle, posts in front with no contact; sheet sides hard and straight; patches flat like stickers.
 - Checker (Haiku): PASS, no problems (page errors [], 0.77 MB, no key-like strings).
 - Score (reviewer, creamclose with the try that included this change): Shape 6.25 · Detail 6.5 · Surface 6.5 · Light 6.25 · Truth 5.75 · Works 7 = 6.38 (BEFORE 5.88); texture-only build checked by me on the publish copy, creamgap level by eye. Page row 7.83 (self) -> 7.8, reviewer-checked.
+- Published: YES, version 148, after this run's source was pushed; live v147 plus this one changed line, keycaps kept. Before/after picture to Josh: stilldoor and leftclose, v137 vs v147 (reviewer-passed).
