@@ -1549,3 +1549,13 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS, no problems (4 pairs, phone and desk). It wouldn't write errors.md; I did.
 - Score (self, knocked for the known lean): creamclose ≈ 6.6 (BEFORE ≈ 6.5); creamgap level (≈ 6.3). Page row 7.82 -> 7.83, review due.
 - Published: YES, version 150, after this run's source was pushed; live v149 plus this build, keycaps kept. No picture to Josh: not reviewer-passed yet.
+
+## 2026-11-09 06:xx · WW: cream sheet's ratchet handle shut flat on the strap, loose strap tail added (Josh's request "line up the LiDAR", cream sheet polish from the 04:xx self-critique) · run 3 of the night on file
+- Meeting: no team change. Not a review run (3rd on file tonight); the 07:xx run is the review run and should blind-review v149-v151 (creamgap, creamclose, creamtie). Forklift-in-Blender still blocked (pip finds no bpy); workshop inside and yard list wait on Josh. Took the 04:xx run's own worst find (grip poking out sideways), small and cheap. Live checked first: v150 = source plus keycaps (and two comment lines).
+- Team: Opus 5.5 (boss + builder) built, shot, published. Haiku checker. No researcher, no reviewer. Self-scored, review due.
+- Changed (hall3.js, cream sheet tie only): ratchet handle rotation .5 -> .07 rad, so it lies shut along the strap like a tensioned ratchet; the black grip slimmed. New: the loose tail, two webbing lengths hanging ≈ 34 cm from the spindle down the load face with a slight twist, a dark fused end. shoot.js gets a `creamtie` close view. Page 0.78 MB.
+- Better: from creamtie and creamclose the ratchet reads as a closed ratchet strap, not a lever sticking out; the tail is the thing you'd notice on a real one. Still weak: a visible notch where the two tail lengths meet; the tail's top starts under the ratchet rather than out of the spindle; the tie's wobble is still a sine, not the cloth.
+- Feature test: n/a (visual change only). Page errors [] on phone and desk.
+- Checker (Haiku): PASS, no problems (4 pairs, phone and desk). It wouldn't write errors.md; I did.
+- Score (self, knocked for the known lean): creamtie Shape 6.75 · Detail 6.75 · Surface 6.5 · Light 6.25 · Truth 6 · Works 7 ≈ 6.5 (BEFORE ≈ 6.2, my own); creamclose ≈ 6.65 (BEFORE ≈ 6.6). Page row 7.83 -> 7.84, review due.
+- Published: YES, version 151, live v150 plus this build, keycaps kept. No picture to Josh: not reviewer-passed yet.

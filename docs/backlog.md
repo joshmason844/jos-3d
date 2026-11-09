@@ -611,3 +611,5 @@ Runs alternate: one People item, then one Warehouse item (Main hall, sections, y
 - [ ] WW (9 Nov 04:xx): cream sheet's tie wobble is a smooth sine, so it still reads drawn rather than pulled tight over folds; drive its height from the cloth itself (lower where the drop bulges out, higher in the troughs).
 - [ ] WW (9 Nov 04:xx): the ratchet's black handle grip sticks out sideways like a stub in creamclose; lay the handle flat along the strap, closed, as a stored ratchet sits.
 - [ ] WW (9 Nov 04:xx): from creamgap the tie change hardly shows; the wide view's weak spots are still the sheet's hard straight sides and the dark stack under the hem.
+- [ ] WW cream sheet tie (9 Nov 06:xx self-critique): the ratchet's loose tail shows a notch where its two lengths meet; start it out of the spindle, one bent strip instead of two boxes.
+- [ ] WW cream sheet tie (9 Nov 06:xx): the tie height wobble is a sine; drive it from the solved cloth (ride the fold crests) instead.
