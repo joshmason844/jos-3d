@@ -1527,3 +1527,13 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS, no problems (page errors [], 0.77 MB, no key-like strings).
 - Score (reviewer, creamclose with the try that included this change): Shape 6.25 · Detail 6.5 · Surface 6.5 · Light 6.25 · Truth 5.75 · Works 7 = 6.38 (BEFORE 5.88); texture-only build checked by me on the publish copy, creamgap level by eye. Page row 7.83 (self) -> 7.8, reviewer-checked.
 - Published: YES, version 148, after this run's source was pushed; live v147 plus this one changed line, keycaps kept. Before/after picture to Josh: stilldoor and leftclose, v137 vs v147 (reviewer-passed).
+
+## 2026-11-09 00:xx · WW: cream sheet tied round its foot so the hem sits on the load, not in mid-air (Josh's request "line up the LiDAR", fixing the 8 Nov review's creamgap drop) · run 1 of the night on file
+- Meeting: no team change (huddle logged in team.md). Not a review run (1st of the night). Forklift-in-Blender still blocked; workshop inside and yard list wait on Josh. Took the last blind review's worst find (creamgap 6.46 → 5.96) over more trellis-film polish. Live checked first: v148 = source plus keycaps.
+- Team: Opus 5.5 (boss + builder) built, shot, published. Haiku checker. No researcher, no reviewer. Self-scored, review due.
+- Changed: `bin/cloth_drape.js` gets `tie: [xFrom, yTie, band, xFace, from, to]`; `drape_cream.json` ties the aisle drop at 1.3 m onto x 4.30 between 45 % and 75 % of the solve; re-solved (`drape_cream.b64`). hall3.js: blue webbing tie laid on the solved sheet where it crosses 1.3 m, a ratchet, a soft shade under it in the vertex colour; the load's straps 0x8d7f60 → 0x4d4637 (they read as pale posts). Page 0.77 MB.
+- Measured (solver output): hem off the load face 7–33 cm before → 2–10 cm after; hem height 0.93–1.10 m → 0.94–1.07 m (scan: cream to ≈ 1.2 m, unchanged).
+- Better: the drop tapers into the load instead of a slab with a hem in mid-air; the spare cloth gathers above the tie; the dark posts under it read as straps on the load. Still weak: the tie is ruler-straight; the near lower corner flares as a stiff skirt; the ratchet sits on the sheet's edge like a stuck-on block.
+- Feature test: n/a (visual change only). Page errors [] on phone and desk.
+- Checker (Haiku): PASS, no problems (4 pairs, phone and desk).
+- Score (self, knocked for the known lean): creamgap Shape 6.5 · Detail 6.25 · Surface 6.25 · Light 6 · Truth 6 · Works 7 ≈ 6.3 (BEFORE 5.96, reviewer 8 Nov); creamclose ≈ 6.5 (BEFORE 6.38). Page row 7.8 -> 7.82, review due.
