@@ -76,6 +76,7 @@ After each build, before replying:
 - Watch: a racking row runs along its local +x, so on the right wall (ry −90°) it heads toward the door: start it at the far end.
 
 ## Traps learned
+- WW cloth straps (9 Nov 04:xx): lay a strap by finding where the solved sheet crosses a target height per row, so the height can be any function of z (`TIEH`) with no re-solve; put fittings (ratchets) at an index along the laid strap, never at its end row, or they sit on the sheet's edge.
 - WW cloth (9 Nov 00:xx): a sheet squeezed into a gap (`slot`, 35 % spare width) dumps its spare cloth outwards, so the drop barrels off the load and the hem hangs in mid-air. `tie` in bin/cloth_drape.js pushes a band of the drop onto the load late in the solve (eased, so nothing snaps): hem 7–33 cm off the face → 2–10 cm. Ease it in after ~45 % of the steps or the falling edge gets clamped mid-swing.
 - WW film (7 Nov 01:xx): a corner term like exp(-cd/.07) on its own paints the post as one milky pillar full height; gate it by the wrap bands and turn overlaps. And never run two Chromium shoots at once on this box (8 GB): queue desk after phone, ~4 min phone, ~8 min desk.
 - WW scan reading (5 Nov 03:xx): a tall face in a heightmap can be one thin skin. Slice it side-on before building: a rack bay built off the heightmap fought kit already placed and read as a slab; it was a sheet. And check the page's own boxes (`bin/ww_boxes.js`) first. For pleats, give the sheet 35 % spare width and run `slot` along its whole length, with `pins` on a short strip at the back only.

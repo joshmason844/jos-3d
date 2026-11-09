@@ -1539,3 +1539,13 @@ One row per build, so each run gets measurably better.
 - Score (self, knocked for the known lean): creamgap Shape 6.5 · Detail 6.25 · Surface 6.25 · Light 6 · Truth 6 · Works 7 ≈ 6.3 (BEFORE 5.96, reviewer 8 Nov); creamclose ≈ 6.5 (BEFORE 6.38). Page row 7.8 -> 7.82, review due.
 
 - Published: YES, version 149, after this run's source was pushed; live v148 plus this build, keycaps kept. No picture to Josh: not reviewer-passed yet.
+
+## 2026-11-09 04:xx · WW: cream sheet's tie follows the cloth, ratchet onto the face with a handle (Josh's request "line up the LiDAR", cream sheet polish from the 00:xx self-critique) · run 2 of the night on file
+- Meeting: no team change. Not a review run (2nd on file tonight; 01–03:xx left no trace). Forklift-in-Blender still blocked; workshop inside and yard list wait on Josh. Took two of the 00:xx run's own worst finds, small and cheap, so the build and publish fit. Live checked first: v149 = source plus keycaps.
+- Team: Opus 5.5 (boss + builder) built, shot, published. Haiku checker. No researcher, no reviewer. Self-scored, review due.
+- Changed (hall3.js, cream sheet only): `TIEH(z)` = 1.3 m ± ≈ 3 cm along the face; the webbing is laid where the solved sheet crosses that height, the strap shade follows it, plus a faint pinch shade 5 cm above. Ratchet moved from 72 % (the sheet's edge) to 42 % along, sits on the strap's real height, gains a spool and a closed handle with a black grip. Drape solve untouched. Page 0.77 MB.
+- Better: creamclose's strap now rides over the folds instead of a ruler line; the ratchet reads as a ratchet on the strap, not a grey block on the edge. Still weak: the wobble is a smooth sine, not driven by the cloth; the handle grip pokes out sideways; from creamgap the change hardly shows.
+- Feature test: n/a (visual change only). Page errors [] on phone and desk.
+- Checker (Haiku): PASS, no problems (4 pairs, phone and desk). It wouldn't write errors.md; I did.
+- Score (self, knocked for the known lean): creamclose ≈ 6.6 (BEFORE ≈ 6.5); creamgap level (≈ 6.3). Page row 7.82 -> 7.83, review due.
+- Published: YES, version 150, after this run's source was pushed; live v149 plus this build, keycaps kept. No picture to Josh: not reviewer-passed yet.
