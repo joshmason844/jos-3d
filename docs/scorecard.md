@@ -1537,3 +1537,5 @@ One row per build, so each run gets measurably better.
 - Feature test: n/a (visual change only). Page errors [] on phone and desk.
 - Checker (Haiku): PASS, no problems (4 pairs, phone and desk).
 - Score (self, knocked for the known lean): creamgap Shape 6.5 · Detail 6.25 · Surface 6.25 · Light 6 · Truth 6 · Works 7 ≈ 6.3 (BEFORE 5.96, reviewer 8 Nov); creamclose ≈ 6.5 (BEFORE 6.38). Page row 7.8 -> 7.82, review due.
+
+- Published: YES, version 149, after this run's source was pushed; live v148 plus this build, keycaps kept. No picture to Josh: not reviewer-passed yet.
