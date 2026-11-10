@@ -221,7 +221,10 @@ function planDraw() { const o = plan.sel; pmBars.forEach(b => b.visible = false)
   g.forEach((s, i) => { const b = pmBars[i]; if (s.gap < .02) return; const mid = s.from + s.dir * s.gap / 2; b.visible = true; b.material = pmMat[s.gap < TIGHT ? 1 : 0];
     if (s.ax) { b.scale.set(s.gap, 1, .16); b.position.set(mid, .06, s.at); } else { b.scale.set(.16, 1, s.gap); b.position.set(s.at, .06, mid); } });
   const n = ['left', 'right', 'far side', 'door side'];
-  planUI.hidden = false; planUI.innerHTML = `<b>${o.userData.info.name}</b><br>` + g.map((s, i) => `<span class="${s.gap < TIGHT ? 'bad' : ''}">${n[i]} ${s.gap.toFixed(2)} m</span>`).join(' · ') + '<br><small>to ' + [...new Set(g.map(s => s.what))].slice(0, 3).join(', ') + '</small>' + (isFork(o) ? fkHtml(o) : '') + planBtns(true, ''); }
+  planUI.hidden = false; planUI.innerHTML = `<b>${o.userData.info.name}</b><br>` + g.map((s, i) => `<span class="${s.gap < TIGHT ? 'bad' : ''}">${n[i]} ${s.gap.toFixed(2)} m</span>`).join(' · ') + '<br><small>to ' + [...new Set(g.map(s => s.what))].slice(0, 3).join(', ') + '</small>' + tightWhy(g, n) + (isFork(o) ? fkHtml(o) : '') + planBtns(true, ''); }
+// 10 Nov 07:xx (review find: a red gap didn't say why). Name the narrowest red gap, what it runs to and why it's red; a flush 0.00 m side (pushed up to a wall or kit) isn't an aisle, so it's left out.
+function tightWhy(g, n) { const t = g.map((s, i) => ({ ...s, side: n[i] })).filter(s => s.gap >= .02 && s.gap < TIGHT).sort((a, b) => a.gap - b.gap)[0];
+  return t ? `<br><small class="bad">${t.side[0].toUpperCase() + t.side.slice(1)} ${t.gap.toFixed(2)} m to ${t.what}: under ${TIGHT.toFixed(1)} m, too tight to walk kit through</small>` : ''; }
 function planLabels() { pmBox.style.display = plan.on ? '' : 'none'; const put = [], o = plan.sel;
   // 10 Nov 06:xx (review find): labels sat at each bar's middle, so on a phone they covered the item they measure. Now each one slides out along its own
   // bar until it clears the item (and any label already up), going past the bar's end for a tiny gap; a 2 px outline draws the picked item on top of everything.
