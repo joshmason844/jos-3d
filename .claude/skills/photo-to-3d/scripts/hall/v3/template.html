@@ -61,6 +61,7 @@ html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 
 #plan[hidden]{display:none}#pmlabs{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}#plan b{color:var(--green);font:700 .95rem/1.1 Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.05em;text-transform:uppercase}#plan .bad{color:#ff6b6b}#plan span{white-space:nowrap}#plan small{color:var(--mute)}#plan .pb{display:flex;align-items:center;gap:8px;margin-top:6px}#plan .pb small{line-height:1.3}#plan button{flex:none;background:rgba(61,255,138,.08);border:1px solid rgba(61,255,138,.5);color:var(--green);font:500 .64rem/1 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:9px 11px;min-height:36px;cursor:pointer}#plan button[data-a=reset]{border-color:var(--line);color:var(--ink);background:transparent}#plan small.bad{color:#ff6b6b}#plan b.warn{display:inline-block;margin-top:4px;font:600 .74rem/1.3 'IBM Plex Mono',monospace;letter-spacing:0;text-transform:none;color:#fff;background:#d93636;padding:3px 6px}
 .pm{position:absolute;z-index:2;transform:translate(-50%,-50%);font:500 .66rem/1 'IBM Plex Mono',monospace;color:#04140a;background:#3dff8a;padding:3px 5px;white-space:nowrap;pointer-events:none}.pm.bad{background:#ff4d4d;color:#fff}.pm.wz{background:#4fb3ff;color:#031322}
 @media (max-width:640px){.pm{font-size:.74rem}}
+.pmring{position:absolute;box-sizing:border-box;border:2px solid #3dff8a;box-shadow:0 0 0 1px rgba(4,20,10,.85),inset 0 0 0 1px rgba(4,20,10,.85);pointer-events:none;z-index:3}
 </style>
 </head>
 <body>
@@ -197,6 +198,7 @@ const hits = (a, b, e = .015) => a[0] < b[1] - e && a[1] > b[0] + e && a[2] < b[
 const plan = { on: false, sel: null, drag: null, obs: [], gaps: null };
 const planUI = document.createElement('div'); planUI.id = 'plan'; planUI.hidden = true; document.querySelector('.top').appendChild(planUI);
 const pmBox = document.createElement('div'); pmBox.id = 'pmlabs'; document.body.appendChild(pmBox);   // own layer: placeLabels() hides #labels whenever no item label is up
+const pmRing = document.createElement('div'); pmRing.className = 'pmring'; pmRing.style.display = 'none'; pmBox.appendChild(pmRing);   // picked item's outline, over the gap labels
 const pmLabs = [0, 1, 2, 3].map(() => { const d = document.createElement('div'); d.className = 'pm'; pmBox.appendChild(d); return d; });
 const pmMat = [new THREE.MeshBasicMaterial({ color: 0x3dff8a, depthTest: false, transparent: true, opacity: .9 }), new THREE.MeshBasicMaterial({ color: 0xff4d4d, depthTest: false, transparent: true, opacity: .9 })];
 const pmEdge = new THREE.Box3Helper(new THREE.Box3(), 0x3dff8a); pmEdge.material.depthTest = false; pmEdge.renderOrder = 11; pmEdge.visible = false; scene.add(pmEdge);
@@ -220,13 +222,26 @@ function planDraw() { const o = plan.sel; pmBars.forEach(b => b.visible = false)
     if (s.ax) { b.scale.set(s.gap, 1, .16); b.position.set(mid, .06, s.at); } else { b.scale.set(.16, 1, s.gap); b.position.set(s.at, .06, mid); } });
   const n = ['left', 'right', 'far side', 'door side'];
   planUI.hidden = false; planUI.innerHTML = `<b>${o.userData.info.name}</b><br>` + g.map((s, i) => `<span class="${s.gap < TIGHT ? 'bad' : ''}">${n[i]} ${s.gap.toFixed(2)} m</span>`).join(' · ') + '<br><small>to ' + [...new Set(g.map(s => s.what))].slice(0, 3).join(', ') + '</small>' + (isFork(o) ? fkHtml(o) : '') + planBtns(true, ''); }
-function planLabels() { pmBox.style.display = plan.on ? '' : 'none'; const put = []; pmLabs.forEach((d, i) => { const s = plan.gaps && plan.gaps[i]; if (!plan.on || !s || s.gap < .02) { d.style.display = 'none'; return; }
-  const p = new THREE.Vector3(...(s.ax ? [s.from + s.dir * s.gap / 2, .06, s.at] : [s.at, .06, s.from + s.dir * s.gap / 2])).project(camera);
-  if (p.z > 1 || Math.abs(p.x) > 1 || Math.abs(p.y) > 1) { d.style.display = 'none'; return; }
-  d.style.display = ''; d.textContent = s.gap.toFixed(2) + ' m'; d.classList.toggle('bad', s.gap < TIGHT); let x = (p.x + 1) / 2 * innerWidth, y = (1 - p.y) / 2 * innerHeight; const w = d.offsetWidth || 50, hh = d.offsetHeight || 16;   // a label that would sit on one already up steps down a line (close-set gaps on a phone)
-  for (let k = 0; k < 4 && put.some(q => Math.abs(q[0] - x) < (q[2] + w) / 2 + 2 && Math.abs(q[1] - y) < hh + 2); k++) y += hh + 3;
-  const lo = Math.max(...[...document.querySelectorAll('.top>*')].filter(e => !e.hidden).map(e => e.getBoundingClientRect().bottom)) + hh / 2 + 4, hi = Math.min(...[...document.querySelectorAll('.bar button')].map(e => e.getBoundingClientRect().top)) - hh / 2 - 4;
-  y = Math.min(Math.max(y, lo), hi);   // never under the panels or the button bar (checker, 9 Nov: a label hid under 'walk in')
+function planLabels() { pmBox.style.display = plan.on ? '' : 'none'; const put = [], o = plan.sel;
+  // 10 Nov 06:xx (review find): labels sat at each bar's middle, so on a phone they covered the item they measure. Now each one slides out along its own
+  // bar until it clears the item (and any label already up), going past the bar's end for a tiny gap; a 2 px outline draws the picked item on top of everything.
+  let ir = null; if (plan.on && o && plan.gaps) { const b = new THREE.Box3().setFromObject(o), xs = [], ys = [];
+    for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) { const q = new THREE.Vector3(x, y, z).project(camera); xs.push((q.x + 1) / 2 * innerWidth); ys.push((1 - q.y) / 2 * innerHeight); }
+    ir = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)]; }
+  pmRing.style.display = ir ? '' : 'none'; if (ir) Object.assign(pmRing.style, { left: ir[0] - 3 + 'px', top: ir[2] - 3 + 'px', width: ir[1] - ir[0] + 6 + 'px', height: ir[3] - ir[2] + 6 + 'px' });
+  const lo = Math.max(...[...document.querySelectorAll('.top>*')].filter(e => !e.hidden).map(e => e.getBoundingClientRect().bottom)) + 4, hi = Math.min(...[...document.querySelectorAll('.bar button')].map(e => e.getBoundingClientRect().top)) - 4;
+  const sp = v => { const q = new THREE.Vector3(...v).project(camera); return [(q.x + 1) / 2 * innerWidth, (1 - q.y) / 2 * innerHeight, q.z]; };
+  pmLabs.forEach((d, i) => { const s = plan.gaps && plan.gaps[i]; if (!plan.on || !s || s.gap < .02) { d.style.display = 'none'; return; }
+  const at = t => s.ax ? [s.from + s.dir * t, .06, s.at] : [s.at, .06, s.from + s.dir * t], a = sp(at(0)), e = sp(at(s.gap)), m = sp(at(s.gap / 2));
+  if (m[2] > 1 || m[0] < 0 || m[0] > innerWidth || m[1] < 0 || m[1] > innerHeight) { d.style.display = 'none'; return; }
+  d.style.display = ''; d.textContent = s.gap.toFixed(2) + ' m'; d.classList.toggle('bad', s.gap < TIGHT); const w = d.offsetWidth || 50, hh = d.offsetHeight || 16;
+  let ux = e[0] - a[0], uy = e[1] - a[1]; const L = Math.hypot(ux, uy) || 1; ux /= L; uy /= L;   // screen direction of the bar, away from the item
+  const clash = (x, y) => (ir && x + w / 2 + 6 > ir[0] && x - w / 2 - 6 < ir[1] && y + hh / 2 + 6 > ir[2] && y - hh / 2 - 6 < ir[3]) || put.some(q => Math.abs(q[0] - x) < (q[2] + w) / 2 + 3 && Math.abs(q[1] - y) < hh + 3);
+  let x = m[0], y = m[1]; for (let k = 0; k < 60 && clash(x, y); k++) { x += ux * 4; y += uy * 4; }   // slide outward 4 px at a time (at most 240 px)
+  if (clash(x, y)) { x = m[0]; y = m[1]; for (let k = 0; k < 4 && clash(x, y); k++) y += hh + 3; }   // boxed in: old rule, step down a line
+  x = Math.min(Math.max(x, w / 2 + 2), innerWidth - w / 2 - 2); y = Math.min(Math.max(y, lo + hh / 2), hi - hh / 2);   // never under the panels or the button bar (checker, 9 Nov)
+  const fit = (x, y) => [Math.min(Math.max(x, w / 2 + 2), innerWidth - w / 2 - 2), Math.min(Math.max(y, lo + hh / 2), hi - hh / 2)];
+  if (clash(x, y)) for (let k = 1; k <= 40; k++) { const c = [[x - uy * 4 * k, y + ux * 4 * k], [x + uy * 4 * k, y - ux * 4 * k]].map(q => fit(...q)).find(q => !clash(...q)); if (c) { [x, y] = c; break; } }   // pushed back onto the item by the panel or the button bar: step sideways off it
   put.push([x, y, w]); d.style.left = x + 'px'; d.style.top = y + 'px'; }); }
 function planOn(on) { plan.on = on; $('plan-b').classList.toggle('on', on); plan.sel = null; plan.drag = null; controls.enabled = true;
   if (on) { for (const id of ['vDoor', 'vFar', 'vTop']) $(id).classList.remove('on'); const ph = innerWidth / innerHeight < .8, h = ph ? 38 : 40, zc = ph ? -18.8 : -19.5; go([10, h, zc + .01], [10, 0, zc], false); /* phone: higher and nudged doorwards so the door wall clears the button bar */ planUI.hidden = false; planUI.innerHTML = '<b>Plan</b><br>Drag any floor kit: it snaps to 10 cm, stops at walls and kit, and shows the gaps in metres. Tap one to turn it.' + planBtns(false, planLoaded > 0 ? `Your layout from last time is back (${planLoaded} moved).` : 'Saved on this device as you go.'); }
