@@ -58,7 +58,7 @@ html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 
 #secs.shut .zb{display:none}
 @media (max-width:640px){#secs{top:auto;bottom:calc(118px + env(safe-area-inset-bottom));right:10px}#secs button{padding:6px 8px;font-size:.56rem}}
 #plan{max-width:min(420px,calc(100vw - 32px));background:var(--glass);border:1px solid rgba(61,255,138,.45);border-left:3px solid var(--green);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:8px 12px;font:400 .74rem/1.45 'IBM Plex Mono',monospace;color:var(--ink)}
-#plan[hidden]{display:none}#pmlabs{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}#plan b{color:var(--green);font:700 .95rem/1.1 Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.05em;text-transform:uppercase}#plan .bad{color:#ff6b6b}#plan span{white-space:nowrap}#plan small{color:var(--mute)}#plan .pb{display:flex;align-items:center;gap:8px;margin-top:6px}#plan .pb small{line-height:1.3}#plan button{flex:none;background:rgba(61,255,138,.08);border:1px solid rgba(61,255,138,.5);color:var(--green);font:500 .64rem/1 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:9px 11px;min-height:36px;cursor:pointer}#plan button[data-a=reset]{border-color:var(--line);color:var(--ink);background:transparent}#plan small.bad{color:#ff6b6b}
+#plan[hidden]{display:none}#pmlabs{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}#plan b{color:var(--green);font:700 .95rem/1.1 Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.05em;text-transform:uppercase}#plan .bad{color:#ff6b6b}#plan span{white-space:nowrap}#plan small{color:var(--mute)}#plan .pb{display:flex;align-items:center;gap:8px;margin-top:6px}#plan .pb small{line-height:1.3}#plan button{flex:none;background:rgba(61,255,138,.08);border:1px solid rgba(61,255,138,.5);color:var(--green);font:500 .64rem/1 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:9px 11px;min-height:36px;cursor:pointer}#plan button[data-a=reset]{border-color:var(--line);color:var(--ink);background:transparent}#plan small.bad{color:#ff6b6b}#plan b.warn{display:inline-block;margin-top:4px;font:600 .74rem/1.3 'IBM Plex Mono',monospace;letter-spacing:0;text-transform:none;color:#fff;background:#d93636;padding:3px 6px}
 .pm{position:absolute;z-index:2;transform:translate(-50%,-50%);font:500 .66rem/1 'IBM Plex Mono',monospace;color:#04140a;background:#3dff8a;padding:3px 5px;white-space:nowrap;pointer-events:none}.pm.bad{background:#ff4d4d;color:#fff}
 @media (max-width:640px){.pm{font-size:.74rem}}
 </style>
@@ -132,6 +132,7 @@ $('cardX').onclick = () => select(null);
 const ray = new THREE.Raycaster(); let down;
 renderer.domElement.addEventListener('pointerdown', e => { mini(); down = [e.clientX, e.clientY]; controls.autoRotate = false; $('spin').classList.remove('on'); fly = null; });
 renderer.domElement.addEventListener('pointerup', e => { if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
+  if (plan.on && plan.drag) { select(null); return; }   // plan mode: a tap on movable kit opens the plan panel only (two stacked cards covered a third of a phone, 10 Nov 02:xx)
   ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1), camera);
   let o = null; for (const h of ray.intersectObjects(scene.children, true)) { if (!h.object.visible || h.object === selBox) continue; o = h.object; while (o && !o.userData.info) o = o.parent; if (o && o.userData.noPick) o = null; if (o) break; } select(o); });
 function layoutView() { renderer.setSize(innerWidth, innerHeight, false); composer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.fov = innerWidth / innerHeight < .8 ? 70 : 55; camera.updateProjectionMatrix(); }
@@ -175,7 +176,7 @@ function placeLabels() { const near = !labelsOn, cand = []; wsHid = 0;
 // ── Yard planner P1 (9 Nov 23:xx, Josh's request "WW: yard planner"). 'plan' looks straight down with the roof off. Drag any piece of floor
 // kit (finger or mouse): it snaps to 10 cm, won't go into anything else or through a wall (it slides along whatever it hits), and the clear gap
 // to the nearest thing on each of its four sides is drawn on the floor and read out in metres (red under 0.9 m: too tight to walk kit through).
-// Not yet (P3+): the forklift's turning circle, wet-canvas zones. Baked floor shadows stay where they were (P5). Turning, saving and reset: P2 below.
+// Not yet (P4+): wet-canvas zones. Forklift turning circles: P3 below. Baked floor shadows stay where they were (P5). Turning, saving and reset: P2 below.
 const PLAN_KIT = ['Forklift', 'Ply crate (yard bay floor)', 'Plywood crate (GY badge)', 'Rugs (folded, strapped)', 'Canvas kit bag', 'Steel kegs', 'Tent cartons and leaning panels',
   'Folded canvas (yard bay floor)', 'Workbench under a tarp', 'Sack truck', 'Floor panels (stack by the side door)', 'Trellis stood on end', 'Black crate tower', '12 ft crown crates',
   'Safari tent crates', 'Spare crowns (on edge)', 'Tipi canvas crates', '12 ft canvas crate', '16 ft trellis + door stillages', '14 ft crown crates', 'Tent stakes',
@@ -206,13 +207,13 @@ function planGaps(o) {   // clear gap to the nearest obstacle (or wall) on each 
       if (g > -.02 && g < best) { best = Math.max(0, g); at = (Math.max(q[olo], r[olo]) + Math.min(q[ohi], r[ohi])) / 2; what = INFO.find(p => rectOf(p).every((v, i) => Math.abs(v - q[i]) < 1e-6))?.userData.info.name || 'kit'; } }
     return { gap: +best.toFixed(2), at, what, ax, dir, from: dir > 0 ? r[ax ? 1 : 3] : r[ax ? 0 : 2] }; };
   out.push(side(1, -1), side(1, 1), side(0, -1), side(0, 1)); return out; }
-function planDraw() { const o = plan.sel; pmBars.forEach(b => b.visible = false); pmOut.visible = pmEdge.visible = false; if (!plan.on || !o) { planUI.hidden = !plan.on; plan.gaps = null; return; }
+function planDraw() { const o = plan.sel; pmBars.forEach(b => b.visible = false); fkRings.forEach(g => g.visible = false); pmOut.visible = pmEdge.visible = false; if (!plan.on || !o) { planUI.hidden = !plan.on; plan.gaps = null; return; }
   const g = plan.gaps = planGaps(o), r = rectOf(o);
   pmEdge.box.setFromObject(o); pmEdge.visible = true; pmOut.visible = true; pmOut.scale.set(r[1] - r[0], 1, r[3] - r[2]); pmOut.position.set((r[0] + r[1]) / 2, .04, (r[2] + r[3]) / 2);
   g.forEach((s, i) => { const b = pmBars[i]; if (s.gap < .02) return; const mid = s.from + s.dir * s.gap / 2; b.visible = true; b.material = pmMat[s.gap < TIGHT ? 1 : 0];
     if (s.ax) { b.scale.set(s.gap, 1, .16); b.position.set(mid, .06, s.at); } else { b.scale.set(.16, 1, s.gap); b.position.set(s.at, .06, mid); } });
   const n = ['left', 'right', 'far side', 'door side'];
-  planUI.hidden = false; planUI.innerHTML = `<b>${o.userData.info.name}</b><br>` + g.map((s, i) => `<span class="${s.gap < TIGHT ? 'bad' : ''}">${n[i]} ${s.gap.toFixed(2)} m</span>`).join(' · ') + '<br><small>to ' + [...new Set(g.map(s => s.what))].slice(0, 3).join(', ') + '</small>' + planBtns(true, ''); }
+  planUI.hidden = false; planUI.innerHTML = `<b>${o.userData.info.name}</b><br>` + g.map((s, i) => `<span class="${s.gap < TIGHT ? 'bad' : ''}">${n[i]} ${s.gap.toFixed(2)} m</span>`).join(' · ') + '<br><small>to ' + [...new Set(g.map(s => s.what))].slice(0, 3).join(', ') + '</small>' + (isFork(o) ? fkHtml(o) : '') + planBtns(true, ''); }
 function planLabels() { pmBox.style.display = plan.on ? '' : 'none'; const put = []; pmLabs.forEach((d, i) => { const s = plan.gaps && plan.gaps[i]; if (!plan.on || !s || s.gap < .02) { d.style.display = 'none'; return; }
   const p = new THREE.Vector3(...(s.ax ? [s.from + s.dir * s.gap / 2, .06, s.at] : [s.at, .06, s.from + s.dir * s.gap / 2])).project(camera);
   if (p.z > 1 || Math.abs(p.x) > 1 || Math.abs(p.y) > 1) { d.style.display = 'none'; return; }
@@ -239,6 +240,25 @@ renderer.domElement.addEventListener('pointermove', e => { const d = plan.drag; 
     while (s && Math.abs(want[a] - c[a]) > SNAP / 2) { const n = c.slice(); n[a] = Math.round((d.r0[a ? 2 : 0] + c[a] + s) / SNAP) * SNAP - d.r0[a ? 2 : 0]; if (!ok(n)) break; c = n; } }
   if (c[0] !== cur[0] || c[1] !== cur[1]) { d.o.position.set(d.p0.x + c[0], d.p0.y, d.p0.z + c[1]); d.o.updateMatrixWorld(true); planDraw(); } });
 const planEnd = e => { if (!plan.drag || (e && e.pointerId !== plan.drag.id)) return; const moved = !plan.drag.o.position.equals(plan.drag.p0); plan.drag = null; controls.enabled = true; if (moved) planSave(); planDraw(); };
+// ── P3 (10 Nov 02:xx): the forklift's turning circles, drawn on the floor while it's picked or dragged. Doosan's G15S-5 booklet gives a minimum
+// (outside) turning radius of 1977 mm (Ritchie Specs: 6.4 ft ≈ 1.95 m). A counterbalance truck steers with its back wheels and turns about a point
+// on the drive-axle line beside the inner front wheel: rear corner 1.67 m behind the axle and 0.535 m off centre, so R² = 1.67² + (c + 0.535)²
+// puts that point c ≈ 0.52 m off the centre line. One circle per way it can turn; a circle goes red if a wall or any kit sits inside it,
+// and the panel says which way it can still turn (or that it can't turn here at all). Forks empty: a load sticking out needs more.
+const FK_R = 1.977, FK_C = [.52, -1.55];   // radius; turning centre in the forklift's own frame (x right of the driver, forks along −z, drive axle z −1.55)
+const isFork = o => !!o && o.userData.info.name.startsWith('Forklift');
+const fkRings = [0, 1].map(() => { const g = new THREE.Group(), mk = (geo, op, ro) => { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x3dff8a, depthTest: false, transparent: true, opacity: op })); m.rotation.x = -Math.PI / 2; m.renderOrder = ro; m.userData.noAO = true; g.add(m); return m; };
+  g.userData.fill = mk(new THREE.CircleGeometry(FK_R, 96), .12, 8); g.userData.ring = mk(new THREE.RingGeometry(FK_R - .06, FK_R, 128), .95, 10); g.userData.dot = mk(new THREE.CircleGeometry(.09, 24), .95, 10);
+  g.position.y = .05; g.visible = false; scene.add(g); return g; });
+const nameOf = q => INFO.find(p => rectOf(p).every((v, i) => Math.abs(v - q[i]) < 1e-6))?.userData.info.name || 'kit';
+function fkTurn(o) { const obs = planObs(o), r = rectOf(o), mx = (r[0] + r[1]) / 2, mz = (r[2] + r[3]) / 2;   // one per turning direction; named by where its centre sits on the plan (same words as the gaps: the driver's left is the plan's right when it faces the door). room = centre to the nearest wall or kit
+  return [-1, 1].map(s => { const c = o.localToWorld(new THREE.Vector3(s * FK_C[0], 0, FK_C[1])), dx = c.x - mx, dz = c.z - mz, side = Math.abs(dx) > Math.abs(dz) ? (dx < 0 ? 'left' : 'right') : (dz < 0 ? 'far side' : 'door side'); let room = Math.min(c.x - PLAN_IN[0], PLAN_IN[1] - c.x, c.z - PLAN_IN[2], PLAN_IN[3] - c.z), what = 'the wall';
+    for (const q of obs) { const d = Math.hypot(Math.max(q[0] - c.x, 0, c.x - q[1]), Math.max(q[2] - c.z, 0, c.z - q[3])); if (d < room) { room = d; what = nameOf(q); } }
+    return { side, c: [+c.x.toFixed(3), +c.z.toFixed(3)], room: +room.toFixed(2), clear: room >= FK_R, what }; }); }
+function fkHtml(o) { const t = fkTurn(o); t.forEach((s, i) => { const g = fkRings[i], col = s.clear ? 0x3dff8a : 0xff4d4d; g.position.set(s.c[0], .05, s.c[1]); g.visible = true;
+    for (const k of ['fill', 'ring', 'dot']) g.userData[k].material.color.setHex(col); g.userData.fill.material.opacity = s.clear ? .1 : .2; });
+  const ok = t.filter(s => s.clear), line = t.map(s => s.clear ? `<span>room to turn ${s.side} ✓</span>` : `<span class="bad">${s.side} ✗ ${s.what} ${(FK_R - s.room).toFixed(2)} m in</span>`).join('<br>');   // one line each: a ' · ' wrapped to the start of a line on a phone (checker, 10 Nov)
+  return `<br><small>Turning circles (G15S, ${FK_R.toFixed(2)} m outside radius, forks empty):</small><br>` + line + (ok.length ? '' : '<br><b class="warn">Too tight to turn round here: drag it into open floor.</b>'); }
 // ── P2 (10 Nov 01:xx): turn the selected item 90° (it turns about its own middle, lands on the 10 cm grid, and if it won't fit there it takes
 // the nearest free spot within a metre, else stays put and says so), the layout saved on this device (localStorage, under try/catch: private
 // windows and previews throw) and put back on the next visit, and 'reset layout' to put everything back where it really is.
@@ -270,7 +290,7 @@ const planLoaded = planLoad();
 renderer.domElement.addEventListener('pointerup', planEnd); renderer.domElement.addEventListener('pointercancel', planEnd);
 window.__plan = { on: planOn, turn: () => plan.sel && planTurn(plan.sel), reset: planReset, saved: () => { try { return JSON.parse(localStorage.getItem(PLAN_KEY) || 'null'); } catch (e) { return 'blocked'; } }, loaded: () => planLoaded, items: () => MOVE.map(o => o.userData.info.name), gaps: () => plan.gaps && plan.gaps.map(s => s.gap), rect: n => { const o = MOVE.find(m => m.userData.info.name.startsWith(n)); return o && rectOf(o).map(v => +v.toFixed(3)); },
   screen: n => { const o = MOVE.find(m => m.userData.info.name.startsWith(n)); const c = new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3()); c.y = new THREE.Box3().setFromObject(o).max.y; c.project(camera); return [(c.x + 1) / 2 * innerWidth, (1 - c.y) / 2 * innerHeight]; },
-  sel: () => plan.sel && plan.sel.userData.info.name, overlaps: () => { const bad = []; for (const o of MOVE) { const r = rectOf(o); for (const q of planObs(o)) if (hits(q, r)) bad.push(o.userData.info.name); } return bad; } };
+  sel: () => plan.sel && plan.sel.userData.info.name, fk: () => isFork(plan.sel) ? fkTurn(plan.sel) : null, fkRings: () => fkRings.map(g => g.visible), overlaps: () => { const bad = []; for (const o of MOVE) { const r = rectOf(o); for (const q of planObs(o)) if (hits(q, r)) bad.push(o.userData.info.name); } return bad; } };
 window.__loop = on => renderer.setAnimationLoop(on ? LOOP : null); window.__frame = () => { const n = performance.now(); LOOP(n); };   // tests: pause the loop while driving input (a SwiftShader frame takes 20–45 s), draw one frame before a shot
 window.__view = view; window.__zone = i => document.querySelectorAll('#secs .zb')[i].click(); window.__pick = n => select(PICK.find(o => o.userData.info.name.startsWith(n)) || null); window.__inside = () => $('inside').click(); window.__hq = on => { HQ = on; }; window.__cam = (p, t, roof = true) => { mini(); fly = null; secs(false); camera.position.fromArray(p); controls.target.fromArray(t); roofG.visible = roof; controls.update(); camera.updateMatrixWorld(); placeLabels(); }; window.__labels = () => $('vLab').click(); window.__boxes = () => INFO.map(o => { const b = new THREE.Box3().setFromObject(o); return [o.userData.info.name, ...b.min.toArray().map(v => +v.toFixed(2)), ...b.max.toArray().map(v => +v.toFixed(2))]; }); window.__ready = true;   // footprints of every tagged item, for bin/ww_boxes.js (scan vs model)
 </script>
