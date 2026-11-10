@@ -5,7 +5,7 @@ Every page in the challenge, its latest score from a fresh-eyes review, and the 
 | Page               | Start (14 Oct) | Latest | Target | At standard? |
 |--------------------|----------------|--------|--------|--------------|
 | People in 3D       | 6.3            | 6.3    | 8      | no           |
-| WW (workshop warehouse) | 6.3            | 7.84 (9 Nov 06:xx, self-scored, review due: cream sheet's ratchet handle shut flat on the strap, loose strap tail added; LIVE as v151. Last reviewer check 8 Nov 07:xx: 7.8) | 8      | no           |
+| WW (workshop warehouse) | 6.3            | 7.86 (10 Nov 00:xx, self-scored, review due: yard planner P1, 'plan' mode, drag floor kit with live aisle gaps; LIVE. Last reviewer check 8 Nov 07:xx: 7.8) | 8      | no           |
 | Sections 1–5       | 7.0            | 7.0    | 8      | no           |
 
 Pages: 0 of 3 at standard.

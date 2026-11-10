@@ -18,5 +18,11 @@ t = t.replace('__DRAPE_OLIVE__', open('drape_olive.b64').read().strip())   # 5 N
 t = t.replace('__DRAPE_CREAM__', open('drape_cream.b64').read().strip())   # 4 Nov: the sheet over the cream block, same solver
 t = t.replace('__DRAPE_BENCH__', open('drape_bench.b64').read().strip())   # 3 Nov: the tarp baked offline by bin/cloth_drape.js
 open('hall3.html', 'w').write(t); print('hall3', round(len(t) / 1e6, 2), 'MB')
+# 9 Nov: syntax-check the built page's module too: an edit in template.html once left a '//' comment eating the rest of a line and the page
+# never got to __ready (a 300 s test timeout with no page error, because a module that fails to parse logs nothing to Playwright)
+if _sh.which('node'):
+    _m = t[t.index('<script type="module">') + 22:t.rindex('</script>')]; _t = _tf.NamedTemporaryFile('w', suffix='.mjs', delete=False); _t.write(_m); _t.close()
+    _r = _sp.run(['node', '--check', _t.name], capture_output=True, text=True); _os.unlink(_t.name)
+    if _r.returncode: raise SystemExit('hall3.html module (template.html): syntax error\n' + _r.stderr.replace(_t.name, 'module'))
 # stamp the page with a 'code ↗' link to this source on GitHub
 __import__('subprocess').run([__import__('sys').executable, ROOT + '/bin/link_code.py', 'hall3.html', '.claude/skills/photo-to-3d/scripts/hall/v3'], check=False)
