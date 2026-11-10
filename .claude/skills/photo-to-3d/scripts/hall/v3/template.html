@@ -59,7 +59,7 @@ html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font:400 
 @media (max-width:640px){#secs{top:auto;bottom:calc(118px + env(safe-area-inset-bottom));right:10px}#secs button{padding:6px 8px;font-size:.56rem}}
 #plan{max-width:min(420px,calc(100vw - 32px));background:var(--glass);border:1px solid rgba(61,255,138,.45);border-left:3px solid var(--green);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:8px 12px;font:400 .74rem/1.45 'IBM Plex Mono',monospace;color:var(--ink)}
 #plan[hidden]{display:none}#pmlabs{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}#plan b{color:var(--green);font:700 .95rem/1.1 Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.05em;text-transform:uppercase}#plan .bad{color:#ff6b6b}#plan span{white-space:nowrap}#plan small{color:var(--mute)}#plan .pb{display:flex;align-items:center;gap:8px;margin-top:6px}#plan .pb small{line-height:1.3}#plan button{flex:none;background:rgba(61,255,138,.08);border:1px solid rgba(61,255,138,.5);color:var(--green);font:500 .64rem/1 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:9px 11px;min-height:36px;cursor:pointer}#plan button[data-a=reset]{border-color:var(--line);color:var(--ink);background:transparent}#plan small.bad{color:#ff6b6b}#plan b.warn{display:inline-block;margin-top:4px;font:600 .74rem/1.3 'IBM Plex Mono',monospace;letter-spacing:0;text-transform:none;color:#fff;background:#d93636;padding:3px 6px}
-.pm{position:absolute;z-index:2;transform:translate(-50%,-50%);font:500 .66rem/1 'IBM Plex Mono',monospace;color:#04140a;background:#3dff8a;padding:3px 5px;white-space:nowrap;pointer-events:none}.pm.bad{background:#ff4d4d;color:#fff}
+.pm{position:absolute;z-index:2;transform:translate(-50%,-50%);font:500 .66rem/1 'IBM Plex Mono',monospace;color:#04140a;background:#3dff8a;padding:3px 5px;white-space:nowrap;pointer-events:none}.pm.bad{background:#ff4d4d;color:#fff}.pm.wz{background:#4fb3ff;color:#031322}
 @media (max-width:640px){.pm{font-size:.74rem}}
 </style>
 </head>
@@ -144,7 +144,7 @@ const LOOP = now => { const dt = Math.min(.05, (now - t0) / 1000); t0 = now;
   if (fly) { const k = Math.min(1, (now - fly.start) / 1400), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; camera.position.lerpVectors(fly.p0, fly.p1, e); controls.target.lerpVectors(fly.t0, fly.t1, e); if (k >= 1) fly = null; }
   const was = lift; lift += (liftWant - lift) * Math.min(1, dt * 4); if (Math.abs(lift - was) > 1e-4) { CRATES.forEach(c => c.userData.lift(lift)); ONTOP.forEach(u => { u.o.position.y = u.y0 + u.level * lift * (u.h + .5); }); }
   controls.update(); if (HQ) composer.render(); else renderer.render(scene, camera); if (selO) selBox.box.setFromObject(selO);
-  placeLabels(); planLabels(); }; renderer.setAnimationLoop(LOOP);
+  placeLabels(); planLabels(); wetLabels(); }; renderer.setAnimationLoop(LOOP);
 // labels (24 Oct): nearest first, and one that would overlap a label already placed is skipped. Close up (within NEAR m) the labels show
 // even with 'labels' off, at most NEAR_MAX, so every guessed tool in a close-up carries its orange NOT SURE chip.
 const NEAR = 2.6, NEAR_MAX = 4;
@@ -176,7 +176,7 @@ function placeLabels() { const near = !labelsOn, cand = []; wsHid = 0;
 // ── Yard planner P1 (9 Nov 23:xx, Josh's request "WW: yard planner"). 'plan' looks straight down with the roof off. Drag any piece of floor
 // kit (finger or mouse): it snaps to 10 cm, won't go into anything else or through a wall (it slides along whatever it hits), and the clear gap
 // to the nearest thing on each of its four sides is drawn on the floor and read out in metres (red under 0.9 m: too tight to walk kit through).
-// Not yet (P4+): wet-canvas zones. Forklift turning circles: P3 below. Baked floor shadows stay where they were (P5). Turning, saving and reset: P2 below.
+// Wet-canvas zones: P4 below. Forklift turning circles: P3 below. Baked floor shadows stay where they were (P5). Turning, saving and reset: P2 below.
 const PLAN_KIT = ['Forklift', 'Ply crate (yard bay floor)', 'Plywood crate (GY badge)', 'Rugs (folded, strapped)', 'Canvas kit bag', 'Steel kegs', 'Tent cartons and leaning panels',
   'Folded canvas (yard bay floor)', 'Workbench under a tarp', 'Sack truck', 'Floor panels (stack by the side door)', 'Trellis stood on end', 'Black crate tower', '12 ft crown crates',
   'Safari tent crates', 'Spare crowns (on edge)', 'Tipi canvas crates', '12 ft canvas crate', '16 ft trellis + door stillages', '14 ft crown crates', 'Tent stakes',
@@ -224,10 +224,10 @@ function planLabels() { pmBox.style.display = plan.on ? '' : 'none'; const put =
   put.push([x, y, w]); d.style.left = x + 'px'; d.style.top = y + 'px'; }); }
 function planOn(on) { plan.on = on; $('plan-b').classList.toggle('on', on); plan.sel = null; plan.drag = null; controls.enabled = true;
   if (on) { for (const id of ['vDoor', 'vFar', 'vTop']) $(id).classList.remove('on'); const ph = innerWidth / innerHeight < .8, h = ph ? 38 : 40, zc = ph ? -18.8 : -19.5; go([10, h, zc + .01], [10, 0, zc], false); /* phone: higher and nudged doorwards so the door wall clears the button bar */ planUI.hidden = false; planUI.innerHTML = '<b>Plan</b><br>Drag any floor kit: it snaps to 10 cm, stops at walls and kit, and shows the gaps in metres. Tap one to turn it.' + planBtns(false, planLoaded > 0 ? `Your layout from last time is back (${planLoaded} moved).` : 'Saved on this device as you go.'); }
-  else { roofG.visible = true; planUI.hidden = true; } planDraw(); }
+  else { roofG.visible = true; planUI.hidden = true; wet.on = false; wet.drag = null; wet.draw = null; } planDraw(); wetDraw(); }
 const planBtn = document.createElement('button'); planBtn.id = 'plan-b'; planBtn.textContent = 'plan'; planBtn.onclick = () => planOn(!plan.on); document.querySelector('.bar').appendChild(planBtn);
 const floorHit = (e, y) => { ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1), camera); return ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -y), new THREE.Vector3()); };
-renderer.domElement.addEventListener('pointerdown', e => { if (!plan.on || plan.drag) return;   // capture phase: runs before OrbitControls, so a grab never orbits the camera
+renderer.domElement.addEventListener('pointerdown', e => { if (!plan.on || plan.drag || wet.on) return;   // capture phase: runs before OrbitControls, so a grab never orbits the camera
   ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1), camera);
   let o = null, y = 0; for (const h of ray.intersectObjects(MOVE, true)) { if (!h.object.visible) continue; o = MOVE.find(m => anc(m, h.object)); if (o) { y = h.point.y; break; } }
   if (!o) return; controls.enabled = false; fly = null; renderer.domElement.setPointerCapture?.(e.pointerId);
@@ -239,7 +239,7 @@ renderer.domElement.addEventListener('pointermove', e => { const d = plan.drag; 
   let c = cur.slice(); if (ok(want)) c = want; else for (const a of [0, 1]) { const s = Math.sign(want[a] - c[a]) * SNAP;   // blocked: go as far as it fits along x, then z (slides along what it hits, stops flush)
     while (s && Math.abs(want[a] - c[a]) > SNAP / 2) { const n = c.slice(); n[a] = Math.round((d.r0[a ? 2 : 0] + c[a] + s) / SNAP) * SNAP - d.r0[a ? 2 : 0]; if (!ok(n)) break; c = n; } }
   if (c[0] !== cur[0] || c[1] !== cur[1]) { d.o.position.set(d.p0.x + c[0], d.p0.y, d.p0.z + c[1]); d.o.updateMatrixWorld(true); planDraw(); } });
-const planEnd = e => { if (!plan.drag || (e && e.pointerId !== plan.drag.id)) return; const moved = !plan.drag.o.position.equals(plan.drag.p0); plan.drag = null; controls.enabled = true; if (moved) planSave(); planDraw(); };
+const planEnd = e => { if (!plan.drag || (e && e.pointerId !== plan.drag.id)) return; const moved = !plan.drag.o.position.equals(plan.drag.p0); plan.drag = null; controls.enabled = true; if (moved) planSave(); planDraw(); if (moved && wet.zones.length) wetDraw(); };
 // ── P3 (10 Nov 02:xx): the forklift's turning circles, drawn on the floor while it's picked or dragged. Doosan's G15S-5 booklet gives a minimum
 // (outside) turning radius of 1977 mm (Ritchie Specs: 6.4 ft ≈ 1.95 m). A counterbalance truck steers with its back wheels and turns about a point
 // on the drive-axle line beside the inner front wheel: rear corner 1.67 m behind the axle and 0.535 m off centre, so R² = 1.67² + (c + 0.535)²
@@ -274,6 +274,7 @@ function planTurn(o) { const obs = planObs(o), r0 = rectOf(o), x0 = o.position.x
   const ok = tries.find(([dx, dz]) => fits([r[0] + dx, r[1] + dx, r[2] + dz, r[3] + dz], obs));
   if (!ok) { planPut(o, x0, z0, t0); return false; } o.position.x += ok[0]; o.position.z += ok[1]; o.updateMatrixWorld(true); planSave(); return true; }
 function planSave() { const s = {}; MOVE.forEach(o => { const z0 = o.userData.plan0; if (o.userData.turns || Math.abs(o.position.x - z0.p.x) > 1e-4 || Math.abs(o.position.z - z0.p.z) > 1e-4) s[planKey(o)] = [+o.position.x.toFixed(3), +o.position.z.toFixed(3), o.userData.turns]; });
+  if (wet.zones.length) s.__wet = wet.zones.map(z => z.map(v => +v.toFixed(2)));   // P4: drying zones ride along in the same save ('__' never clashes with a kit name)
   try { if (Object.keys(s).length) localStorage.setItem(PLAN_KEY, JSON.stringify(s)); else localStorage.removeItem(PLAN_KEY); return true; } catch (e) { return false; } }
 const footOf = p => { const b = new THREE.Box3().setFromObject(p); return b.isEmpty() || b.max.y < .05 ? null : [b.min.x, b.max.x, b.min.z, b.max.z]; };
 function homeRect(o) { const q = o.quaternion.clone(), p = o.position.clone(), t = o.userData.turns; planPut(o, o.userData.plan0.p.x, o.userData.plan0.p.z, 0); const r = rectOf(o); o.quaternion.copy(q); o.position.copy(p); o.userData.turns = t; o.updateMatrixWorld(true); return r; }
@@ -283,13 +284,67 @@ function planLoad() { let s = null; try { s = JSON.parse(localStorage.getItem(PL
   for (let k = 0; k < 4; k++) { const bad = MOVE.filter(o => (o.userData.turns || !o.position.equals(o.userData.plan0.p)) && planClash(o));
     if (!bad.length) break; bad.forEach(o => { planPut(o, o.userData.plan0.p.x, o.userData.plan0.p.z, 0); n--; }); }   // a saved spot that now clashes (the hall changed since) goes back home
   return n; }
-function planReset() { MOVE.forEach(o => planPut(o, o.userData.plan0.p.x, o.userData.plan0.p.z, 0)); try { localStorage.removeItem(PLAN_KEY); } catch (e) { } plan.sel = null; planDraw(); planUI.innerHTML = '<b>Plan</b><br>Layout reset: everything is back where it really is.' + planBtns(false, 'Nothing saved now.'); }
-const planBtns = (sel, note) => `<div class="pb">${sel ? '<button data-a="turn">turn 90°</button>' : ''}<button data-a="reset">reset layout</button><small>${note}</small></div>`;   // one row: keeps the panel short on a phone
-planUI.addEventListener('click', e => { const a = e.target.closest('button')?.dataset.a; if (a === 'reset') planReset(); else if (a === 'turn' && plan.sel) { const o = plan.sel, done = planTurn(o); planDraw(); if (!done) planUI.insertAdjacentHTML('beforeend', '<br><small class="bad">No room to turn it here: drag it into open floor first.</small>'); } });
+function planReset() { MOVE.forEach(o => planPut(o, o.userData.plan0.p.x, o.userData.plan0.p.z, 0)); wet.zones.length = 0; wet.sel = -1; wetDraw(); try { localStorage.removeItem(PLAN_KEY); } catch (e) { } plan.sel = null; planDraw(); planUI.innerHTML = '<b>Plan</b><br>Layout reset: everything is back where it really is.' + planBtns(false, 'Nothing saved now.'); }
+const planBtns = (sel, note) => `<div class="pb">${sel ? '<button data-a="turn">turn 90°</button>' : '<button data-a="wet">wet canvas</button>'}<button data-a="reset">reset layout</button><small>${note}</small></div>`;   // one row: keeps the panel short on a phone
+planUI.addEventListener('click', e => { const a = e.target.closest('button')?.dataset.a; if (a === 'wet') wetMode(true); else if (a === 'wetdone') wetMode(false); else if (a === 'wetdel') wetDel(); else if (a === 'reset') planReset(); else if (a === 'turn' && plan.sel) { const o = plan.sel, done = planTurn(o); planDraw(); if (wet.zones.length) wetDraw(); if (!done) planUI.insertAdjacentHTML('beforeend', '<br><small class="bad">No room to turn it here: drag it into open floor first.</small>'); } });
+// ── P4 (10 Nov 03:xx): 'wet canvas' mode. Drag out a drying zone on the floor (snaps to 10 cm, stays inside the walls); each zone shows its
+// size and area in m², and how much of it is clear floor (kit sitting in it is subtracted, read on a 10 cm grid against every footprint), so you
+// can see how much canvas you can really lay out. Tap a zone to pick it, 'delete zone' to drop it. Saved with the layout; reset clears them.
+const WET_MAX = 12, WET_MIN = .3, WET_COL = 0x4fb3ff;
+const wet = { on: false, zones: [], sel: -1, draw: null };
+const wetMeshes = [], wetLabs = [];
+const wetMesh = () => { const g = new THREE.Group(), f = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: WET_COL, transparent: true, opacity: .32, depthWrite: false }));
+  f.rotation.x = -Math.PI / 2; f.renderOrder = 7; g.add(f); const e = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(1, 1)), new THREE.LineBasicMaterial({ color: WET_COL, depthTest: false }));
+  e.rotation.x = -Math.PI / 2; e.renderOrder = 12; g.add(e); g.userData = { f, e, noAO: true }; f.userData.noAO = e.userData.noAO = true; g.position.y = .035; g.visible = false; scene.add(g); return g; };
+function wetFeet() { return INFO.filter(p => p.userData.info.name !== 'The hall').map(footOf).filter(Boolean); }
+function wetClear(z, feet) {   // exact: the zone minus the union of every footprint inside it (cells between all the cut lines, each in or out)
+  const fs = feet.map((q, k) => [Math.max(q[0], z[0]), Math.min(q[1], z[1]), Math.max(q[2], z[2]), Math.min(q[3], z[3]), k]).filter(q => q[1] > q[0] + 1e-6 && q[3] > q[2] + 1e-6);
+  const xs = [...new Set([z[0], z[1], ...fs.flatMap(q => [q[0], q[1]])])].sort((a, b) => a - b), ys = [...new Set([z[2], z[3], ...fs.flatMap(q => [q[2], q[3]])])].sort((a, b) => a - b);
+  let cov = 0; for (let i = 0; i + 1 < xs.length; i++) for (let j = 0; j + 1 < ys.length; j++) { const x = (xs[i] + xs[i + 1]) / 2, y = (ys[j] + ys[j + 1]) / 2;
+    if (fs.some(q => x > q[0] && x < q[1] && y > q[2] && y < q[3])) cov += (xs[i + 1] - xs[i]) * (ys[j + 1] - ys[j]); }
+  const area = (z[1] - z[0]) * (z[3] - z[2]); return { area, clear: Math.max(0, area - cov), kit: fs.length }; }
+function wetSnap(a, b) { const s = v => Math.round(v / SNAP) * SNAP, cl = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+  return [s(cl(Math.min(a.x, b.x), PLAN_IN[0], PLAN_IN[1])), s(cl(Math.max(a.x, b.x), PLAN_IN[0], PLAN_IN[1])), s(cl(Math.min(a.z, b.z), PLAN_IN[2], PLAN_IN[3])), s(cl(Math.max(a.z, b.z), PLAN_IN[2], PLAN_IN[3]))]; }
+const m2 = v => v.toFixed(2) + ' m²';
+function wetDraw(re = true) { if (re || !wet.feet) wet.feet = wetFeet(); const feet = wet.feet; wet.areas = wet.zones.map(z => wetClear(z, feet)); const all = wet.draw ? [...wet.zones, wet.draw] : wet.zones; while (wetMeshes.length < all.length) wetMeshes.push(wetMesh());
+  wetMeshes.forEach((g, i) => { const z = all[i]; if (!plan.on || !z) { g.visible = false; return; } g.visible = true; g.scale.set(Math.max(z[1] - z[0], .01), 1, Math.max(z[3] - z[2], .01)); g.position.set((z[0] + z[1]) / 2, .035, (z[2] + z[3]) / 2);
+    const on = i === wet.sel || z === wet.draw; g.userData.f.material.opacity = on ? .5 : .36; g.userData.e.material.color.setHex(on ? 0xffffff : WET_COL); });
+  if (wet.on) wetPanel(); }
+function wetPanel() { const feet = wet.feet || (wet.feet = wetFeet()), tot = wet.zones.reduce((a, z) => { const r = wetClear(z, feet); return [a[0] + r.area, a[1] + r.clear]; }, [0, 0]);
+  let h = '<b>Wet canvas</b><br>';
+  if (wet.draw) { const z = wet.draw; h += `New zone ${(z[1] - z[0]).toFixed(1)} × ${(z[3] - z[2]).toFixed(1)} m = ${m2((z[1] - z[0]) * (z[3] - z[2]))}`; }
+  else if (wet.sel >= 0 && wet.zones[wet.sel]) { const z = wet.zones[wet.sel], r = wetClear(z, feet); h += `Zone ${wet.sel + 1}: ${(z[1] - z[0]).toFixed(1)} × ${(z[3] - z[2]).toFixed(1)} m = ${m2(r.area)}<br>` + (r.kit ? `<span class="bad">${m2(r.clear)} clear: ${r.kit} bit${r.kit > 1 ? 's' : ''} of kit in it</span>` : '<span>all clear floor ✓</span>'); }
+  else h += 'Drag on the floor to mark where canvas can dry. Tap a zone to pick it.';
+  h += `<br><small>${wet.zones.length ? `${wet.zones.length} zone${wet.zones.length > 1 ? 's' : ''}: ${m2(tot[0])}, ${m2(tot[1])} clear floor` : 'No zones yet.'}</small>`;
+  h += `<div class="pb"><button data-a="wetdone">done</button>${wet.sel >= 0 ? '<button data-a="wetdel">delete zone</button>' : ''}<button data-a="reset">reset layout</button></div>`;
+  planUI.hidden = false; planUI.innerHTML = h; }
+function wetMode(on) { wet.on = on; wet.sel = -1; wet.draw = null; plan.sel = null; planDraw(); if (on) wetPanel(); else planUI.innerHTML = '<b>Plan</b><br>Drag any floor kit to move it. Tap one to turn it.' + planBtns(false, wet.zones.length ? `${wet.zones.length} drying zone${wet.zones.length > 1 ? 's' : ''} saved.` : 'Saved on this device as you go.'); wetDraw(); }
+function wetDel() { if (wet.sel < 0) return; wet.zones.splice(wet.sel, 1); wet.sel = -1; planSave(); wetDraw(); }
+renderer.domElement.addEventListener('pointerdown', e => { if (!plan.on || !wet.on || wet.drag) return; const h = floorHit(e, 0); if (!h) return;
+  controls.enabled = false; fly = null; renderer.domElement.setPointerCapture?.(e.pointerId); wet.drag = { id: e.pointerId, a: h.clone() }; }, { capture: true });
+renderer.domElement.addEventListener('pointermove', e => { const d = wet.drag; if (!d || e.pointerId !== d.id) return; const h = floorHit(e, 0); if (!h) return;
+  const z = wetSnap(d.a, h); if (z[1] - z[0] >= WET_MIN || z[3] - z[2] >= WET_MIN) { wet.draw = z; wet.sel = -1; wetDraw(false); } });   // kit can't move mid-draw: reuse the footprints
+const wetEnd = e => { const d = wet.drag; if (!d || (e && e.pointerId !== d.id)) return; wet.drag = null; controls.enabled = true; const z = wet.draw; wet.draw = null;
+  if (z && z[1] - z[0] >= WET_MIN && z[3] - z[2] >= WET_MIN && wet.zones.length < WET_MAX) { wet.zones.push(z); wet.sel = wet.zones.length - 1; planSave(); }
+  else if (!z) { const p = d.a; wet.sel = wet.zones.findIndex(q => p.x >= q[0] && p.x <= q[1] && p.z >= q[2] && p.z <= q[3]); }   // a tap: pick the zone under it (or none)
+  wetDraw(); };
+renderer.domElement.addEventListener('pointerup', wetEnd); renderer.domElement.addEventListener('pointercancel', wetEnd);
+function wetLabels() {   // per frame: uses the areas wetDraw() worked out (a footprint pass over every item is too slow for every frame)
+  const put = [];   // zones side by side put their labels on top of each other from high up (self-check, 10 Nov 03:xx): a clashing one steps down a line
+  wet.zones.forEach((z, i) => { let d = wetLabs[i]; if (!d) { d = wetLabs[i] = document.createElement('div'); d.className = 'pm wz'; pmBox.appendChild(d); }
+    const p = new THREE.Vector3((z[0] + z[1]) / 2, .04, (z[2] + z[3]) / 2).project(camera); if (!plan.on || p.z > 1 || Math.abs(p.x) > 1 || Math.abs(p.y) > 1) { d.style.display = 'none'; return; }
+    const r = (wet.areas && wet.areas[i]) || wetClear(z, []); d.style.display = ''; d.textContent = m2(r.area) + (r.kit ? ` · ${m2(r.clear)} clear` : ''); let x = (p.x + 1) / 2 * innerWidth, y = (1 - p.y) / 2 * innerHeight; const w = d.offsetWidth || 60, hh = d.offsetHeight || 16;
+    for (let k = 0; k < 6 && put.some(q => Math.abs(q[0] - x) < (q[2] + w) / 2 + 2 && Math.abs(q[1] - y) < hh + 2); k++) y += hh + 3; put.push([x, y, w]); d.style.left = x + 'px'; d.style.top = y + 'px'; });
+  for (let i = wet.zones.length; i < wetLabs.length; i++) wetLabs[i].style.display = 'none'; }
+function wetLoad() { let s = null; try { s = JSON.parse(localStorage.getItem(PLAN_KEY) || 'null'); } catch (e) { } const w = s && Array.isArray(s.__wet) ? s.__wet : [];
+  wet.zones = w.filter(z => Array.isArray(z) && z.length === 4 && z.every(Number.isFinite) && z[1] - z[0] >= WET_MIN && z[3] - z[2] >= WET_MIN).slice(0, WET_MAX)
+    .map(z => [Math.max(z[0], PLAN_IN[0]), Math.min(z[1], PLAN_IN[1]), Math.max(z[2], PLAN_IN[2]), Math.min(z[3], PLAN_IN[3])]); return wet.zones.length; }
+wetLoad();
 const planLoaded = planLoad();
 renderer.domElement.addEventListener('pointerup', planEnd); renderer.domElement.addEventListener('pointercancel', planEnd);
 window.__plan = { on: planOn, turn: () => plan.sel && planTurn(plan.sel), reset: planReset, saved: () => { try { return JSON.parse(localStorage.getItem(PLAN_KEY) || 'null'); } catch (e) { return 'blocked'; } }, loaded: () => planLoaded, items: () => MOVE.map(o => o.userData.info.name), gaps: () => plan.gaps && plan.gaps.map(s => s.gap), rect: n => { const o = MOVE.find(m => m.userData.info.name.startsWith(n)); return o && rectOf(o).map(v => +v.toFixed(3)); },
   screen: n => { const o = MOVE.find(m => m.userData.info.name.startsWith(n)); const c = new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3()); c.y = new THREE.Box3().setFromObject(o).max.y; c.project(camera); return [(c.x + 1) / 2 * innerWidth, (1 - c.y) / 2 * innerHeight]; },
+  wet: () => ({ on: wet.on, sel: wet.sel, zones: wet.zones.map(z => z.slice()), areas: wet.zones.map(z => { const r = wetClear(z, wetFeet()); return [+r.area.toFixed(2), +r.clear.toFixed(2), r.kit]; }) }), wetMode, wetDel, feet: () => wetFeet(), toScreen: (x, z) => { const c = new THREE.Vector3(x, 0, z).project(camera); return [(c.x + 1) / 2 * innerWidth, (1 - c.y) / 2 * innerHeight]; },
   sel: () => plan.sel && plan.sel.userData.info.name, fk: () => isFork(plan.sel) ? fkTurn(plan.sel) : null, fkRings: () => fkRings.map(g => g.visible), overlaps: () => { const bad = []; for (const o of MOVE) { const r = rectOf(o); for (const q of planObs(o)) if (hits(q, r)) bad.push(o.userData.info.name); } return bad; } };
 window.__loop = on => renderer.setAnimationLoop(on ? LOOP : null); window.__frame = () => { const n = performance.now(); LOOP(n); };   // tests: pause the loop while driving input (a SwiftShader frame takes 20–45 s), draw one frame before a shot
 window.__view = view; window.__zone = i => document.querySelectorAll('#secs .zb')[i].click(); window.__pick = n => select(PICK.find(o => o.userData.info.name.startsWith(n)) || null); window.__inside = () => $('inside').click(); window.__hq = on => { HQ = on; }; window.__cam = (p, t, roof = true) => { mini(); fly = null; secs(false); camera.position.fromArray(p); controls.target.fromArray(t); roofG.visible = roof; controls.update(); camera.updateMatrixWorld(); placeLabels(); }; window.__labels = () => $('vLab').click(); window.__boxes = () => INFO.map(o => { const b = new THREE.Box3().setFromObject(o); return [o.userData.info.name, ...b.min.toArray().map(v => +v.toFixed(2)), ...b.max.toArray().map(v => +v.toFixed(2))]; }); window.__ready = true;   // footprints of every tagged item, for bin/ww_boxes.js (scan vs model)
