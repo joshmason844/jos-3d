@@ -1585,3 +1585,4 @@ One row per build, so each run gets measurably better.
 - Checker (Haiku): PASS, no problems. It wouldn't write errors.md; I did.
 - Score (self): plan view Works 8 -> 8.5, the rest level ≈ 7.0 (BEFORE ≈ 6.9). Page row 7.86 -> 7.87, review due.
 
+- Published: YES, version 154 (live v153 plus this build, keycaps kept). No picture to Josh: not reviewer-passed yet.
