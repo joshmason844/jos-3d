@@ -76,6 +76,7 @@ After each build, before replying:
 - Watch: a racking row runs along its local +x, so on the right wall (ry −90°) it heads toward the door: start it at the far end.
 
 ## Traps learned
+- (10 Nov 04:xx) Grab radii in screen pixels must shrink with the target: a 26 px corner radius on a ~45 px phone zone swallowed the whole zone, so a drag inside resized instead of moving. From inside, cap it at 30% of the short side; test drags on the phone viewport, not just desk.
 - WW planner tests (10 Nov 03:xx): labels are placed by the render loop, so with `__loop(false)` read or check them only after `__frame()`. Re-measuring an area on a 5 cm grid is off by up to half the perimeter × 5 cm (0.08 m² on a forklift): re-measure on 1 cm or exactly, or a right answer fails.
 - WW one-line code (10 Nov 03:xx): never put a `//` comment mid-line in template.html; much of it is packed several statements per line, so a comment kills the rest and build.py's syntax check still passes. Re-run the feature test after even a one-word fix.
 - WW planner tests (10 Nov 02:xx): the 'plan' button flies the camera, and with `__loop(false)` the fly never lands, so screen positions taken straight after it are wrong and a real tap hits nothing. Call `__cam(...)` to put the camera where plan mode ends up before reading any `screen()` point. And name forklift sides as the plan does (left = −x), not as the driver sits: it faces the door, so its left is the plan's right.

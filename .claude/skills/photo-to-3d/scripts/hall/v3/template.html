@@ -144,7 +144,7 @@ const LOOP = now => { const dt = Math.min(.05, (now - t0) / 1000); t0 = now;
   if (fly) { const k = Math.min(1, (now - fly.start) / 1400), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; camera.position.lerpVectors(fly.p0, fly.p1, e); controls.target.lerpVectors(fly.t0, fly.t1, e); if (k >= 1) fly = null; }
   const was = lift; lift += (liftWant - lift) * Math.min(1, dt * 4); if (Math.abs(lift - was) > 1e-4) { CRATES.forEach(c => c.userData.lift(lift)); ONTOP.forEach(u => { u.o.position.y = u.y0 + u.level * lift * (u.h + .5); }); }
   controls.update(); if (HQ) composer.render(); else renderer.render(scene, camera); if (selO) selBox.box.setFromObject(selO);
-  placeLabels(); planLabels(); wetLabels(); }; renderer.setAnimationLoop(LOOP);
+  placeLabels(); planLabels(); wetLabels(); wetHandleSize(); }; renderer.setAnimationLoop(LOOP);
 // labels (24 Oct): nearest first, and one that would overlap a label already placed is skipped. Close up (within NEAR m) the labels show
 // even with 'labels' off, at most NEAR_MAX, so every guessed tool in a close-up carries its orange NOT SURE chip.
 const NEAR = 2.6, NEAR_MAX = 4;
@@ -296,6 +296,14 @@ const wetMeshes = [], wetLabs = [];
 const wetMesh = () => { const g = new THREE.Group(), f = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: WET_COL, transparent: true, opacity: .32, depthWrite: false }));
   f.rotation.x = -Math.PI / 2; f.renderOrder = 7; g.add(f); const e = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(1, 1)), new THREE.LineBasicMaterial({ color: WET_COL, depthTest: false }));
   e.rotation.x = -Math.PI / 2; e.renderOrder = 12; g.add(e); g.userData = { f, e, noAO: true }; f.userData.noAO = e.userData.noAO = true; g.position.y = .035; g.visible = false; scene.add(g); return g; };
+// P4b (10 Nov 04:xx): a picked zone gets a blue handle on each corner. Drag a handle to resize (the opposite corner stays put), drag inside a
+// zone to move it (keeps its size, 10 cm steps, stops at the walls). Handles are sized on screen, so they're a finger-width from the 38 m camera too.
+const wetHandles = [0, 1, 2, 3].map(() => { const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0x1677c9, depthTest: false }));   // solid mid-blue with a white rim: white on pale concrete vanished (first shot)
+  m.rotation.x = -Math.PI / 2; m.renderOrder = 13; const e = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(1, 1)), new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false }));
+  e.renderOrder = 14; m.add(e); m.userData.noAO = e.userData.noAO = true; m.visible = false; scene.add(m); return m; });
+const WET_GRAB = 26;   // px: how near a corner a finger has to land to grab its handle
+const wetCorners = z => [[z[0], z[2]], [z[1], z[2]], [z[0], z[3]], [z[1], z[3]]];
+const toPx = (x, z) => { const c = new THREE.Vector3(x, .04, z).project(camera); return [(c.x + 1) / 2 * innerWidth, (1 - c.y) / 2 * innerHeight]; };
 function wetFeet() { return INFO.filter(p => p.userData.info.name !== 'The hall').map(footOf).filter(Boolean); }
 function wetClear(z, feet) {   // exact: the zone minus the union of every footprint inside it (cells between all the cut lines, each in or out)
   const fs = feet.map((q, k) => [Math.max(q[0], z[0]), Math.min(q[1], z[1]), Math.max(q[2], z[2]), Math.min(q[3], z[3]), k]).filter(q => q[1] > q[0] + 1e-6 && q[3] > q[2] + 1e-6);
@@ -309,22 +317,37 @@ const m2 = v => v.toFixed(2) + ' m²';
 function wetDraw(re = true) { if (re || !wet.feet) wet.feet = wetFeet(); const feet = wet.feet; wet.areas = wet.zones.map(z => wetClear(z, feet)); const all = wet.draw ? [...wet.zones, wet.draw] : wet.zones; while (wetMeshes.length < all.length) wetMeshes.push(wetMesh());
   wetMeshes.forEach((g, i) => { const z = all[i]; if (!plan.on || !z) { g.visible = false; return; } g.visible = true; g.scale.set(Math.max(z[1] - z[0], .01), 1, Math.max(z[3] - z[2], .01)); g.position.set((z[0] + z[1]) / 2, .035, (z[2] + z[3]) / 2);
     const on = i === wet.sel || z === wet.draw; g.userData.f.material.opacity = on ? .5 : .36; g.userData.e.material.color.setHex(on ? 0xffffff : WET_COL); });
+  const zs = plan.on && wet.on && !wet.draw && wet.zones[wet.sel]; wetHandles.forEach((m, k) => { m.visible = !!zs; if (zs) { const c = wetCorners(zs)[k]; m.position.set(c[0], .045, c[1]); } }); wetHandleSize();
   if (wet.on) wetPanel(); }
+function wetHandleSize() { if (!wetHandles[0].visible) return; const a = wetHandles[0].position, px = toPx(a.x, a.z), q = toPx(a.x + 1, a.z), ppm = Math.hypot(q[0] - px[0], q[1] - px[1]) || 1;
+  const s = Math.min(14 / ppm, .5); wetHandles.forEach(m => m.scale.set(s, s, 1)); }   // 14 px across on screen, never more than 0.5 m (close up)
 function wetPanel() { const feet = wet.feet || (wet.feet = wetFeet()), tot = wet.zones.reduce((a, z) => { const r = wetClear(z, feet); return [a[0] + r.area, a[1] + r.clear]; }, [0, 0]);
   let h = '<b>Wet canvas</b><br>';
   if (wet.draw) { const z = wet.draw; h += `New zone ${(z[1] - z[0]).toFixed(1)} × ${(z[3] - z[2]).toFixed(1)} m = ${m2((z[1] - z[0]) * (z[3] - z[2]))}`; }
-  else if (wet.sel >= 0 && wet.zones[wet.sel]) { const z = wet.zones[wet.sel], r = wetClear(z, feet); h += `Zone ${wet.sel + 1}: ${(z[1] - z[0]).toFixed(1)} × ${(z[3] - z[2]).toFixed(1)} m = ${m2(r.area)}<br>` + (r.kit ? `<span class="bad">${m2(r.clear)} clear: ${r.kit} bit${r.kit > 1 ? 's' : ''} of kit in it</span>` : '<span>all clear floor ✓</span>'); }
-  else h += 'Drag on the floor to mark where canvas can dry. Tap a zone to pick it.';
+  else if (wet.sel >= 0 && wet.zones[wet.sel]) { const z = wet.zones[wet.sel], r = wetClear(z, feet); h += `Zone ${wet.sel + 1}: ${(z[1] - z[0]).toFixed(1)} × ${(z[3] - z[2]).toFixed(1)} m = ${m2(r.area)}<br>` + (r.kit ? `<span class="bad">${m2(r.clear)} clear: ${r.kit} bit${r.kit > 1 ? 's' : ''} of kit in it</span>` : '<span>all clear floor ✓</span>') + '<br><small>Drag it to move it, or a blue corner to resize it.</small>'; }
+  else h += 'Drag on the floor to mark where canvas can dry. Tap a zone to pick it, then drag it or its corners.';
   h += `<br><small>${wet.zones.length ? `${wet.zones.length} zone${wet.zones.length > 1 ? 's' : ''}: ${m2(tot[0])}, ${m2(tot[1])} clear floor` : 'No zones yet.'}</small>`;
   h += `<div class="pb"><button data-a="wetdone">done</button>${wet.sel >= 0 ? '<button data-a="wetdel">delete zone</button>' : ''}<button data-a="reset">reset layout</button></div>`;
   planUI.hidden = false; planUI.innerHTML = h; }
 function wetMode(on) { wet.on = on; wet.sel = -1; wet.draw = null; plan.sel = null; planDraw(); if (on) wetPanel(); else planUI.innerHTML = '<b>Plan</b><br>Drag any floor kit to move it. Tap one to turn it.' + planBtns(false, wet.zones.length ? `${wet.zones.length} drying zone${wet.zones.length > 1 ? 's' : ''} saved.` : 'Saved on this device as you go.'); wetDraw(); }
 function wetDel() { if (wet.sel < 0) return; wet.zones.splice(wet.sel, 1); wet.sel = -1; planSave(); wetDraw(); }
 renderer.domElement.addEventListener('pointerdown', e => { if (!plan.on || !wet.on || wet.drag) return; const h = floorHit(e, 0); if (!h) return;
-  controls.enabled = false; fly = null; renderer.domElement.setPointerCapture?.(e.pointerId); wet.drag = { id: e.pointerId, a: h.clone() }; }, { capture: true });
+  controls.enabled = false; fly = null; renderer.domElement.setPointerCapture?.(e.pointerId); const d = wet.drag = { id: e.pointerId, a: h.clone(), mode: 'draw' }, zs = wet.zones[wet.sel];
+  if (zs) { const cs = wetCorners(zs).map(c => toPx(...c)), dist = cs.map(c => Math.hypot(c[0] - e.clientX, c[1] - e.clientY)), k = dist.indexOf(Math.min(...dist));
+    const inZ = h.x >= zs[0] && h.x <= zs[1] && h.z >= zs[2] && h.z <= zs[3], side = Math.min(Math.hypot(cs[1][0] - cs[0][0], cs[1][1] - cs[0][1]), Math.hypot(cs[2][0] - cs[0][0], cs[2][1] - cs[0][1]));
+    // a small zone on a phone is only ~40 px across, so 26 px round every corner swallowed it and a drag inside resized instead of moving (test, 10 Nov 04:xx):
+    // from inside, a corner only grabs within 30% of the short side; from just outside, the full finger-width
+    if (dist[k] < (inZ ? Math.min(WET_GRAB, .3 * side) : WET_GRAB)) Object.assign(d, { mode: 'size', k: wet.sel, z0: zs.slice(), fix: { x: wetCorners(zs)[3 - k][0], z: wetCorners(zs)[3 - k][1] } }); }   // corner k's opposite is 3 − k
+  if (d.mode === 'draw') { const k = wet.zones.findIndex(q => h.x >= q[0] && h.x <= q[1] && h.z >= q[2] && h.z <= q[3]); if (k >= 0) { Object.assign(d, { mode: 'move', k, z0: wet.zones[k].slice() }); wet.sel = k; wetDraw(false); } } }, { capture: true });
 renderer.domElement.addEventListener('pointermove', e => { const d = wet.drag; if (!d || e.pointerId !== d.id) return; const h = floorHit(e, 0); if (!h) return;
+  if (d.mode === 'move') { const s = v => Math.round(v / SNAP) * SNAP, q = d.z0, cl = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+    const dx = cl(s(h.x - d.a.x), PLAN_IN[0] - q[0], PLAN_IN[1] - q[1]), dz = cl(s(h.z - d.a.z), PLAN_IN[2] - q[2], PLAN_IN[3] - q[3]);   // whole zone stays inside the walls
+    const z = [q[0] + dx, q[1] + dx, q[2] + dz, q[3] + dz].map(v => +v.toFixed(3)); if (z.some((v, i) => v !== wet.zones[d.k][i])) { wet.zones[d.k] = z; d.moved = true; wetDraw(false); } return; }
+  if (d.mode === 'size') { const z = wetSnap(d.fix, h); if (z[1] - z[0] >= WET_MIN - 1e-6 && z[3] - z[2] >= WET_MIN - 1e-6 && z.some((v, i) => v !== wet.zones[d.k][i])) { wet.zones[d.k] = z; d.moved = true; wetDraw(false); } return; }   // under 0.3 m: keep the last good size
   const z = wetSnap(d.a, h); if (z[1] - z[0] >= WET_MIN || z[3] - z[2] >= WET_MIN) { wet.draw = z; wet.sel = -1; wetDraw(false); } });   // kit can't move mid-draw: reuse the footprints
-const wetEnd = e => { const d = wet.drag; if (!d || (e && e.pointerId !== d.id)) return; wet.drag = null; controls.enabled = true; const z = wet.draw; wet.draw = null;
+const wetEnd = e => { const d = wet.drag; if (!d || (e && e.pointerId !== d.id)) return; wet.drag = null; controls.enabled = true;
+  if (d.mode !== 'draw') { wet.sel = d.k; if (d.moved) planSave(); wetDraw(); return; }   // a tap inside a zone (no move) just picks it
+  const z = wet.draw; wet.draw = null;
   if (z && z[1] - z[0] >= WET_MIN && z[3] - z[2] >= WET_MIN && wet.zones.length < WET_MAX) { wet.zones.push(z); wet.sel = wet.zones.length - 1; planSave(); }
   else if (!z) { const p = d.a; wet.sel = wet.zones.findIndex(q => p.x >= q[0] && p.x <= q[1] && p.z >= q[2] && p.z <= q[3]); }   // a tap: pick the zone under it (or none)
   wetDraw(); };
@@ -344,7 +367,7 @@ const planLoaded = planLoad();
 renderer.domElement.addEventListener('pointerup', planEnd); renderer.domElement.addEventListener('pointercancel', planEnd);
 window.__plan = { on: planOn, turn: () => plan.sel && planTurn(plan.sel), reset: planReset, saved: () => { try { return JSON.parse(localStorage.getItem(PLAN_KEY) || 'null'); } catch (e) { return 'blocked'; } }, loaded: () => planLoaded, items: () => MOVE.map(o => o.userData.info.name), gaps: () => plan.gaps && plan.gaps.map(s => s.gap), rect: n => { const o = MOVE.find(m => m.userData.info.name.startsWith(n)); return o && rectOf(o).map(v => +v.toFixed(3)); },
   screen: n => { const o = MOVE.find(m => m.userData.info.name.startsWith(n)); const c = new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3()); c.y = new THREE.Box3().setFromObject(o).max.y; c.project(camera); return [(c.x + 1) / 2 * innerWidth, (1 - c.y) / 2 * innerHeight]; },
-  wet: () => ({ on: wet.on, sel: wet.sel, zones: wet.zones.map(z => z.slice()), areas: wet.zones.map(z => { const r = wetClear(z, wetFeet()); return [+r.area.toFixed(2), +r.clear.toFixed(2), r.kit]; }) }), wetMode, wetDel, feet: () => wetFeet(), toScreen: (x, z) => { const c = new THREE.Vector3(x, 0, z).project(camera); return [(c.x + 1) / 2 * innerWidth, (1 - c.y) / 2 * innerHeight]; },
+  wet: () => ({ on: wet.on, sel: wet.sel, zones: wet.zones.map(z => z.slice()), areas: wet.zones.map(z => { const r = wetClear(z, wetFeet()); return [+r.area.toFixed(2), +r.clear.toFixed(2), r.kit]; }) }), wetMode, wetDel, wetHandles: () => wetHandles[0].visible ? wetHandles.map(m => toPx(m.position.x, m.position.z)) : null, inside: () => PLAN_IN.slice(), feet: () => wetFeet(), toScreen: (x, z) => { const c = new THREE.Vector3(x, 0, z).project(camera); return [(c.x + 1) / 2 * innerWidth, (1 - c.y) / 2 * innerHeight]; },
   sel: () => plan.sel && plan.sel.userData.info.name, fk: () => isFork(plan.sel) ? fkTurn(plan.sel) : null, fkRings: () => fkRings.map(g => g.visible), overlaps: () => { const bad = []; for (const o of MOVE) { const r = rectOf(o); for (const q of planObs(o)) if (hits(q, r)) bad.push(o.userData.info.name); } return bad; } };
 window.__loop = on => renderer.setAnimationLoop(on ? LOOP : null); window.__frame = () => { const n = performance.now(); LOOP(n); };   // tests: pause the loop while driving input (a SwiftShader frame takes 20–45 s), draw one frame before a shot
 window.__view = view; window.__zone = i => document.querySelectorAll('#secs .zb')[i].click(); window.__pick = n => select(PICK.find(o => o.userData.info.name.startsWith(n)) || null); window.__inside = () => $('inside').click(); window.__hq = on => { HQ = on; }; window.__cam = (p, t, roof = true) => { mini(); fly = null; secs(false); camera.position.fromArray(p); controls.target.fromArray(t); roofG.visible = roof; controls.update(); camera.updateMatrixWorld(); placeLabels(); }; window.__labels = () => $('vLab').click(); window.__boxes = () => INFO.map(o => { const b = new THREE.Box3().setFromObject(o); return [o.userData.info.name, ...b.min.toArray().map(v => +v.toFixed(2)), ...b.max.toArray().map(v => +v.toFixed(2))]; }); window.__ready = true;   // footprints of every tagged item, for bin/ww_boxes.js (scan vs model)
