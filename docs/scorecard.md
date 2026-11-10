@@ -1568,3 +1568,10 @@ One row per build, so each run gets measurably better.
 - Better: the WW can be used, not just looked at: try a layout and read the aisle widths. Still weak: low pale kit hard to see from above; labels bunch beside small items on a phone; baked floor shadows stay behind when kit moves; no turning, saving, reset, turning circle or wet-canvas zones yet (P2–P5 in the backlog).
 - Score (self): plan view (new) Shape 7 · Detail 6.5 · Surface 6.5 · Light 6.5 · Truth 7 · Works 8 ≈ 6.9 (BEFORE: no planner, the plain top view ≈ 6.5 with nothing to do). Page row 7.84 -> 7.86, review due.
 - Published: YES, version 153 (live v152 = v151 + the 9 Nov 07:xx tail; plus the planner + the planner; keycaps kept). No picture to Josh: not reviewer-passed yet.
+
+## 2026-11-10 00:xx (second session) · WW: duplicate yard planner P1 thrown away, nothing shipped
+- Meeting: no team change. This session started at 00:03 while the 23:xx run was still building the planner; it pulled at 00:04, the 23:xx run pushed P1 at 00:06, so both built P1. Found it at the publish step (live v153 already had the planner); dropped this copy rather than publish over v153.
+- Team: Opus 5.5 only. No checker, no reviewer (nothing shipped).
+- What this copy had that v153 hasn't, for P2: layout saved per device (localStorage under try/catch, offsets re-applied after load) and a 'reset layout' button; workshop benches kept out of the draggable list. Rebuild them on v153's code, not from this copy.
+- Score: no change. Page row stays 7.86 (self), review due on v149-v153.
+- Published: NO.
