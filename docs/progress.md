@@ -5,7 +5,7 @@ Every page in the challenge, its latest score from a fresh-eyes review, and the 
 | Page               | Start (14 Oct) | Latest | Target | At standard? |
 |--------------------|----------------|--------|--------|--------------|
 | People in 3D       | 6.3            | 6.3    | 8      | no           |
-| WW (workshop warehouse) | 6.3            | 7.9 (10 Nov 05:xx: v158 planner P5, self-scored, review due; last reviewer score 7.9 at 03:xx on v148-v156; LIVE v158) | 8      | no           |
+| WW (workshop warehouse) | 6.3            | 7.9 (10 Nov 06:xx: v159 planner labels clear the item, self-scored, review due; last reviewer score 7.9 at 03:xx on v148-v156; LIVE v159) | 8      | no           |
 | Sections 1–5       | 7.0            | 7.0    | 8      | no           |
 
 Pages: 0 of 3 at standard.
