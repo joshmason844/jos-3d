@@ -1575,3 +1575,13 @@ One row per build, so each run gets measurably better.
 - What this copy had that v153 hasn't, for P2: layout saved per device (localStorage under try/catch, offsets re-applied after load) and a 'reset layout' button; workshop benches kept out of the draggable list. Rebuild them on v153's code, not from this copy.
 - Score: no change. Page row stays 7.86 (self), review due on v149-v153.
 - Published: NO.
+
+## 2026-11-10 01:xx · WW: yard planner step 2: turn 90°, layout saved per device, reset (Josh's request "WW: yard planner") · run 2 of the night
+- Meeting: no team change. Not a review run (2nd of the night; the 07:xx run reviews v149-v154). Checked for an overlapping run first (last commit 01:01, the dropped duplicate; nothing new on origin before the push). Forklift-in-Blender still blocked; workshop inside, LiDAR band and yard list wait on Josh; the planner's P2 is next on his own request, and the duplicate session's notes said rebuild it on v153's code.
+- Team: Opus 5.5 (boss + builder) built, tested, published. Haiku checker. No researcher, no reviewer. Self-scored, review due.
+- Changed (template.html only): plan panel gets 'turn 90°' (once an item is picked) and 'reset layout' on one row with a short note. Turn: about the item's own middle, onto the 10 cm grid; if that spot clashes it takes the nearest free one within 1 m, else stays put with 'No room to turn it here'. Every drag or turn saves to this device (localStorage `ww-plan-1`, try/catch); on load the layout comes back and the panel says so ('Your layout from last time is back (N moved)'); a saved spot that clashes with a later build goes home. Reset puts all 32 items back and clears the save. Intro text shortened so the bigger panel stays about the old height on a phone. Page 0.79 MB.
+- Feature test (`test_planner_p2.js`, real taps on phone, clicks on desk): 15/15 PASS each. Crate dragged, turned: 2.20 × 1.15 → 1.15 × 2.20 m, centre moved 0.04 m, on the grid, no overlaps, saved [10.875, -12.297, 1]; after a reload it's back to the millimetre; reset puts it home [8.298, 10.503, -14.875, -13.725] and clears the save. P1 test still 24/24. Page errors [].
+- Better: a layout you try survives closing the page, and kit can face the other way. Still weak: the phone panel covers the far ≈ 4 m; the turn jumps rather than swings; saves keyed by name drop silently if an item is renamed.
+- Checker (Haiku): PASS, no problems. It wouldn't write errors.md; I did.
+- Score (self): plan view Works 8 -> 8.5, the rest level ≈ 7.0 (BEFORE ≈ 6.9). Page row 7.86 -> 7.87, review due.
+
