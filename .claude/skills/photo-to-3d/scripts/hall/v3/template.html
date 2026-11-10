@@ -136,14 +136,20 @@ renderer.domElement.addEventListener('pointerup', e => { if (!down || Math.hypot
   ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1), camera);
   let o = null; for (const h of ray.intersectObjects(scene.children, true)) { if (!h.object.visible || h.object === selBox) continue; o = h.object; while (o && !o.userData.info) o = o.parent; if (o && o.userData.noPick) o = null; if (o) break; } select(o); });
 function layoutView() { renderer.setSize(innerWidth, innerHeight, false); composer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.fov = innerWidth / innerHeight < .8 ? 70 : 55; camera.updateProjectionMatrix(); }
+// P5 (10 Nov 05:xx): floor shadow sheets baked on their own canvas (not under a tagged item, flat on the slab, out of the workshop). The planner
+// cuts a moved item's share out of them later, so on phones their canvases are kept (tagged __keep) until P5 has decided which it needs.
+const FLOOR_SHEETS = []; { const uses = new Map(); scene.traverse(o => { const t = o.isMesh && !Array.isArray(o.material) && o.material.map; if (t) uses.set(t, (uses.get(t) || 0) + 1); });
+  scene.traverse(s => { if (!s.isMesh || Array.isArray(s.material) || !s.material.transparent || !s.material.map || !s.material.map.image) return; const one = !!s.material.map.image.getContext && uses.get(s.material.map) === 1;
+    for (let q = s.parent; q; q = q.parent) if (q.userData.info && q.userData.info.name !== 'The hall') return;
+    const b = new THREE.Box3().setFromObject(s); if (b.isEmpty() || b.max.y > .03 || b.min.y < -.01 || b.max.x < 6.1) return; if (one) s.material.map.image.__keep = true; FLOOR_SHEETS.push([s, [b.min.x, b.max.x, b.min.z, b.max.z], one]); }); }
 if (LITE) { const seen = new Set(); scene.traverse(o => { for (const m of [].concat(o.material || [])) for (const k in m) { const t = m[k]; if (t && t.isTexture && !seen.has(t)) seen.add(t); } });   // phones: upload every texture now, then free its canvas (Safari counts canvas memory separately from the GPU's)
   for (const t of seen) { renderer.initTexture(t); const c = t.image; if (c && c.getContext && !c.__keep) c.width = c.height = 0; } }
 addEventListener('resize', layoutView); layoutView(); camera.position.fromArray(VIEWS.door[0]); controls.target.fromArray(VIEWS.door[1]); controls.update();
-const v = new THREE.Vector3(); let t0 = performance.now();
+const v = new THREE.Vector3(); let t0 = performance.now(); let p5Sync = () => { };   // P5 sets this: floor shadows follow moved kit
 const LOOP = now => { const dt = Math.min(.05, (now - t0) / 1000); t0 = now;
   if (fly) { const k = Math.min(1, (now - fly.start) / 1400), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; camera.position.lerpVectors(fly.p0, fly.p1, e); controls.target.lerpVectors(fly.t0, fly.t1, e); if (k >= 1) fly = null; }
   const was = lift; lift += (liftWant - lift) * Math.min(1, dt * 4); if (Math.abs(lift - was) > 1e-4) { CRATES.forEach(c => c.userData.lift(lift)); ONTOP.forEach(u => { u.o.position.y = u.y0 + u.level * lift * (u.h + .5); }); }
-  controls.update(); if (HQ) composer.render(); else renderer.render(scene, camera); if (selO) selBox.box.setFromObject(selO);
+  p5Sync(); controls.update(); if (HQ) composer.render(); else renderer.render(scene, camera); if (selO) selBox.box.setFromObject(selO);
   placeLabels(); planLabels(); wetLabels(); wetHandleSize(); }; renderer.setAnimationLoop(LOOP);
 // labels (24 Oct): nearest first, and one that would overlap a label already placed is skipped. Close up (within NEAR m) the labels show
 // even with 'labels' off, at most NEAR_MAX, so every guessed tool in a close-up carries its orange NOT SURE chip.
@@ -176,7 +182,7 @@ function placeLabels() { const near = !labelsOn, cand = []; wsHid = 0;
 // ── Yard planner P1 (9 Nov 23:xx, Josh's request "WW: yard planner"). 'plan' looks straight down with the roof off. Drag any piece of floor
 // kit (finger or mouse): it snaps to 10 cm, won't go into anything else or through a wall (it slides along whatever it hits), and the clear gap
 // to the nearest thing on each of its four sides is drawn on the floor and read out in metres (red under 0.9 m: too tight to walk kit through).
-// Wet-canvas zones: P4 below. Forklift turning circles: P3 below. Baked floor shadows stay where they were (P5). Turning, saving and reset: P2 below.
+// Wet-canvas zones: P4 below. Forklift turning circles: P3 below. Floor shadows follow moved kit: P5 below. Turning, saving and reset: P2 below.
 const PLAN_KIT = ['Forklift', 'Ply crate (yard bay floor)', 'Plywood crate (GY badge)', 'Rugs (folded, strapped)', 'Canvas kit bag', 'Steel kegs', 'Tent cartons and leaning panels',
   'Folded canvas (yard bay floor)', 'Workbench under a tarp', 'Sack truck', 'Floor panels (stack by the side door)', 'Trellis stood on end', 'Black crate tower', '12 ft crown crates',
   'Safari tent crates', 'Spare crowns (on edge)', 'Tipi canvas crates', '12 ft canvas crate', '16 ft trellis + door stillages', '14 ft crown crates', 'Tent stakes',
@@ -362,6 +368,42 @@ function wetLabels() {   // per frame: uses the areas wetDraw() worked out (a fo
 function wetLoad() { let s = null; try { s = JSON.parse(localStorage.getItem(PLAN_KEY) || 'null'); } catch (e) { } const w = s && Array.isArray(s.__wet) ? s.__wet : [];
   wet.zones = w.filter(z => Array.isArray(z) && z.length === 4 && z.every(Number.isFinite) && z[1] - z[0] >= WET_MIN && z[3] - z[2] >= WET_MIN).slice(0, WET_MAX)
     .map(z => [Math.max(z[0], PLAN_IN[0]), Math.min(z[1], PLAN_IN[1]), Math.max(z[2], PLAN_IN[2]), Math.min(z[3], PLAN_IN[3])]); return wet.zones.length; }
+// ── P5 (10 Nov 05:xx): floor shadows go with the kit. Before, a dragged item left its baked floor shadow behind (a dark ghost of it on bare
+// slab) and arrived on clean concrete with none. Two kinds of baked shadow sit on the floor outside the item's own group:
+//  1. a sheet that belongs to one item (its middle inside that item's footprint, e.g. the sack truck's): it now follows the item, turns and all;
+//  2. a big sheet shared by several items (the yard bay's floor shadows): the first time an item leaves home, its share (its footprint + 25 cm,
+//     less any other item's footprint, feathered over 10 cm) is lifted off the sheet onto a piece of its own that follows it. At home the
+//     piece sits exactly where its pixels came from, so nothing changes until something moves. Live sun shadows and AO already moved.
+const P5_M = .25, P5_F = .1;
+{ const fol = [], cut = [], home = new Map(); MOVE.forEach(o => home.set(o, rectOf(o)));
+  const homeM = o => o.parent.matrixWorld.clone().multiply(new THREE.Matrix4().compose(o.userData.plan0.p, o.userData.plan0.q, o.scale));   // the item's world matrix at home
+  const follow = (s, o) => { s.updateMatrixWorld(true); const rel = homeM(o).invert().multiply(s.matrixWorld); s.matrixAutoUpdate = false; fol.push({ s, o, rel, pi: s.parent.matrixWorld.clone().invert() }); };
+  const inR = (x, z, r) => x > r[0] && x < r[1] && z > r[2] && z < r[3], ovl = (a, b) => Math.min(a[1], b[1]) > Math.max(a[0], b[0]) && Math.min(a[3], b[3]) > Math.max(a[2], b[2]);
+  const flat = s => { const q = new THREE.Quaternion(); s.getWorldQuaternion(q); return q.angleTo(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)) < 1e-3; };
+  for (const [s, r, one] of FLOOR_SHEETS) { const cx = (r[0] + r[1]) / 2, cz = (r[2] + r[3]) / 2, own = MOVE.filter(o => inR(cx, cz, home.get(o))), over = MOVE.filter(o => ovl(r, home.get(o)));
+    if ((r[1] - r[0]) * (r[3] - r[2]) >= .04 && own.length === 1 && over.length === 1) follow(s, own[0]);           // 1. its own sheet
+    else if (one && over.length && flat(s)) cut.push({ s, r, over });                                                 // 2. shared: cut on the first move
+    else if (LITE && s.material.map.image.__keep) { s.material.map.image.__keep = false; s.material.map.image.width = s.material.map.image.height = 0; } }   // not needed: free it now (phones)
+  const lift = o => { o.userData.p5cut = true; const h = home.get(o), others = MOVE.filter(p => p !== o).map(p => home.get(p));
+    for (const c of cut) { if (!c.over.includes(o)) continue; const r = c.r, img = c.s.material.map.image, iw = img.width, ih = img.height; if (!iw || !ih) continue;
+      const kx = iw / (r[1] - r[0]), kz = ih / (r[3] - r[2]), R = [Math.max(h[0] - P5_M, r[0]), Math.min(h[1] + P5_M, r[1]), Math.max(h[2] - P5_M, r[2]), Math.min(h[3] + P5_M, r[3])];
+      const x0 = Math.floor((R[0] - r[0]) * kx), x1 = Math.ceil((R[1] - r[0]) * kx), y0 = Math.floor((R[2] - r[2]) * kz), y1 = Math.ceil((R[3] - r[2]) * kz), w = x1 - x0, hh = y1 - y0; if (w < 2 || hh < 2) continue;
+      const ctx = img.getContext('2d'), src = ctx.getImageData(x0, y0, w, hh), pc = document.createElement('canvas'); pc.width = w; pc.height = hh; const pctx = pc.getContext('2d'), dst = pctx.createImageData(w, hh);
+      const ex = [h[0] - P5_M, h[1] + P5_M, h[2] - P5_M, h[3] + P5_M], edge = [ex[0] > r[0], ex[1] < r[1], ex[2] > r[2], ex[3] < r[3]];   // feather only where the cut runs through the sheet, not along its own edge
+      for (let j = 0; j < hh; j++) for (let i = 0; i < w; i++) { const X = r[0] + (x0 + i + .5) / kx, Z = r[2] + (y0 + j + .5) / kz;
+        let k = Math.min(1, edge[0] ? (X - ex[0]) / P5_F : 1, edge[1] ? (ex[1] - X) / P5_F : 1, edge[2] ? (Z - ex[2]) / P5_F : 1, edge[3] ? (ex[3] - Z) / P5_F : 1); k = Math.max(0, k);
+        if (k > 0 && others.some(q => !inR(X, Z, h) && inR(X, Z, q))) k = 0;   // never take a neighbour's own footprint
+        const n = (j * w + i) * 4, a = src.data[n + 3]; dst.data[n] = src.data[n]; dst.data[n + 1] = src.data[n + 1]; dst.data[n + 2] = src.data[n + 2]; dst.data[n + 3] = Math.round(a * k); src.data[n + 3] = Math.round(a * (1 - k)); }
+      ctx.putImageData(src, x0, y0); c.s.material.map.needsUpdate = true; pctx.putImageData(dst, 0, 0);
+      const t = new THREE.CanvasTexture(pc); t.colorSpace = c.s.material.map.colorSpace; t.anisotropy = c.s.material.map.anisotropy;
+      const m = c.s.material.clone(); m.map = t; const pw = w / kx, pd = hh / kz, piece = new THREE.Mesh(new THREE.PlaneGeometry(pw, pd), m); piece.rotation.x = -Math.PI / 2;
+      const sy = new THREE.Vector3(); c.s.getWorldPosition(sy); piece.position.set(r[0] + (x0 / kx) + pw / 2, sy.y, r[2] + (y0 / kz) + pd / 2); piece.renderOrder = c.s.renderOrder; piece.userData.keep = piece.userData.noAO = true; piece.userData.p5piece = o.userData.info.name;
+      scene.add(piece); follow(piece, o); } };
+  const away = o => o.userData.turns || Math.abs(o.position.x - o.userData.plan0.p.x) > 1e-4 || Math.abs(o.position.z - o.userData.plan0.p.z) > 1e-4;
+  const needCut = MOVE.filter(o => cut.some(c => c.over.includes(o)));
+  p5Sync = () => { for (const o of needCut) if (!o.userData.p5cut && away(o)) lift(o); for (const f of fol) { f.s.matrix.multiplyMatrices(f.pi, f.o.matrixWorld).multiply(f.rel); f.s.matrixWorldNeedsUpdate = true; } };
+  window.__p5 = () => ({ follow: fol.map(f => [f.o.userData.info.name, f.s.userData.p5piece ? 'piece' : 'own']), shared: cut.map(c => [c.r.map(v => +v.toFixed(2)), c.over.map(o => o.userData.info.name)]), cutDone: MOVE.filter(o => o.userData.p5cut).map(o => o.userData.info.name) });
+  console.log('P5 floor shadows: ' + fol.length + ' follow their item, ' + cut.length + ' shared sheets cut on first move'); }
 wetLoad();
 const planLoaded = planLoad();
 renderer.domElement.addEventListener('pointerup', planEnd); renderer.domElement.addEventListener('pointercancel', planEnd);
