@@ -365,12 +365,16 @@ function fkTurn(o) { const obs = planObs(o), r = rectOf(o), mx = (r[0] + r[1]) /
 // 'left ✗' without what stops it. Tag and folded line now share one short form: '✓' both ways, '✓ fwd' / '✓ rev' one way only, '✗ racking'.
 const fkWord = n => { n = (n || 'wall').replace(/\s*\(.*?\)/g, '').replace(/^the /i, '').split(/ \+ | under | with | on /)[0].trim().toLowerCase(); return n.length > 11 ? n.split(' ').pop() : n; };
 function fkShort(s) { if (s.ok90) return s.go === 'forwards' ? '✓ fwd' : s.go === 'reversing' ? '✓ rev' : '✓'; const w = s.fwd.deg >= s.rev.deg ? s.fwd : s.rev; return '✗ ' + fkWord(w.what); }
+// both ways blocked: what stops each side and how far it got, in the tags' own word ('racking at 3°/5°', or 'racking at 3° · wall at 12°' when they differ)
+function fkWhy(t) { const w = t.map(s => { const h = s.fwd.deg >= s.rev.deg ? s.fwd : s.rev; return { n: fkWord(h.what), d: h.deg }; });
+  return w[0].n === w[1].n ? `${w[0].n} at ${w[0].d}°/${w[1].d}°` : w.map(h => `${h.n} at ${h.d}°`).join(' · '); }
 function fkHtml(o, more = true) { const t = fkTurn(o); plan.fkLab = t.map(s => { const P = s.sweep.polys[s.sweep.polys.length - 1]; return { side: s.side, ok: s.ok90, go: s.go, short: fkShort(s), at: [P.reduce((a, q) => a + q[0], 0) / 4, P.reduce((a, q) => a + q[1], 0) / 4], c: s.c, hit: s.ok90 ? null : s.sweep.hit, what: s.sweep.what }; });   // end-spot centres for the R / L tags (planLabels)
   t.forEach((s, i) => { const g = fkRings[i]; g.position.set(s.c[0], .05, s.c[1]); g.visible = true; fkPaint(g, s.c, s.sweep);
     g.userData.dot.material.color.setHex(s.ok90 ? 0x3dff8a : 0xff4d4d); g.userData.ring.material.opacity = s.clear ? .6 : .4; });
   const ok = t.filter(s => s.ok90), hit = s => { const w = s.fwd.deg >= s.rev.deg ? s.fwd : s.rev; return `hits ${w.what} at ${w.deg}°`; };
   const line = t.map(s => s.ok90 ? `<span>turn ${s.side} 90° ✓ ${s.go}</span>` : `<span class="bad">${s.side} ✗ ${hit(s)}</span>`).join('<br>');   // one line each
-  const warn = ok.length ? '' : `<br><b class="warn">${more ? "Can't turn 90° either way here: drag it into open floor." : "Can't turn 90° here: drag to open floor."}</b>`;   // folded: one line on a phone
+  const why = fkWhy(t);   // 11 Nov 06:xx (05:xx find): the red box named nothing, so folded on a phone it said 'can't' without what or where. Open, the two lines above already say it: unchanged there (desk height)
+  const warn = ok.length ? '' : `<br><b class="warn">${more ? "Can't turn 90° either way here: drag it into open floor." : `Can't turn: ${why}.` + (why.length > 22 ? '' : ' Move it.')}</b>`;   // folded: one line on a phone (≈ 43 chars fit at 390 px; two different hits drop 'Move it.')
   if (!more) return (ok.length ? '<br><small class="fk1">turning 90°: ' + t.map(s => s.ok90 ? `${s.side} ${fkShort(s)}` : `<span class="bad">${s.side} ${fkShort(s)}</span>`).join(' · ') + '</small>' : '') + warn;   // folded: one line, none when the red box already says both ways are blocked
   const spin = t.filter(s => s.clear).length;
   return `<br><small>90° turn, full lock (G15S ${FK_R.toFixed(2)} m, forks empty):</small><br>` + line
