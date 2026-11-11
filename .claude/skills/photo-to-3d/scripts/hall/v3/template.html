@@ -367,7 +367,8 @@ const fkWord = n => { n = (n || 'wall').replace(/\s*\(.*?\)/g, '').replace(/^the
 function fkShort(s) { if (s.ok90) return s.go === 'forwards' ? '✓ fwd' : s.go === 'reversing' ? '✓ rev' : '✓'; const w = s.fwd.deg >= s.rev.deg ? s.fwd : s.rev; return '✗ ' + fkWord(w.what); }
 // both ways blocked: what stops each side and how far it got, in the tags' own word ('racking at 3°/5°', or 'racking at 3° · wall at 12°' when they differ)
 function fkWhy(t) { const w = t.map(s => { const h = s.fwd.deg >= s.rev.deg ? s.fwd : s.rev; return { n: fkWord(h.what), d: h.deg }; });
-  return w[0].n === w[1].n ? `${w[0].n} at ${w[0].d}°/${w[1].d}°` : w.map(h => `${h.n} at ${h.d}°`).join(' · '); }
+  const k = t.map(s => ({ right: 'R', left: 'L', 'far side': 'far', 'door side': 'door' })[s.side] || s.side);   // 11 Nov 07:xx (06:xx find): '9°/12°' didn't say which side was which; the letters match the tags ('right ✗' = R)
+  return w[0].n === w[1].n ? `${w[0].n} (${k[0]} ${w[0].d}°, ${k[1]} ${w[1].d}°)` : w.map((h, i) => `${k[i]}: ${h.n} ${h.d}°`).join(' · '); }
 function fkHtml(o, more = true) { const t = fkTurn(o); plan.fkLab = t.map(s => { const P = s.sweep.polys[s.sweep.polys.length - 1]; return { side: s.side, ok: s.ok90, go: s.go, short: fkShort(s), at: [P.reduce((a, q) => a + q[0], 0) / 4, P.reduce((a, q) => a + q[1], 0) / 4], c: s.c, hit: s.ok90 ? null : s.sweep.hit, what: s.sweep.what }; });   // end-spot centres for the R / L tags (planLabels)
   t.forEach((s, i) => { const g = fkRings[i]; g.position.set(s.c[0], .05, s.c[1]); g.visible = true; fkPaint(g, s.c, s.sweep);
     g.userData.dot.material.color.setHex(s.ok90 ? 0x3dff8a : 0xff4d4d); g.userData.ring.material.opacity = s.clear ? .6 : .4; });
