@@ -27,6 +27,7 @@ const VIEWS = { // [[cam], [target], roof visible]. Keep the target BELOW the ca
   planters: [[14.6, 2.0, -5.9], [18.4, 1.45, -5.9], true],      // the yard-bay racking bays 2–3 from the aisle: planter pairs on levels 1–2
   planterclose: [[16.9, 1.25, -4.4], [18.4, .8, -5.6], true],   // close on one planter pair: ribs, trim, strap, ratchet, pallet
   bayfar: [[14.4, 2.1, -11.3], [18.4, 1.55, -11.3], true],      // yard-bay bays 1–2 from the far end (z −14.2…−8.63), levels 1–3
+  gycrate: [[11.3, 2.5, -12.3], [9.4, .95, -14.3], true],    // the GY ply crate mid-hall (x 8.3–10.5, z −14.9…−13.7): lid, battens, clips, canvas roll (11 Nov)
   yardcrate:[[13.4, 1.75, -5.6], [16.6, .45, -8.6], true],    // the ply crate on the yard-bay floor (x 16.0–17.3, z −7.5…−9.5) from the aisle, racking behind (2 Nov, Y1)
   yardcrateclose:[[15.2, 1.15, -6.9], [16.3, .5, -8.3], true],  // close on its aisle-side corner: battens, screws, clips, lid
   yardsack:[[15.5, 1.5, -4.9], [17.6, .45, -2.3], true],     // the sack truck parked against the yard-bay racking by the door, the loose cable across the floor (2 Nov, Y2)
