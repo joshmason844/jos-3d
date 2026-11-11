@@ -5,7 +5,7 @@ Every page in the challenge, its latest score from a fresh-eyes review, and the 
 | Page               | Start (14 Oct) | Latest | Target | At standard? |
 |--------------------|----------------|--------|--------|--------------|
 | People in 3D       | 6.3            | 6.3    | 8      | no           |
-| WW (workshop warehouse) | 6.3            | 7.9 (10 Nov 07:xx reviewer-backed; 10 Nov 23:xx v161 phone plan panel folded, self-scored, review due; LIVE v161) | 8      | no           |
+| WW (workshop warehouse) | 6.3            | 7.9 (10 Nov 07:xx reviewer-backed; 10 Nov 23:xx v161 phone plan panel folded, self-scored; 11 Nov 00:xx v162 GY crate lid + canvas roll, self-scored, review due; LIVE v162) | 8      | no           |
 | Sections 1–5       | 7.0            | 7.0    | 8      | no           |
 
 Pages: 0 of 3 at standard.
