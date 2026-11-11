@@ -76,6 +76,7 @@ After each build, before replying:
 - Watch: a racking row runs along its local +x, so on the right wall (ry −90°) it heads toward the door: start it at the far end.
 
 ## Traps learned
+- WW sweeps (11 Nov 04:xx): `destination-out` erases by the SOURCE alpha, so set `fillStyle = '#000'` before the cut or a .34 tint only takes a third off (test read alpha 57, not 0). And keep each statement on its own line: a fix tacked on after a `//` comment is dead code that looks alive.
 - WW plan tags (11 Nov 03:xx): push a label 'away from the item through its anchor' and two anchors that both sit ON the item go the same way and stack; push each one towards something that is its own (its turning centre), and draw a leader once it has left its anchor.
 - (10 Nov 04:xx) Grab radii in screen pixels must shrink with the target: a 26 px corner radius on a ~45 px phone zone swallowed the whole zone, so a drag inside resized instead of moving. From inside, cap it at 30% of the short side; test drags on the phone viewport, not just desk.
 - WW planner tests (10 Nov 03:xx): labels are placed by the render loop, so with `__loop(false)` read or check them only after `__frame()`. Re-measuring an area on a 5 cm grid is off by up to half the perimeter × 5 cm (0.08 m² on a forklift): re-measure on 1 cm or exactly, or a right answer fails.
