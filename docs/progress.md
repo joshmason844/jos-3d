@@ -5,7 +5,7 @@ Every page in the challenge, its latest score from a fresh-eyes review, and the 
 | Page               | Start (14 Oct) | Latest | Target | At standard? |
 |--------------------|----------------|--------|--------|--------------|
 | People in 3D       | 6.3            | 6.3    | 8      | no           |
-| WW (workshop warehouse) | 6.3            | 7.9 (10 Nov 07:xx reviewer-backed; 10 Nov 23:xx v161 phone plan panel folded, self-scored; 11 Nov 00:xx v162 GY crate lid + canvas roll, self-scored; 11 Nov 01:xx v163 forklift 90° turn sweeps, self-scored; 11 Nov 02:xx v164 R/L tags on the sweeps; 11 Nov 03:xx v165 tags fan out with leaders; blind review v160 vs v165: plan fk0 5.9 → 6.25, fk1 6.1 → 6.4, fk2 6.3 → 6.2 (level), GY crate 5.25 → 6.75; reviewer-backed; 11 Nov 04:xx v166 blocked sweep: tint off the truck + red ✕ at the hit, self-scored; LIVE v166) | 8      | no           |
+| WW (workshop warehouse) | 6.3            | 7.9 (10 Nov 07:xx reviewer-backed; 10 Nov 23:xx v161 phone plan panel folded, self-scored; 11 Nov 00:xx v162 GY crate lid + canvas roll, self-scored; 11 Nov 01:xx v163 forklift 90° turn sweeps, self-scored; 11 Nov 02:xx v164 R/L tags on the sweeps; 11 Nov 03:xx v165 tags fan out with leaders; blind review v160 vs v165: plan fk0 5.9 → 6.25, fk1 6.1 → 6.4, fk2 6.3 → 6.2 (level), GY crate 5.25 → 6.75; reviewer-backed; 11 Nov 04:xx v166 blocked sweep: tint off the truck + red ✕ at the hit, self-scored; 11 Nov 05:xx v167 R/L tags say 'rev'/'fwd' and name the blocker, self-scored; LIVE v167) | 8      | no           |
 | Sections 1–5       | 7.0            | 7.0    | 8      | no           |
 
 Pages: 0 of 3 at standard.
